@@ -171,14 +171,15 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
       ctx.fillStyle = bodyGrad;
       ctx.fill();
 
-      // Subtle surface swirls (no hard bands)
+      // Subtle surface swirls (rotating)
       ctx.save();
       ctx.beginPath();
       ctx.arc(px, py, planetRadius, 0, Math.PI * 2);
       ctx.clip();
+      const waspRot = t * 0.08; // slow rotation
       for (let i = 0; i < 5; i++) {
         const swY = py - planetRadius * 0.6 + (planetRadius * 1.2 * i) / 4;
-        const swX = px + Math.sin(t * 0.03 + i * 2.1) * planetRadius * 0.15;
+        const swX = px + Math.sin(waspRot + i * 2.1) * planetRadius * 0.4;
         const swR = planetRadius * (0.3 + i * 0.08);
         const swirl = ctx.createRadialGradient(swX, swY, 0, swX, swY, swR);
         const colors = [
@@ -191,7 +192,7 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
         ctx.fillRect(swX - swR, swY - swR, swR * 2, swR * 2);
       }
       // Molten glow on terminator line (where iron condenses)
-      const moltenX = px + planetRadius * 0.15;
+      const moltenX = px + Math.sin(waspRot * 0.5) * planetRadius * 0.2 + planetRadius * 0.15;
       const moltenGrad = ctx.createLinearGradient(moltenX - planetRadius * 0.15, py, moltenX + planetRadius * 0.15, py);
       moltenGrad.addColorStop(0, "transparent");
       moltenGrad.addColorStop(0.4, "rgba(255,160,60,0.06)");
@@ -401,7 +402,7 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
 
       // Prismatic refraction bands (rainbow-like, very subtle)
       for (let i = 0; i < 6; i++) {
-        const bandAngle = (i / 6) * Math.PI + t * 0.02;
+        const bandAngle = (i / 6) * Math.PI + t * 0.06;
         const bx = p2x + Math.cos(bandAngle) * p2Radius * 0.3;
         const by = p2y + Math.sin(bandAngle) * p2Radius * 0.3;
         const bLen = p2Radius * 1.2;
@@ -421,12 +422,13 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
         ctx.fillRect(p2x - p2Radius, p2y - p2Radius, p2Radius * 2, p2Radius * 2);
       }
 
-      // Crystal facet edges (geometric lines across the surface)
+      // Crystal facet edges (rotating geometric lines)
+      const cancriRot = t * 0.06;
       ctx.strokeStyle = "rgba(200,220,255,0.06)";
       ctx.lineWidth = 0.5;
       for (let i = 0; i < 10; i++) {
         const seed = i * 73.1 + 13;
-        const a1 = seed * 0.1;
+        const a1 = seed * 0.1 + cancriRot;
         const a2 = a1 + 0.8 + Math.sin(seed) * 0.5;
         ctx.beginPath();
         ctx.moveTo(p2x + Math.cos(a1) * p2Radius * 0.9, p2y + Math.sin(a1) * p2Radius * 0.9);
@@ -434,11 +436,13 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
         ctx.stroke();
       }
 
-      // Brilliant diamond sparkles
+      // Brilliant diamond sparkles (orbiting)
       for (let i = 0; i < 15; i++) {
         const seed = i * 37.7 + 5;
-        const hx = p2x - p2Radius * 0.7 + (Math.sin(seed * 2.1) * 0.5 + 0.5) * p2Radius * 1.4;
-        const hy = p2y - p2Radius * 0.7 + (Math.cos(seed * 1.7) * 0.5 + 0.5) * p2Radius * 1.4;
+        const sparkAngle = seed + cancriRot * (0.8 + (i % 3) * 0.3);
+        const sparkDist = 0.3 + (Math.sin(seed * 1.3) * 0.5 + 0.5) * 0.55;
+        const hx = p2x + Math.cos(sparkAngle) * p2Radius * sparkDist;
+        const hy = p2y + Math.sin(sparkAngle) * p2Radius * sparkDist;
         const sparkle = Math.max(0, Math.sin(t * 2 + seed * 3));
         if (sparkle < 0.3) continue;
         const sz = 1 + sparkle * 2;
@@ -485,8 +489,6 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
       p2Rim.addColorStop(1, "rgba(150,200,255,0.06)");
       ctx.fillStyle = p2Rim;
       ctx.fill();
-
-      ctx.restore();
 
       // === Sci-fi HUD panel for 55 Cancri e ===
       const hudX = p2x + p2Radius + 20;
