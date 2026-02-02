@@ -32,29 +32,6 @@ body {
   90% { transform: translate(-10%, 10%); }
 }
 
-@keyframes aurora {
-  0% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(90deg) scale(1.1); }
-  50% { transform: rotate(180deg) scale(1); }
-  75% { transform: rotate(270deg) scale(1.1); }
-  100% { transform: rotate(360deg) scale(1); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-}
-
-@keyframes pulse-ring {
-  0% { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
-
-@keyframes line-slide {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100vw); }
-}
-
 .grain-overlay {
   position: fixed;
   top: -50%;
@@ -65,14 +42,6 @@ body {
   animation: grain 8s steps(10) infinite;
   pointer-events: none;
   z-index: 100;
-}
-
-.aurora-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.15;
-  animation: aurora 20s ease-in-out infinite;
 }
 
 .text-glow {
