@@ -258,7 +258,89 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
         ctx.fill();
       }
 
-      // Draw 55 Cancri e (lava/diamond super-earth) - left side
+      // === Sci-fi HUD panel for WASP-76b ===
+      const whX = px - planetRadius - 150;
+      const whY = py - planetRadius * 0.6;
+      const whAlpha = 0.6 + 0.15 * Math.sin(t * 0.4 + 1);
+      const wLineColor = `rgba(100,160,255,${whAlpha * 0.3})`;
+      const wTextColor = `rgba(140,190,255,${whAlpha * 0.7})`;
+      const wDimText = `rgba(100,160,255,${whAlpha * 0.4})`;
+
+      ctx.save();
+
+      // Connector line
+      ctx.strokeStyle = wLineColor;
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(px - planetRadius * 0.8, py - planetRadius * 0.2);
+      ctx.lineTo(whX + 130, whY + 10);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Target circle
+      ctx.strokeStyle = `rgba(100,160,255,${whAlpha * 0.5})`;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.arc(px - planetRadius * 0.8, py - planetRadius * 0.2, 4, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // HUD brackets
+      const whW = 130;
+      const whH = 90;
+      const wc = 8;
+      ctx.strokeStyle = wLineColor;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(whX, whY + wc); ctx.lineTo(whX, whY); ctx.lineTo(whX + wc, whY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(whX + whW - wc, whY); ctx.lineTo(whX + whW, whY); ctx.lineTo(whX + whW, whY + wc); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(whX, whY + whH - wc); ctx.lineTo(whX, whY + whH); ctx.lineTo(whX + wc, whY + whH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(whX + whW - wc, whY + whH); ctx.lineTo(whX + whW, whY + whH); ctx.lineTo(whX + whW, whY + whH - wc); ctx.stroke();
+
+      // Text
+      ctx.font = "600 9px monospace";
+      ctx.fillStyle = wTextColor;
+      ctx.fillText("WASP-76B", whX + 8, whY + 16);
+
+      ctx.font = "7px monospace";
+      ctx.fillStyle = wDimText;
+      ctx.fillText("JUPITER CHAUD  ·  640 AL", whX + 8, whY + 28);
+
+      ctx.strokeStyle = `rgba(100,160,255,${whAlpha * 0.15})`;
+      ctx.beginPath(); ctx.moveTo(whX + 8, whY + 33); ctx.lineTo(whX + whW - 8, whY + 33); ctx.stroke();
+
+      ctx.font = "7px monospace";
+      ctx.fillStyle = wDimText;
+      ctx.fillText("MASSE", whX + 8, whY + 45);
+      ctx.fillStyle = wTextColor;
+      ctx.fillText("0.92 Mj", whX + 65, whY + 45);
+
+      ctx.fillStyle = wDimText;
+      ctx.fillText("TEMP", whX + 8, whY + 56);
+      ctx.fillStyle = `rgba(255,150,80,${whAlpha * 0.7})`;
+      ctx.fillText("2,228 K", whX + 65, whY + 56);
+
+      ctx.fillStyle = wDimText;
+      ctx.fillText("PLUIE", whX + 8, whY + 67);
+      ctx.fillStyle = `rgba(255,180,100,${whAlpha * 0.7})`;
+      ctx.fillText("FER LIQUIDE", whX + 65, whY + 67);
+
+      // Scanning bar
+      const wScan = (t * 0.25 + 1) % 2;
+      if (wScan < 1) {
+        ctx.fillStyle = `rgba(100,160,255,${0.3 * (1 - wScan)})`;
+        ctx.fillRect(whX + 8 + wScan * (whW - 16), whY + 74, 2, 8);
+      }
+
+      // Status dot
+      const wDot = 0.5 + 0.5 * Math.sin(t * 2 + 1);
+      ctx.beginPath();
+      ctx.arc(whX + whW - 12, whY + 15, 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(100,255,180,${0.3 + wDot * 0.4})`;
+      ctx.fill();
+
+      ctx.restore();
+
+      // Draw 55 Cancri e (diamond super-earth) - left side
       const p2BaseX = w * 0.18;
       const p2BaseY = h * 0.6;
       const p2Radius = Math.min(w, h) * 0.09;
@@ -267,54 +349,94 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
 
       ctx.save();
 
-      // Outer glow - warm amber/magenta
-      const p2Glow = ctx.createRadialGradient(p2x, p2y, p2Radius * 0.8, p2x, p2y, p2Radius * 2.5);
-      p2Glow.addColorStop(0, "rgba(255,140,60,0.06)");
-      p2Glow.addColorStop(0.3, "rgba(220,80,180,0.03)");
+      // Outer crystalline glow - prismatic
+      const p2Glow = ctx.createRadialGradient(p2x, p2y, p2Radius * 0.7, p2x, p2y, p2Radius * 2.8);
+      p2Glow.addColorStop(0, "rgba(180,220,255,0.07)");
+      p2Glow.addColorStop(0.2, "rgba(200,180,255,0.04)");
+      p2Glow.addColorStop(0.5, "rgba(150,255,220,0.02)");
       p2Glow.addColorStop(1, "transparent");
       ctx.fillStyle = p2Glow;
       ctx.fillRect(p2x - p2Radius * 3, p2y - p2Radius * 3, p2Radius * 6, p2Radius * 6);
 
-      // Planet body - dark obsidian with magma veins
+      // Planet body - crystalline/diamond dark with prismatic tint
       ctx.beginPath();
       ctx.arc(p2x, p2y, p2Radius, 0, Math.PI * 2);
       const p2Body = ctx.createRadialGradient(
-        p2x - p2Radius * 0.3, p2y - p2Radius * 0.3, p2Radius * 0.05,
+        p2x - p2Radius * 0.35, p2y - p2Radius * 0.3, p2Radius * 0.05,
         p2x + p2Radius * 0.1, p2y + p2Radius * 0.1, p2Radius
       );
-      p2Body.addColorStop(0, "rgba(60,40,50,0.95)");
-      p2Body.addColorStop(0.3, "rgba(40,25,35,0.95)");
-      p2Body.addColorStop(0.6, "rgba(25,15,20,0.95)");
-      p2Body.addColorStop(1, "rgba(8,4,8,0.95)");
+      p2Body.addColorStop(0, "rgba(140,160,200,0.95)");
+      p2Body.addColorStop(0.2, "rgba(80,100,140,0.95)");
+      p2Body.addColorStop(0.45, "rgba(50,60,90,0.95)");
+      p2Body.addColorStop(0.7, "rgba(30,30,50,0.95)");
+      p2Body.addColorStop(1, "rgba(10,10,20,0.95)");
       ctx.fillStyle = p2Body;
       ctx.fill();
 
-      // Lava cracks / magma veins
+      // Diamond facets and crystalline surface
       ctx.save();
       ctx.beginPath();
       ctx.arc(p2x, p2y, p2Radius, 0, Math.PI * 2);
       ctx.clip();
-      for (let i = 0; i < 12; i++) {
-        const seed = i * 53.7 + 17;
-        const crackX = p2x - p2Radius * 0.7 + (Math.sin(seed * 1.3) * 0.5 + 0.5) * p2Radius * 1.4;
-        const crackY = p2y - p2Radius * 0.7 + (Math.cos(seed * 0.7) * 0.5 + 0.5) * p2Radius * 1.4;
-        const pulse = 0.7 + 0.3 * Math.sin(t * 0.5 + seed);
-        const crackR = p2Radius * (0.08 + (i % 4) * 0.03) * pulse;
-        const lava = ctx.createRadialGradient(crackX, crackY, 0, crackX, crackY, crackR);
-        lava.addColorStop(0, `rgba(255,${120 + (i % 3) * 40},${30 + (i % 2) * 30},${0.15 * pulse})`);
-        lava.addColorStop(1, "transparent");
-        ctx.fillStyle = lava;
-        ctx.fillRect(crackX - crackR, crackY - crackR, crackR * 2, crackR * 2);
-      }
-      // Diamond-like specular highlights
+
+      // Prismatic refraction bands (rainbow-like, very subtle)
       for (let i = 0; i < 6; i++) {
-        const seed = i * 41.3 + 7;
-        const hx = p2x - p2Radius * 0.5 + (Math.sin(seed * 2.1) * 0.5 + 0.5) * p2Radius;
-        const hy = p2y - p2Radius * 0.5 + (Math.cos(seed * 1.7) * 0.5 + 0.5) * p2Radius;
-        const sparkle = 0.5 + 0.5 * Math.sin(t * 1.5 + seed * 3);
+        const bandAngle = (i / 6) * Math.PI + t * 0.02;
+        const bx = p2x + Math.cos(bandAngle) * p2Radius * 0.3;
+        const by = p2y + Math.sin(bandAngle) * p2Radius * 0.3;
+        const bLen = p2Radius * 1.2;
+        const perpX = -Math.sin(bandAngle);
+        const perpY = Math.cos(bandAngle);
+        const bandGrad = ctx.createLinearGradient(
+          bx - perpX * bLen, by - perpY * bLen,
+          bx + perpX * bLen, by + perpY * bLen
+        );
+        const hue = (i * 60 + t * 10) % 360;
+        bandGrad.addColorStop(0, "transparent");
+        bandGrad.addColorStop(0.4, `hsla(${hue},80%,70%,0.04)`);
+        bandGrad.addColorStop(0.5, `hsla(${hue + 30},90%,80%,0.06)`);
+        bandGrad.addColorStop(0.6, `hsla(${hue + 60},80%,70%,0.04)`);
+        bandGrad.addColorStop(1, "transparent");
+        ctx.fillStyle = bandGrad;
+        ctx.fillRect(p2x - p2Radius, p2y - p2Radius, p2Radius * 2, p2Radius * 2);
+      }
+
+      // Crystal facet edges (geometric lines across the surface)
+      ctx.strokeStyle = "rgba(200,220,255,0.06)";
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < 10; i++) {
+        const seed = i * 73.1 + 13;
+        const a1 = seed * 0.1;
+        const a2 = a1 + 0.8 + Math.sin(seed) * 0.5;
         ctx.beginPath();
-        ctx.arc(hx, hy, 1 + sparkle, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${0.1 * sparkle})`;
+        ctx.moveTo(p2x + Math.cos(a1) * p2Radius * 0.9, p2y + Math.sin(a1) * p2Radius * 0.9);
+        ctx.lineTo(p2x + Math.cos(a2) * p2Radius * 0.7, p2y + Math.sin(a2) * p2Radius * 0.7);
+        ctx.stroke();
+      }
+
+      // Brilliant diamond sparkles
+      for (let i = 0; i < 15; i++) {
+        const seed = i * 37.7 + 5;
+        const hx = p2x - p2Radius * 0.7 + (Math.sin(seed * 2.1) * 0.5 + 0.5) * p2Radius * 1.4;
+        const hy = p2y - p2Radius * 0.7 + (Math.cos(seed * 1.7) * 0.5 + 0.5) * p2Radius * 1.4;
+        const sparkle = Math.max(0, Math.sin(t * 2 + seed * 3));
+        if (sparkle < 0.3) continue;
+        const sz = 1 + sparkle * 2;
+        // 4-point star shape
+        ctx.fillStyle = `rgba(220,240,255,${0.15 * sparkle})`;
+        ctx.beginPath();
+        ctx.moveTo(hx, hy - sz);
+        ctx.lineTo(hx + sz * 0.3, hy);
+        ctx.lineTo(hx, hy + sz);
+        ctx.lineTo(hx - sz * 0.3, hy);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(hx - sz, hy);
+        ctx.lineTo(hx, hy + sz * 0.3);
+        ctx.lineTo(hx + sz, hy);
+        ctx.lineTo(hx, hy - sz * 0.3);
+        ctx.closePath();
         ctx.fill();
       }
       ctx.restore();
@@ -323,25 +445,133 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
       ctx.beginPath();
       ctx.arc(p2x, p2y, p2Radius, 0, Math.PI * 2);
       const p2Shadow = ctx.createRadialGradient(
-        p2x - p2Radius * 0.4, p2y - p2Radius * 0.3, p2Radius * 0.2,
+        p2x - p2Radius * 0.4, p2y - p2Radius * 0.3, p2Radius * 0.15,
         p2x, p2y, p2Radius
       );
       p2Shadow.addColorStop(0, "transparent");
-      p2Shadow.addColorStop(0.5, "transparent");
-      p2Shadow.addColorStop(0.8, "rgba(0,0,0,0.4)");
-      p2Shadow.addColorStop(1, "rgba(0,0,0,0.8)");
+      p2Shadow.addColorStop(0.45, "transparent");
+      p2Shadow.addColorStop(0.8, "rgba(0,0,0,0.5)");
+      p2Shadow.addColorStop(1, "rgba(0,0,0,0.85)");
       ctx.fillStyle = p2Shadow;
       ctx.fill();
 
-      // Atmosphere rim - warm amber
+      // Atmosphere rim - icy blue/white
       ctx.beginPath();
       ctx.arc(p2x, p2y, p2Radius, 0, Math.PI * 2);
-      const p2Rim = ctx.createRadialGradient(p2x, p2y, p2Radius * 0.88, p2x, p2y, p2Radius * 1.02);
+      const p2Rim = ctx.createRadialGradient(p2x, p2y, p2Radius * 0.88, p2x, p2y, p2Radius * 1.03);
       p2Rim.addColorStop(0, "transparent");
-      p2Rim.addColorStop(0.6, "transparent");
-      p2Rim.addColorStop(0.85, "rgba(255,160,80,0.12)");
-      p2Rim.addColorStop(1, "rgba(255,120,60,0.06)");
+      p2Rim.addColorStop(0.5, "transparent");
+      p2Rim.addColorStop(0.85, "rgba(180,210,255,0.18)");
+      p2Rim.addColorStop(1, "rgba(150,200,255,0.06)");
       ctx.fillStyle = p2Rim;
+      ctx.fill();
+
+      ctx.restore();
+
+      // === Sci-fi HUD panel for 55 Cancri e ===
+      const hudX = p2x + p2Radius + 20;
+      const hudY = p2y - p2Radius * 0.8;
+      const hudAlpha = 0.6 + 0.15 * Math.sin(t * 0.5);
+      const lineColor = `rgba(150,200,255,${hudAlpha * 0.3})`;
+      const textColor = `rgba(180,220,255,${hudAlpha * 0.7})`;
+      const dimText = `rgba(150,200,255,${hudAlpha * 0.4})`;
+
+      ctx.save();
+
+      // Connector line from planet to HUD
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(p2x + p2Radius * 0.85, p2y - p2Radius * 0.3);
+      ctx.lineTo(hudX, hudY + 8);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Small target circle on planet edge
+      ctx.strokeStyle = `rgba(150,200,255,${hudAlpha * 0.5})`;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.arc(p2x + p2Radius * 0.85, p2y - p2Radius * 0.3, 4, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // HUD bracket lines
+      const hudW = 130;
+      const hudH = 90;
+      const corner = 8;
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 0.8;
+      // Top-left corner
+      ctx.beginPath();
+      ctx.moveTo(hudX, hudY + corner);
+      ctx.lineTo(hudX, hudY);
+      ctx.lineTo(hudX + corner, hudY);
+      ctx.stroke();
+      // Top-right corner
+      ctx.beginPath();
+      ctx.moveTo(hudX + hudW - corner, hudY);
+      ctx.lineTo(hudX + hudW, hudY);
+      ctx.lineTo(hudX + hudW, hudY + corner);
+      ctx.stroke();
+      // Bottom-left corner
+      ctx.beginPath();
+      ctx.moveTo(hudX, hudY + hudH - corner);
+      ctx.lineTo(hudX, hudY + hudH);
+      ctx.lineTo(hudX + corner, hudY + hudH);
+      ctx.stroke();
+      // Bottom-right corner
+      ctx.beginPath();
+      ctx.moveTo(hudX + hudW - corner, hudY + hudH);
+      ctx.lineTo(hudX + hudW, hudY + hudH);
+      ctx.lineTo(hudX + hudW, hudY + hudH - corner);
+      ctx.stroke();
+
+      // HUD text content
+      ctx.font = "600 9px monospace";
+      ctx.fillStyle = textColor;
+      ctx.fillText("55 CANCRI E", hudX + 8, hudY + 16);
+
+      ctx.font = "7px monospace";
+      ctx.fillStyle = dimText;
+      ctx.fillText("SUPER-TERRE  ·  41 AL", hudX + 8, hudY + 28);
+
+      // Separator line
+      ctx.strokeStyle = `rgba(150,200,255,${hudAlpha * 0.15})`;
+      ctx.beginPath();
+      ctx.moveTo(hudX + 8, hudY + 33);
+      ctx.lineTo(hudX + hudW - 8, hudY + 33);
+      ctx.stroke();
+
+      // Data rows
+      ctx.font = "7px monospace";
+      ctx.fillStyle = dimText;
+      ctx.fillText("MASSE", hudX + 8, hudY + 45);
+      ctx.fillStyle = textColor;
+      ctx.fillText("8.63 M\u2295", hudX + 65, hudY + 45);
+
+      ctx.fillStyle = dimText;
+      ctx.fillText("TEMP", hudX + 8, hudY + 56);
+      ctx.fillStyle = `rgba(255,180,100,${hudAlpha * 0.7})`;
+      ctx.fillText("2,573 K", hudX + 65, hudY + 56);
+
+      ctx.fillStyle = dimText;
+      ctx.fillText("COMPO", hudX + 8, hudY + 67);
+      ctx.fillStyle = textColor;
+      ctx.fillText("C / DIAMANT", hudX + 65, hudY + 67);
+
+      // Scanning animation bar
+      const scanProgress = (t * 0.3) % 2;
+      if (scanProgress < 1) {
+        const scanX = hudX + 8 + scanProgress * (hudW - 16);
+        ctx.fillStyle = `rgba(150,200,255,${0.3 * (1 - scanProgress)})`;
+        ctx.fillRect(scanX, hudY + 74, 2, 8);
+      }
+
+      // Status dot (pulsing)
+      const dotPulse = 0.5 + 0.5 * Math.sin(t * 2);
+      ctx.beginPath();
+      ctx.arc(hudX + hudW - 12, hudY + 15, 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(100,255,180,${0.3 + dotPulse * 0.4})`;
       ctx.fill();
 
       ctx.restore();
