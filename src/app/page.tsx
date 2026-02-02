@@ -101,6 +101,8 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
     const parallaxStrength = [0.01, 0.025, 0.05]; // per layer
 
     let lastShootingCheck = 0;
+    let wasp76Scale = 1;
+    let cancriScale = 1;
 
     const draw = (time: number) => {
       const w = canvas.width;
@@ -134,7 +136,16 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
       const py = planetBaseY - oy * planetParallax * h;
       const t = time * 0.001;
 
+      // Hover detection - smooth scale
+      const waspDist = Math.sqrt((mx - px) ** 2 + (my - py) ** 2);
+      const waspHover = waspDist < planetRadius * 3;
+      const waspTarget = waspHover ? 1.35 : 1;
+      wasp76Scale += (waspTarget - wasp76Scale) * 0.06;
+
       ctx.save();
+      ctx.translate(px, py);
+      ctx.scale(wasp76Scale, wasp76Scale);
+      ctx.translate(-px, -py);
 
       // Outer atmosphere glow - deep blue/purple/cyan
       const outerGlow = ctx.createRadialGradient(px, py, planetRadius * 0.8, px, py, planetRadius * 2.8);
@@ -213,8 +224,6 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
       rimGrad.addColorStop(1, "rgba(80,160,255,0.08)");
       ctx.fillStyle = rimGrad;
       ctx.fill();
-
-      ctx.restore();
 
       // Iron rain from space - 3D perspective falling toward planet
       for (let i = 0; i < 25; i++) {
@@ -339,6 +348,8 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
       ctx.fill();
 
       ctx.restore();
+      // Close WASP-76b scale transform
+      ctx.restore();
 
       // Draw 55 Cancri e (diamond super-earth) - left side
       const p2BaseX = w * 0.18;
@@ -347,7 +358,16 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
       const p2x = p2BaseX - ox * 0.012 * w;
       const p2y = p2BaseY - oy * 0.012 * h;
 
+      // Hover detection - smooth scale
+      const cancriDist = Math.sqrt((mx - p2x) ** 2 + (my - p2y) ** 2);
+      const cancriHover = cancriDist < p2Radius * 3.5;
+      const cancriTarget = cancriHover ? 1.4 : 1;
+      cancriScale += (cancriTarget - cancriScale) * 0.06;
+
       ctx.save();
+      ctx.translate(p2x, p2y);
+      ctx.scale(cancriScale, cancriScale);
+      ctx.translate(-p2x, -p2y);
 
       // Outer crystalline glow - prismatic
       const p2Glow = ctx.createRadialGradient(p2x, p2y, p2Radius * 0.7, p2x, p2y, p2Radius * 2.8);
@@ -574,6 +594,8 @@ function StarField({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
       ctx.fillStyle = `rgba(100,255,180,${0.3 + dotPulse * 0.4})`;
       ctx.fill();
 
+      ctx.restore();
+      // Close 55 Cancri e scale transform
       ctx.restore();
 
       // Draw stars with mouse repulsion
