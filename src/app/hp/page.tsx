@@ -302,32 +302,42 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
       <button class="patch-close" onclick="togglePatchModal(false)">&times;</button>
     </div>
     <div class="patch-body">
-      <div class="patch-version">Version 1.4.0 — 3 Février 2026</div>
+      <div class="patch-version">Version 1.5.0 — 3 Février 2026</div>
+      <div class="patch-section">
+        <h3>⚖️ Équilibrage</h3>
+        <ul>
+          <li>Avada Kedavra : dégâts de base 40 → 100, CD 3.0s → 2.0s</li>
+          <li>Réorganisation des sorts : Stupefix → Patronus → Confringo → Avada</li>
+          <li>Avada est maintenant clairement le sort le plus puissant (DPS x4 vs Confringo)</li>
+        </ul>
+      </div>
       <div class="patch-section">
         <h3>✨ Nouveau</h3>
         <ul>
-          <li>Système de combat visuel en pixel art style Castlevania</li>
-          <li>25 sprites de monstres uniques — un pour chaque zone !</li>
           <li>Talents Avada Kedavra : Puissance (+25% dmg) et Vélocité (-5% CD)</li>
-          <li>Système de Patch Notes avec notification</li>
-        </ul>
-      </div>
-      <div class="patch-section">
-        <h3>🔧 Améliorations</h3>
-        <ul>
           <li>Bouton MAX pour monter les pets au niveau max</li>
           <li>Bouton "Aller" pour aller à la zone d'un pet non découvert</li>
-          <li>Avada Kedavra peut maintenant scaler et devenir le sort le plus puissant</li>
-          <li>Monstres qui changent dynamiquement selon la zone</li>
+          <li>Historique des patch notes</li>
         </ul>
       </div>
-      <div class="patch-section">
-        <h3>🎮 À venir</h3>
-        <ul>
-          <li>Améliorations du sprite du mage</li>
-          <li>Nouveaux effets de sorts par élément</li>
-          <li>Animations de mort des monstres</li>
-        </ul>
+      <div class="patch-section" style="border-top:1px solid rgba(212,168,67,0.2);margin-top:15px;padding-top:15px;">
+        <h3>📜 Historique</h3>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.4.0 — Talents Avada</summary>
+          <ul style="margin-top:5px;"><li>Ajout des talents Avada Kedavra</li><li>Boutons MAX et Aller pour pets</li></ul>
+        </details>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.3.0 — Combat Visuel</summary>
+          <ul style="margin-top:5px;"><li>Système de combat pixel art Castlevania</li><li>25 sprites de monstres uniques</li><li>Système de Patch Notes</li></ul>
+        </details>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.2.0 — Corrections</summary>
+          <ul style="margin-top:5px;"><li>Fix bug NaN après rebirth</li><li>Initialisation correcte d'Avada Kedavra</li></ul>
+        </details>
+        <details>
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.0.0 — Lancement</summary>
+          <ul style="margin-top:5px;"><li>25 zones avec progression</li><li>4 sorts magiques</li><li>Système de talents et pets</li><li>Rebirth et Prestige</li></ul>
+        </details>
       </div>
     </div>
   </div>
@@ -339,7 +349,7 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
     const script = document.createElement('script');
     script.textContent = `
 // ============ PATCH NOTES SYSTEM ============
-const PATCH_VERSION = '1.4.0';
+const PATCH_VERSION = '1.5.0';
 
 function togglePatchModal(show) {
   const modal = document.getElementById('patchModal');
@@ -474,12 +484,13 @@ const REBIRTH_TIERS = [
 const PRESTIGE_MULT_PER = 0.3;
 
 // ============ SPELLS ============
+// Ordre logique de puissance : Stupefix < Patronus < Confringo < Avada
 const BASE_SPELLS = [
   { id: 'stupefix',  name: 'Stupefix',  icon: '⚡', baseDmg: 10, baseCD: 1.2, desc: 'Éclair rapide.' },
-  { id: 'confringo', name: 'Confringo', icon: '🔥', baseDmg: 24, baseCD: 2.0, desc: 'Explosion puissante.' },
   { id: 'patronus',  name: 'Patronus',  icon: '🦌', baseDmg: 15, baseCD: 1.5, desc: 'Lumière sacrée.' },
+  { id: 'confringo', name: 'Confringo', icon: '🔥', baseDmg: 24, baseCD: 2.0, desc: 'Explosion puissante.' },
 ];
-const SPELL4 = { id: 'avada', name: 'Avada Kedavra', icon: '💀', baseDmg: 40, baseCD: 3.0, desc: 'Le sort interdit.' };
+const SPELL4 = { id: 'avada', name: 'Avada Kedavra', icon: '💀', baseDmg: 100, baseCD: 2.0, desc: 'Le sort interdit.' };
 function getSpells() { return hasShop('spell4') ? [...BASE_SPELLS, SPELL4] : BASE_SPELLS; }
 // Keep SPELLS as a getter for backward compat
 let SPELLS = BASE_SPELLS;
