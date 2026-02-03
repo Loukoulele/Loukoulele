@@ -1,10 +1,24 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import ReactDOM from "react-dom";
+import BattleScene, { BattleAPI } from "./BattleScene";
 
 export default function WandIdle() {
   const containerRef = useRef<HTMLDivElement>(null);
   const injectedRef = useRef(false);
+  const [battleAPI, setBattleAPI] = useState<BattleAPI | null>(null);
+
+  // Expose battle API globally for the inline script
+  useEffect(() => {
+    if (battleAPI) {
+      (window as any).battleAPI = battleAPI;
+    }
+  }, [battleAPI]);
+
+  const handleBattleReady = useCallback((api: BattleAPI) => {
+    setBattleAPI(api);
+  }, []);
 
   useEffect(() => {
     if (injectedRef.current) return;
@@ -37,7 +51,25 @@ export default function WandIdle() {
 body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--parchment); min-height:100vh; overflow-x:hidden; user-select:none; }
 
 .top-bar { background:linear-gradient(180deg,var(--dark),var(--darker)); border-bottom:2px solid var(--gold-dark); padding:8px 15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
-.game-logo { font-family:'Cinzel',serif; color:var(--gold); font-size:1.1em; text-shadow:0 0 15px rgba(212,168,67,0.3); }
+.game-logo { font-family:'Cinzel',serif; color:var(--gold); font-size:1.1em; text-shadow:0 0 15px rgba(212,168,67,0.3); display:flex; align-items:center; gap:10px; }
+.patch-note-btn { background:none; border:none; font-size:1.1em; cursor:pointer; position:relative; opacity:0.7; transition:opacity 0.2s, transform 0.2s; }
+.patch-note-btn:hover { opacity:1; transform:scale(1.1); }
+.patch-note-btn.has-new::after { content:''; position:absolute; top:-2px; right:-2px; width:8px; height:8px; background:#ff4444; border-radius:50%; animation:pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.3);opacity:0.7;} }
+.patch-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; }
+.patch-modal.show { display:flex; }
+.patch-content { background:linear-gradient(180deg,var(--dark),var(--darker)); border:2px solid var(--gold-dark); border-radius:12px; max-width:450px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 0 40px rgba(212,168,67,0.2); }
+.patch-header { padding:15px 20px; border-bottom:1px solid var(--gold-dark); display:flex; justify-content:space-between; align-items:center; }
+.patch-header h2 { font-family:'Cinzel',serif; color:var(--gold); font-size:1.2em; margin:0; }
+.patch-close { background:none; border:none; color:var(--parchment); font-size:1.5em; cursor:pointer; opacity:0.7; }
+.patch-close:hover { opacity:1; }
+.patch-body { padding:20px; }
+.patch-version { color:var(--gold); font-family:'Cinzel',serif; font-size:0.9em; margin-bottom:15px; }
+.patch-section { margin-bottom:15px; }
+.patch-section h3 { color:var(--accent); font-size:0.95em; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.patch-section ul { list-style:none; padding-left:5px; }
+.patch-section li { color:var(--parchment); font-size:0.85em; margin-bottom:6px; padding-left:15px; position:relative; }
+.patch-section li::before { content:'•'; position:absolute; left:0; color:var(--gold-dark); }
 .currency-bar { display:flex; gap:18px; align-items:center; }
 .currency { display:flex; align-items:center; gap:4px; font-size:0.9em; }
 .currency .c-icon { font-size:1.1em; }
@@ -58,18 +90,13 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
 .zone-desc { color:#888; font-size:0.85em; }
 .zone-progress { font-size:0.75em; color:#666; margin-top:3px; }
 
-.battle-area { position:relative; background:linear-gradient(180deg,rgba(20,20,40,0.8),rgba(10,10,25,0.9)); border:1px solid rgba(212,168,67,0.15); border-radius:12px; height:320px; overflow:hidden; margin-bottom:10px; }
-.mob-container { position:absolute; top:45%; left:50%; transform:translate(-50%,-50%); text-align:center; }
-.mob-icon { font-size:4em; transition:transform 0.1s; }
-.mob-icon.hit { transform:scale(0.85); filter:brightness(2); }
-.mob-name { font-family:'Cinzel',serif; color:var(--parchment); font-size:0.9em; margin-top:5px; }
-.mob-hp-bar { width:200px; height:12px; background:rgba(0,0,0,0.6); border-radius:6px; margin:6px auto 0; overflow:hidden; }
-.mob-hp-fill { height:100%; background:linear-gradient(90deg,var(--red),#ef5350); border-radius:6px; transition:width 0.15s; }
-.mob-hp-text { font-size:0.7em; color:#aaa; margin-top:2px; }
-
-.wand-companion { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); text-align:center; }
-.wand-icon { font-size:3em; animation:wandFloat 2.5s ease-in-out infinite; }
-@keyframes wandFloat { 0%,100%{transform:translateY(0) rotate(-10deg);} 50%{transform:translateY(-8px) rotate(10deg);} }
+.battle-area { position:relative; border:1px solid rgba(212,168,67,0.15); border-radius:12px; overflow:hidden; margin-bottom:10px; }
+#battleSceneContainer { display:flex; justify-content:center; }
+.mob-info-bar { text-align:center; padding:8px; background:rgba(0,0,0,0.5); }
+.mob-info-bar .mob-name { font-family:'Cinzel',serif; color:var(--gold); font-size:1em; margin-bottom:4px; }
+.mob-info-bar .mob-hp-bar { width:200px; height:12px; background:#1a1a1a; border-radius:6px; margin:0 auto; border:1px solid rgba(212,168,67,0.3); overflow:hidden; }
+.mob-info-bar .mob-hp-fill { height:100%; background:linear-gradient(90deg,#c62828,#ff5252); transition:width 0.1s; }
+.mob-info-bar .mob-hp-text { font-size:0.75em; color:#888; margin-top:2px; }
 
 .dmg-number { position:absolute; font-family:'Cinzel',serif; font-weight:900; font-size:1.2em; color:#ff6b6b; pointer-events:none; animation:dmgFly 0.8s ease-out forwards; text-shadow:0 0 6px rgba(255,0,0,0.5); z-index:10; }
 .dmg-number.crit { font-size:1.6em; color:#ffd740; text-shadow:0 0 10px rgba(255,215,0,0.7); }
@@ -168,7 +195,6 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
 @media (max-width:600px) {
   .talent-grid { grid-template-columns:repeat(2,1fr); }
   .currency-bar { gap:10px; font-size:0.8em; }
-  .battle-area { height:260px; }
   .spell-upgrade-card { flex-direction:column; text-align:center; }
   .spell-upgrade-card .su-stats { justify-content:center; }
 }
@@ -179,7 +205,7 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
     container.innerHTML = `
 
 <div class="top-bar">
-  <div class="game-logo">🪄 Wand Idle</div>
+  <div class="game-logo">🪄 Wand Idle <button class="patch-note-btn" id="patchNoteBtn" onclick="togglePatchModal(true)" title="Patch Notes">📜</button></div>
   <div class="currency-bar">
     <div class="currency"><span class="c-icon">🪙</span><span class="c-val" id="goldVal">0</span><span class="c-ps" id="goldPs"></span></div>
     <div class="currency"><span class="c-icon">💎</span><span class="c-val" id="gemsVal">0</span></div>
@@ -208,13 +234,12 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
       <div class="zone-progress" id="zoneProgress"></div>
     </div>
     <div class="battle-area" id="battleArea">
-      <div class="mob-container">
-        <div class="mob-icon" id="mobIcon">🕷️</div>
+      <div id="battleSceneContainer"></div>
+      <div class="mob-info-bar">
         <div class="mob-name" id="mobName">—</div>
         <div class="mob-hp-bar"><div class="mob-hp-fill" id="mobHpFill" style="width:100%"></div></div>
         <div class="mob-hp-text" id="mobHpText">0/0</div>
       </div>
-      <div class="wand-companion"><div class="wand-icon">🪄</div></div>
     </div>
     <div class="kill-counter" id="killCounter">Kills : 0</div>
     <div class="spell-bar" id="spellBar"></div>
@@ -270,12 +295,82 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
 
 <div id="toast" class="toast"></div>
 
+<div class="patch-modal" id="patchModal">
+  <div class="patch-content">
+    <div class="patch-header">
+      <h2>📜 Patch Notes</h2>
+      <button class="patch-close" onclick="togglePatchModal(false)">&times;</button>
+    </div>
+    <div class="patch-body">
+      <div class="patch-version">Version 1.3.0 — 3 Février 2026</div>
+      <div class="patch-section">
+        <h3>✨ Nouveau</h3>
+        <ul>
+          <li>Système de combat visuel en pixel art style Castlevania</li>
+          <li>25 sprites de monstres uniques — un pour chaque zone !</li>
+          <li>Décor de donjon sombre avec murs de pierre et œil mystérieux</li>
+          <li>Système de Patch Notes avec notification au premier lancement</li>
+        </ul>
+      </div>
+      <div class="patch-section">
+        <h3>🔧 Améliorations</h3>
+        <ul>
+          <li>Mage sorcier animé avec effets de sorts</li>
+          <li>Monstres qui changent dynamiquement selon la zone</li>
+          <li>Effets visuels de dégâts et particules magiques</li>
+          <li>Icône Patch Notes dans la barre du haut</li>
+        </ul>
+      </div>
+      <div class="patch-section">
+        <h3>🎮 À venir</h3>
+        <ul>
+          <li>Améliorations du sprite du mage</li>
+          <li>Nouveaux effets de sorts par élément</li>
+          <li>Animations de mort des monstres</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
 
 `;
 
     // Execute game script
     const script = document.createElement('script');
     script.textContent = `
+// ============ PATCH NOTES SYSTEM ============
+const PATCH_VERSION = '1.3.0';
+
+function togglePatchModal(show) {
+  const modal = document.getElementById('patchModal');
+  const btn = document.getElementById('patchNoteBtn');
+  if (show) {
+    modal.classList.add('show');
+    // Mark as read
+    localStorage.setItem('wandidle_patch_read', PATCH_VERSION);
+    if (btn) btn.classList.remove('has-new');
+  } else {
+    modal.classList.remove('show');
+  }
+}
+
+function checkPatchNotes() {
+  const lastRead = localStorage.getItem('wandidle_patch_read');
+  const btn = document.getElementById('patchNoteBtn');
+  if (lastRead !== PATCH_VERSION) {
+    // New patch notes available!
+    if (btn) btn.classList.add('has-new');
+    // Auto-show modal on first visit
+    setTimeout(() => togglePatchModal(true), 500);
+  }
+}
+
+// Close modal on backdrop click
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('patchModal');
+  if (e.target === modal) togglePatchModal(false);
+});
+
 // ============ NUMBER FORMAT ============
 const SUFFIXES = ['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','UDc','DDc','TDc','QaDc','QiDc','SxDc','SpDc','OcDc','NoDc','Vg'];
 function fmt(n) {
@@ -579,7 +674,7 @@ function spawnMob() {
   G.mobMaxHp = zone.mob.hp;
 }
 
-function damageMob(amount) {
+function damageMob(amount, spellType) {
   if (G.mobHp <= 0) return;
   let isCrit = Math.random() < getCritChance();
   let dmg = amount;
@@ -590,12 +685,18 @@ function damageMob(amount) {
     hits = 2;
     if (hasShop('triple_hit') && Math.random() < 0.33) hits = 3;
   }
+  // PixiJS spell animation
+  if (window.battleAPI) {
+    window.battleAPI.castSpell(spellType || 'fire');
+  }
   for (let i = 0; i < hits; i++) {
     G.mobHp -= dmg;
     spawnDmgNumber(dmg, isCrit && i === 0);
   }
-  const mobEl = document.getElementById('mobIcon');
-  if (mobEl) { mobEl.classList.add('hit'); setTimeout(() => mobEl.classList.remove('hit'), 100); }
+  // PixiJS hit animation
+  if (window.battleAPI) {
+    setTimeout(() => window.battleAPI.hitMob(), 250);
+  }
   if (G.mobHp <= 0) onMobKill(isCrit);
 }
 
@@ -707,6 +808,7 @@ function unlockGate(zoneId) {
   G.highestZone = Math.max(G.highestZone, zoneId);
   G.currentZone = zoneId;
   spawnMob();
+  if (window.battleAPI) window.battleAPI.setZone(zoneId);
 
   // Check if this zone is a prestige wall — notify
   const zone = ZONES[zoneId];
@@ -722,6 +824,7 @@ function goToZone(zoneId) {
   if (zoneId >= G.unlockedZones) return;
   G.currentZone = zoneId;
   spawnMob();
+  if (window.battleAPI) window.battleAPI.setZone(zoneId);
   rebuildGates();
 }
 
@@ -842,6 +945,7 @@ function tick(now) {
         G.highestZone = Math.max(G.highestZone, next);
         G.currentZone = next;
         spawnMob();
+        if (window.battleAPI) window.battleAPI.setZone(next);
         toast('🚀 Auto → Zone ' + (next + 1) + ' !');
         if (activePanel === 'gates') rebuildGates();
       }
@@ -879,7 +983,6 @@ function updateUI() {
     document.getElementById('zoneProgress').textContent = 'Zone finale atteinte !';
   }
 
-  document.getElementById('mobIcon').textContent = zone.mob.icon;
   document.getElementById('mobName').textContent = zone.mob.name;
   const hpPct = Math.max(0, G.mobHp / G.mobMaxHp * 100);
   document.getElementById('mobHpFill').style.width = hpPct + '%';
@@ -1453,6 +1556,18 @@ if (load()) {
 rebuildSpellBar();
 rebuildHeroRecap();
 save();
+
+// Wait for battleAPI to be ready, then set initial zone
+const waitForBattleAPI = setInterval(() => {
+  if (window.battleAPI) {
+    window.battleAPI.setZone(G.currentZone);
+    clearInterval(waitForBattleAPI);
+  }
+}, 100);
+
+// Check for new patch notes
+checkPatchNotes();
+
 requestAnimationFrame(tick);
 `;
     document.body.appendChild(script);
@@ -1463,5 +1578,34 @@ requestAnimationFrame(tick);
     };
   }, []);
 
-  return <div ref={containerRef} />;
+  return (
+    <>
+      <div ref={containerRef} />
+      <BattleScenePortal onReady={handleBattleReady} />
+    </>
+  );
+}
+
+// Portal component to render BattleScene into the injected HTML
+function BattleScenePortal({ onReady }: { onReady: (api: BattleAPI) => void }) {
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const checkContainer = () => {
+      const el = document.getElementById('battleSceneContainer');
+      if (el) {
+        setContainer(el);
+      } else {
+        setTimeout(checkContainer, 100);
+      }
+    };
+    checkContainer();
+  }, []);
+
+  if (!container) return null;
+
+  return ReactDOM.createPortal(
+    <BattleScene onReady={onReady} />,
+    container
+  );
 }
