@@ -496,6 +496,8 @@ const TALENTS = [
   { id: 'confringo_cd',  spell: 'confringo', name: 'Vélocité Confringo',  icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'confringo', perLevel: 0.05 }},
   { id: 'patronus_dmg',  spell: 'patronus',  name: 'Puissance Patronus',  icon: '🦌', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'patronus',  perLevel: 0.2 }},
   { id: 'patronus_cd',   spell: 'patronus',  name: 'Vélocité Patronus',   icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'patronus',  perLevel: 0.05 }},
+  { id: 'avada_dmg',     spell: 'avada',     name: 'Puissance Avada',     icon: '💀', desc: '+25% dmg', maxLvl: 20, costBase: 3, effect: { type: 'spell_dmg', spell: 'avada',     perLevel: 0.25 }},
+  { id: 'avada_cd',      spell: 'avada',     name: 'Vélocité Avada',      icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 3, effect: { type: 'spell_cd',  spell: 'avada',     perLevel: 0.05 }},
   { id: 'crit_chance', spell: null, name: 'Chance Critique',   icon: '🎯', desc: '+2% crit',       maxLvl: 25, costBase: 2, effect: { type: 'crit_chance', perLevel: 0.02 }},
   { id: 'crit_dmg',    spell: null, name: 'Dégâts Critiques', icon: '💥', desc: '+15% dmg crit',  maxLvl: 20, costBase: 2, effect: { type: 'crit_dmg',    perLevel: 0.15 }},
   { id: 'gold_bonus',  spell: null, name: 'Cupidité',         icon: '🪙', desc: '+10% gold/kill', maxLvl: 30, costBase: 1, effect: { type: 'gold_bonus',  perLevel: 0.10 }},
@@ -1237,7 +1239,7 @@ function rebuildTalents() {
     const sts = spellTalents.filter(t => t.spell === spell.id);
     html += \`<div class="talent-section"><div class="talent-section-title">\${spell.icon} \${spell.name}</div><div class="talent-grid">\`;
     sts.forEach(t => {
-      const lvl = G.talents[t.id]; const cost = t.costBase + lvl; const isMax = lvl >= t.maxLvl;
+      const lvl = G.talents[t.id] || 0; const cost = t.costBase + lvl; const isMax = lvl >= t.maxLvl;
       html += \`<div class="talent-node \${isMax?'maxed':''}"><div class="t-icon">\${t.icon}</div><div class="t-name">\${t.name}</div><div class="t-level">\${lvl}/\${t.maxLvl}</div><div class="t-desc">\${t.desc}</div><div class="t-cost">\${isMax?'✅ MAX':cost+' ⭐'}</div><button class="btn btn-sm" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalent('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="margin-top:4px;">+</button></div>\`;
     });
     html += '</div></div>';
@@ -1245,7 +1247,7 @@ function rebuildTalents() {
 
   html += \`<div class="talent-section"><div class="talent-section-title">🌟 Talents Globaux</div><div class="talent-grid">\`;
   globalTalents.forEach(t => {
-    const lvl = G.talents[t.id]; const cost = t.costBase + lvl; const isMax = lvl >= t.maxLvl;
+    const lvl = G.talents[t.id] || 0; const cost = t.costBase + lvl; const isMax = lvl >= t.maxLvl;
     html += \`<div class="talent-node \${isMax?'maxed':''}"><div class="t-icon">\${t.icon}</div><div class="t-name">\${t.name}</div><div class="t-level">\${lvl}/\${t.maxLvl}</div><div class="t-desc">\${t.desc}</div><div class="t-cost">\${isMax?'✅ MAX':cost+' ⭐'}</div><button class="btn btn-sm" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalent('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="margin-top:4px;">+</button></div>\`;
   });
   html += '</div></div>';
@@ -1584,6 +1586,8 @@ if (load()) {
   if (isNaN(G.prestigeMult) || G.prestigeMult === undefined) G.prestigeMult = 1;
   // Init pet levels for already owned pets
   G.ownedPets.forEach(id => { if (!G.petLevels[id]) G.petLevels[id] = 1; });
+  // Init missing talents (for new talents added in updates)
+  TALENTS.forEach(t => { if (G.talents[t.id] === undefined) G.talents[t.id] = 0; });
   calcOffline();
   spawnMob();
 } else {
