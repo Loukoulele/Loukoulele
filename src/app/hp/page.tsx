@@ -1125,6 +1125,9 @@ function rebuildSpellBar() {
   if (!bar) return;
   bar.innerHTML = '';
   getSpells().forEach(spell => {
+    // Ensure spell is initialized
+    if (!G.spellLevels[spell.id] || isNaN(G.spellLevels[spell.id])) G.spellLevels[spell.id] = 1;
+    if (G.spellCDs[spell.id] === undefined) G.spellCDs[spell.id] = 0;
     const curCd = G.spellCDs[spell.id] || 0;
     const maxCd = getSpellCD(spell.id);
     bar.innerHTML += \`
@@ -1145,6 +1148,9 @@ function rebuildSpellUpgrades() {
   if (!el) return;
   el.innerHTML = '';
   getSpells().forEach(spell => {
+    // Ensure spell level is initialized
+    if (!G.spellLevels[spell.id] || isNaN(G.spellLevels[spell.id])) G.spellLevels[spell.id] = 1;
+    if (G.spellCDs[spell.id] === undefined) G.spellCDs[spell.id] = 0;
     const lvl = G.spellLevels[spell.id];
     const cost = spellUpgradeCost(lvl);
     const dmg = getSpellDmg(spell.id);
