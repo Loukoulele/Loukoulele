@@ -777,6 +777,11 @@ function doRebirth() {
   G.petLevels = keepPetLevels;
   G.shopUnlocks = keepShopUnlocks;
   G.shopBuys = keepShopBuys;
+  // Fix: initialiser avada si spell4 est débloqué
+  if (G.shopUnlocks && G.shopUnlocks.includes('spell4')) {
+    G.spellLevels['avada'] = 1;
+    G.spellCDs['avada'] = 0;
+  }
   G.totalKills = keepTotalKills;
   G.totalGoldEarned = keepTotalGold;
   G.startTime = keepStartTime;
@@ -1418,6 +1423,15 @@ if (load()) {
   if (!G.shopUnlocks) G.shopUnlocks = [];
   if (!G.shopBuys) G.shopBuys = {};
   if (!G.buffs) G.buffs = {};
+  // Fix: initialiser avada si spell4 est débloqué mais manquant
+  if (G.shopUnlocks.includes('spell4')) {
+    if (!G.spellLevels['avada'] || isNaN(G.spellLevels['avada'])) G.spellLevels['avada'] = 1;
+    if (G.spellCDs['avada'] === undefined || isNaN(G.spellCDs['avada'])) G.spellCDs['avada'] = 0;
+  }
+  // Fix: réparer gold/gems si NaN
+  if (isNaN(G.gold) || G.gold === undefined) G.gold = 0;
+  if (isNaN(G.gems) || G.gems === undefined) G.gems = 0;
+  if (isNaN(G.talentPoints) || G.talentPoints === undefined) G.talentPoints = 0;
   // Init pet levels for already owned pets
   G.ownedPets.forEach(id => { if (!G.petLevels[id]) G.petLevels[id] = 1; });
   calcOffline();
