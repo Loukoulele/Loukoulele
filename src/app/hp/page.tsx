@@ -303,29 +303,30 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
       <button class="patch-close" onclick="togglePatchModal(false)">&times;</button>
     </div>
     <div class="patch-body">
-      <div class="patch-version">Version 1.5.0 — 3 Février 2026</div>
-      <div class="patch-section">
-        <h3>⚖️ Équilibrage</h3>
-        <ul>
-          <li>Avada Kedavra : dégâts de base 40 → 100, CD 3.0s → 2.0s</li>
-          <li>Réorganisation des sorts : Stupefix → Patronus → Confringo → Avada</li>
-          <li>Avada est maintenant clairement le sort le plus puissant (DPS x4 vs Confringo)</li>
-        </ul>
-      </div>
+      <div class="patch-version">Version 1.6.0 — 3 Février 2026</div>
       <div class="patch-section">
         <h3>✨ Nouveau</h3>
         <ul>
-          <li>Talents Avada Kedavra : Puissance (+25% dmg) et Vélocité (-5% CD)</li>
-          <li>Bouton MAX pour monter les pets au niveau max</li>
-          <li>Bouton "Aller" pour aller à la zone d'un pet non découvert</li>
-          <li>Historique des patch notes</li>
+          <li>Affichage du multiplicateur de prestige (⏳) dans la barre du haut</li>
+          <li>Le bouton MAX des pets se rafraîchit automatiquement</li>
+        </ul>
+      </div>
+      <div class="patch-section">
+        <h3>⚖️ Équilibrage</h3>
+        <ul>
+          <li>Avada Kedavra : dégâts 40 → 100, CD 3.0s → 2.0s (DPS x4)</li>
+          <li>Ordre des sorts : Stupefix → Patronus → Confringo → Avada</li>
         </ul>
       </div>
       <div class="patch-section" style="border-top:1px solid rgba(212,168,67,0.2);margin-top:15px;padding-top:15px;">
         <h3>📜 Historique</h3>
         <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.5.0 — Équilibrage Avada</summary>
+          <ul style="margin-top:5px;"><li>Buff Avada Kedavra (100 dmg, 2.0s CD)</li><li>Réorganisation des sorts</li><li>Historique des patch notes</li></ul>
+        </details>
+        <details style="margin-bottom:8px;">
           <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.4.0 — Talents Avada</summary>
-          <ul style="margin-top:5px;"><li>Ajout des talents Avada Kedavra</li><li>Boutons MAX et Aller pour pets</li></ul>
+          <ul style="margin-top:5px;"><li>Talents Avada Kedavra (+25% dmg, -5% CD)</li><li>Boutons MAX et Aller pour pets</li></ul>
         </details>
         <details style="margin-bottom:8px;">
           <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.3.0 — Combat Visuel</summary>
@@ -350,7 +351,7 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
     const script = document.createElement('script');
     script.textContent = `
 // ============ PATCH NOTES SYSTEM ============
-const PATCH_VERSION = '1.5.0';
+const PATCH_VERSION = '1.6.0';
 
 function togglePatchModal(show) {
   const modal = document.getElementById('patchModal');
