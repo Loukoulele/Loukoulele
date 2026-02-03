@@ -1856,9 +1856,13 @@ function refreshButtons() {
       }
     });
   }
-  // Refresh shop consumables when on shop panel (for buff expiry)
+  // Refresh shop only when a buff expires (not every tick)
   if (activePanel === 'shop') {
-    rebuildShop();
+    const currentBuffStates = SHOP_CONSUMABLES.map(c => hasBuff(c.id)).join(',');
+    if (window._lastBuffStates !== currentBuffStates) {
+      window._lastBuffStates = currentBuffStates;
+      rebuildShop();
+    }
   }
 }
 
