@@ -695,7 +695,7 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
   <button class="nav-btn" onclick="switchPanel('talents',this)"><span class="nav-icon">📖</span><span class="nav-label">Talents</span></button>
   <button class="nav-btn" onclick="switchPanel('shop',this)"><span class="nav-icon">🏪</span><span class="nav-label">Shop</span></button>
   <button class="nav-btn" onclick="switchPanel('pets',this)"><span class="nav-icon">🐾</span><span class="nav-label">Pets</span><span id="petNotif" class="nav-notif" style="display:none;">!</span></button>
-  <button class="nav-btn" onclick="switchPanel('boss',this)"><span class="nav-icon" id="bossNavIcon">👹</span><span class="nav-label">Boss</span><span id="bossNotif" style="display:none;position:absolute;top:2px;right:2px;background:var(--red);color:#fff;font-size:0.5em;padding:2px 4px;border-radius:6px;animation:pulse-dot 1.5s infinite;">LIVE</span></button>
+  <button class="nav-btn" onclick="switchPanel('boss',this)"><span class="nav-icon" id="bossNavIcon">👹</span><span class="nav-label">Boss</span><span id="bossNavTimer" style="font-size:0.6em;color:#888;margin-left:2px;"></span><span id="bossNotif" style="display:none;position:absolute;top:2px;right:2px;background:var(--red);color:#fff;font-size:0.5em;padding:2px 4px;border-radius:6px;animation:pulse-dot 1.5s infinite;">LIVE</span></button>
   <button class="nav-btn" onclick="switchPanel('prestige',this)"><span class="nav-icon">🔮</span><span class="nav-label">Prestige</span></button>
   <button class="nav-btn" onclick="switchPanel('stats',this)"><span class="nav-icon">📊</span><span class="nav-label">Stats</span></button>
 </nav>
@@ -3341,8 +3341,13 @@ function updateBossCountdown() {
   const countdownEl = document.getElementById('bossCountdown');
   const nextEl = document.getElementById('bossNextCountdown');
   const expiredEl = document.getElementById('bossExpiredCountdown');
+  const navTimerEl = document.getElementById('bossNavTimer');
 
-  if (worldBossState.status === 'active') return;
+  // Si boss actif, afficher LIVE dans la navbar
+  if (worldBossState.status === 'active') {
+    if (navTimerEl) navTimerEl.textContent = '';
+    return;
+  }
 
   if (worldBossState.nextSpawn) {
     const remaining = Math.max(0, worldBossState.nextSpawn - Date.now());
@@ -3352,12 +3357,14 @@ function updateBossCountdown() {
 
     if (countdownEl) countdownEl.textContent = timeStr;
     if (nextEl) nextEl.textContent = 'Prochain boss dans ' + timeStr;
+    if (navTimerEl) navTimerEl.textContent = timeStr;
     if (expiredEl) expiredEl.textContent = 'Prochain boss dans ' + timeStr;
   } else {
     // No nextSpawn set - show waiting message
     if (countdownEl) countdownEl.textContent = 'Bientôt...';
     if (nextEl) nextEl.textContent = 'Prochain boss bientôt...';
     if (expiredEl) expiredEl.textContent = 'Prochain boss bientôt...';
+    if (navTimerEl) navTimerEl.textContent = '⏳';
   }
 }
 
