@@ -11,6 +11,7 @@
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",
     "@pixi/particle-emitter": "^5.0.10",
+    "firebase": "^12.8.0",
     "framer-motion": "^12.29.3",
     "next": "16.1.6",
     "pixi.js": "^8.16.0",

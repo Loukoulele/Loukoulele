@@ -50,7 +50,7 @@ export default function WandIdle() {
 
 body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--parchment); min-height:100vh; overflow-x:hidden; user-select:none; }
 
-.top-bar { background:linear-gradient(180deg,var(--dark),var(--darker)); border-bottom:2px solid var(--gold-dark); padding:8px 15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
+.top-bar { background:linear-gradient(180deg, rgba(35,30,50,0.98), rgba(20,15,35,0.98)); border-bottom:2px solid var(--gold-dark); padding:8px 15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 15px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(212,168,67,0.1); }
 .game-logo { font-family:'Cinzel',serif; color:var(--gold); font-size:1.1em; text-shadow:0 0 15px rgba(212,168,67,0.3); display:flex; align-items:center; gap:10px; }
 .patch-note-btn { background:none; border:none; font-size:1.1em; cursor:pointer; position:relative; opacity:0.7; transition:opacity 0.2s, transform 0.2s; }
 .patch-note-btn:hover { opacity:1; transform:scale(1.1); }
@@ -70,27 +70,76 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
 .patch-section ul { list-style:none; padding-left:5px; }
 .patch-section li { color:var(--parchment); font-size:0.85em; margin-bottom:6px; padding-left:15px; position:relative; }
 .patch-section li::before { content:'•'; position:absolute; left:0; color:var(--gold-dark); }
-.currency-bar { display:flex; gap:18px; align-items:center; }
-.currency { display:flex; align-items:center; gap:4px; font-size:0.9em; }
-.currency .c-icon { font-size:1.1em; }
-.currency .c-val { color:var(--gold); font-weight:700; font-family:'Cinzel',serif; }
-.currency .c-ps { color:#777; font-size:0.75em; }
+.currency-bar { display:flex; gap:12px; align-items:center; }
+.currency { display:flex; align-items:center; gap:5px; font-size:0.95em; background:linear-gradient(145deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2)); border:1px solid rgba(212,168,67,0.2); border-radius:20px; padding:5px 12px 5px 8px; }
+.currency .c-icon { font-size:1.15em; }
+.currency .c-val { color:var(--gold); font-weight:700; font-family:'Cinzel',serif; text-shadow:0 0 8px rgba(212,168,67,0.3); }
+.currency .c-ps { color:#666; font-size:0.75em; margin-left:2px; }
 
-.nav { display:flex; background:var(--dark); border-bottom:1px solid rgba(212,168,67,0.2); position:sticky; top:42px; z-index:100; }
-.nav-btn { flex:1; padding:10px 5px; background:none; border:none; color:#666; font-family:'Cinzel',serif; font-size:0.78em; cursor:pointer; transition:all 0.2s; border-bottom:2px solid transparent; }
-.nav-btn:hover { color:var(--parchment); }
-.nav-btn.active { color:var(--gold); border-bottom-color:var(--gold); background:rgba(212,168,67,0.06); }
+.nav { display:flex; background:linear-gradient(180deg, rgba(30,25,40,0.98), rgba(15,12,25,0.98)); border-bottom:2px solid var(--gold-dark); position:sticky; top:42px; z-index:100; padding:4px 2px; gap:2px; box-shadow:0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,168,67,0.1); }
+.nav-btn { flex:1; padding:10px 4px; background:linear-gradient(180deg, rgba(40,35,55,0.6), rgba(25,20,40,0.8)); border:1px solid rgba(212,168,67,0.15); border-radius:6px; color:#888; font-family:'Cinzel',serif; font-size:0.85em; cursor:pointer; transition:all 0.25s ease; display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; overflow:hidden; }
+.nav-btn::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(212,168,67,0.3), transparent); }
+.nav-btn .nav-icon { font-size:1.5em; transition:transform 0.2s, filter 0.2s; }
+.nav-btn .nav-label { font-size:0.9em; letter-spacing:0.5px; }
+.nav-btn:hover { color:var(--parchment); background:linear-gradient(180deg, rgba(60,50,80,0.7), rgba(35,28,55,0.9)); border-color:rgba(212,168,67,0.3); transform:translateY(-1px); }
+.nav-btn:hover .nav-icon { transform:scale(1.1); }
+.nav-btn.active { color:var(--gold); background:linear-gradient(180deg, rgba(212,168,67,0.2), rgba(160,120,48,0.1)); border-color:var(--gold); box-shadow:0 0 12px rgba(212,168,67,0.3), inset 0 0 20px rgba(212,168,67,0.05); }
+.nav-btn.active::after { content:''; position:absolute; bottom:-2px; left:20%; right:20%; height:2px; background:var(--gold); border-radius:2px; box-shadow:0 0 8px var(--gold); }
+.nav-btn.active .nav-icon { filter:drop-shadow(0 0 4px rgba(212,168,67,0.6)); }
+.nav-notif { position:absolute; top:2px; right:2px; background:var(--red); color:#fff; font-size:0.5em; font-weight:bold; min-width:14px; height:14px; border-radius:50%; display:flex; align-items:center; justify-content:center; animation:pulse-dot 1.5s infinite; }
+@media (max-width:600px) { .nav-btn { padding:8px 2px; } .nav-btn .nav-icon { font-size:1.3em; } .nav-btn .nav-label { font-size:0.75em; } }
 
 .main { max-width:900px; margin:0 auto; padding:10px; }
 .panel { display:none; }
-.panel.active { display:block; }
+.panel.active { display:block; padding-bottom:80px; }
 
 .zone-header { text-align:center; padding:10px; background:linear-gradient(180deg,rgba(106,27,154,0.15),transparent); border-radius:10px; margin-bottom:10px; }
 .zone-name { font-family:'Cinzel',serif; color:var(--gold); font-size:1.3em; }
 .zone-desc { color:#888; font-size:0.85em; }
 .zone-progress { font-size:0.75em; color:#666; margin-top:3px; }
 
-.battle-area { position:relative; border:1px solid rgba(212,168,67,0.15); border-radius:12px; overflow:hidden; margin-bottom:10px; }
+.battle-area { position:relative; border:1px solid rgba(212,168,67,0.15); border-radius:12px; overflow:hidden; margin-bottom:10px; transition: all 0.3s ease; }
+
+/* Mini Battle Mode - flottant en bas à gauche */
+.battle-area.mini-mode {
+  position: fixed !important;
+  bottom: 15px;
+  left: 15px;
+  width: 220px !important;
+  height: auto;
+  z-index: 500;
+  border: 2px solid var(--gold-dark);
+  box-shadow: 0 5px 25px rgba(0,0,0,0.6);
+  cursor: pointer;
+  margin: 0;
+}
+.battle-area.mini-mode:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 30px rgba(212,168,67,0.4);
+}
+.battle-area.mini-mode #battleSceneContainer {
+  height: 120px;
+  overflow: hidden;
+}
+.battle-area.mini-mode #battleSceneContainer canvas {
+  width: 100% !important;
+  height: 120px !important;
+  object-fit: cover;
+}
+.battle-area.mini-mode .mob-info-bar {
+  padding: 5px;
+}
+.battle-area.mini-mode .mob-name {
+  font-size: 0.8em;
+}
+.battle-area.mini-mode .mob-hp-bar {
+  width: 100%;
+  height: 8px;
+}
+.battle-area.mini-mode .mob-hp-text {
+  font-size: 0.65em;
+}
+
 #battleSceneContainer { display:flex; justify-content:center; }
 .mob-info-bar { text-align:center; padding:8px; background:rgba(0,0,0,0.5); }
 .mob-info-bar .mob-name { font-family:'Cinzel',serif; color:var(--gold); font-size:1em; margin-bottom:4px; }
@@ -103,15 +152,85 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
 .dmg-number.gold-drop { color:var(--gold); font-size:0.9em; text-shadow:0 0 6px rgba(212,168,67,0.5); }
 @keyframes dmgFly { 0%{opacity:1;transform:translateY(0) scale(1);} 100%{opacity:0;transform:translateY(-60px) scale(0.5);} }
 
-.spell-bar { display:flex; justify-content:center; gap:12px; margin-bottom:10px; }
-.spell-slot { width:80px; text-align:center; background:linear-gradient(145deg,rgba(30,30,55,0.95),rgba(15,15,30,0.95)); border:2px solid rgba(212,168,67,0.25); border-radius:10px; padding:8px 5px; position:relative; overflow:hidden; }
-.spell-slot.casting { border-color:var(--gold); box-shadow:0 0 15px rgba(212,168,67,0.3); }
-.spell-slot .s-icon { font-size:1.8em; }
-.spell-slot .s-name { font-family:'Cinzel',serif; font-size:0.65em; color:var(--gold); margin-top:2px; }
-.spell-slot .s-dmg { font-size:0.65em; color:#ff6b6b; }
-.spell-slot .s-cd-label { font-size:0.6em; color:#888; }
-.spell-cd-overlay { position:absolute; bottom:0; left:0; width:100%; background:rgba(0,0,0,0.7); transition:height 0.1s linear; pointer-events:none; }
-.spell-cd-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Cinzel',serif; font-size:0.8em; color:#aaa; }
+/* Spell Bar - MMO Style */
+.spell-bar { display:flex; justify-content:center; gap:8px; margin-bottom:10px; padding:10px; background:linear-gradient(180deg,rgba(15,12,25,0.9),rgba(10,8,18,0.95)); border-radius:12px; border:1px solid rgba(212,168,67,0.15); }
+
+.spell-slot {
+  width:72px; height:72px; position:relative; cursor:default;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+
+.spell-slot .spell-circle {
+  width:60px; height:60px; border-radius:50%; position:relative;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 30% 30%, rgba(40,40,70,1), rgba(20,20,40,1));
+  border:3px solid rgba(100,100,140,0.5);
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.4);
+  transition:all 0.2s ease;
+}
+
+/* Spell-specific colors */
+.spell-slot[data-spell="stupefix"] .spell-circle { border-color:rgba(100,180,255,0.6); }
+.spell-slot[data-spell="stupefix"].ready .spell-circle { border-color:#4fc3f7; box-shadow:0 0 15px rgba(79,195,247,0.5), inset 0 0 10px rgba(79,195,247,0.2); }
+.spell-slot[data-spell="patronus"] .spell-circle { border-color:rgba(200,200,220,0.6); }
+.spell-slot[data-spell="patronus"].ready .spell-circle { border-color:#e0e0e0; box-shadow:0 0 15px rgba(255,255,255,0.5), inset 0 0 10px rgba(255,255,255,0.2); }
+.spell-slot[data-spell="confringo"] .spell-circle { border-color:rgba(255,140,60,0.6); }
+.spell-slot[data-spell="confringo"].ready .spell-circle { border-color:#ff9800; box-shadow:0 0 15px rgba(255,152,0,0.5), inset 0 0 10px rgba(255,152,0,0.2); }
+.spell-slot[data-spell="avada"] .spell-circle { border-color:rgba(100,255,100,0.6); }
+.spell-slot[data-spell="avada"].ready .spell-circle { border-color:#4caf50; box-shadow:0 0 20px rgba(76,175,80,0.6), inset 0 0 10px rgba(76,175,80,0.3); }
+
+.spell-slot .s-icon { font-size:1.8em; z-index:2; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5)); transition:transform 0.15s; }
+.spell-slot.ready .s-icon { animation:spellPulse 1.5s ease-in-out infinite; }
+.spell-slot.casting .s-icon { transform:scale(1.3); }
+
+@keyframes spellPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
+
+/* Radial cooldown overlay */
+.spell-cd-radial {
+  position:absolute; top:0; left:0; width:60px; height:60px; border-radius:50%;
+  background:conic-gradient(rgba(0,0,0,0.75) var(--cd-percent, 0%), transparent var(--cd-percent, 0%));
+  pointer-events:none; z-index:3;
+}
+
+.spell-slot .s-info {
+  position:absolute; bottom:-2px; left:50%; transform:translateX(-50%);
+  background:rgba(0,0,0,0.85); border:1px solid rgba(212,168,67,0.3);
+  border-radius:6px; padding:2px 6px; white-space:nowrap;
+  font-size:0.6em; color:var(--gold); font-family:'Cinzel',serif;
+}
+
+.spell-slot .s-cd-text {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-family:'Cinzel',serif; font-size:1em; font-weight:bold;
+  color:#fff; text-shadow:0 0 5px rgba(0,0,0,0.8); z-index:4;
+}
+
+/* Casting animation */
+.spell-slot.casting .spell-circle {
+  animation:castFlash 0.2s ease-out;
+}
+@keyframes castFlash {
+  0% { transform:scale(1); filter:brightness(1); }
+  50% { transform:scale(1.15); filter:brightness(1.5); }
+  100% { transform:scale(1); filter:brightness(1); }
+}
+
+/* On cooldown state */
+.spell-slot.on-cd .spell-circle { filter:saturate(0.3) brightness(0.7); }
+.spell-slot.on-cd .s-icon { filter:grayscale(0.5) drop-shadow(0 2px 3px rgba(0,0,0,0.5)); animation:none; }
+
+/* Tooltip on hover */
+.spell-slot .spell-tooltip {
+  position:absolute; bottom:80px; left:50%; transform:translateX(-50%);
+  background:rgba(20,18,35,0.98); border:1px solid var(--gold-dark);
+  border-radius:8px; padding:8px 12px; min-width:120px; text-align:center;
+  opacity:0; pointer-events:none; transition:opacity 0.2s; z-index:100;
+  box-shadow:0 4px 15px rgba(0,0,0,0.5);
+}
+.spell-slot:hover .spell-tooltip { opacity:1; }
+.spell-tooltip .tt-name { font-family:'Cinzel',serif; color:var(--gold); font-size:0.85em; margin-bottom:4px; }
+.spell-tooltip .tt-dmg { color:#ff6b6b; font-size:0.8em; }
+.spell-tooltip .tt-cd { color:#888; font-size:0.75em; }
 
 .kill-counter { text-align:center; font-size:0.8em; color:#666; margin-bottom:5px; }
 
@@ -193,14 +312,363 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
 .toast { position:fixed; bottom:15px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--dark); border:1px solid var(--gold); border-radius:8px; padding:8px 18px; color:var(--gold); font-family:'Cinzel',serif; font-size:0.85em; z-index:300; opacity:0; transition:all 0.3s; }
 .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 
+/* Active Buffs Bar */
+.active-buffs-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  padding: 10px 20px;
+  background: linear-gradient(180deg, rgba(30,25,45,0.95), rgba(15,12,25,0.98));
+  border: 2px solid var(--gold-dark);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  z-index: 400;
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+}
+.active-buffs-bar:empty {
+  display: none;
+}
+.buff-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  animation: buffPulse 2s ease-in-out infinite;
+}
+@keyframes buffPulse {
+  0%, 100% { box-shadow: 0 0 5px rgba(46,125,50,0.3); }
+  50% { box-shadow: 0 0 15px rgba(46,125,50,0.6); }
+}
+.buff-item .buff-icon {
+  font-size: 1.8em;
+}
+.buff-item .buff-info {
+  display: flex;
+  flex-direction: column;
+}
+.buff-item .buff-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85em;
+  color: var(--gold);
+}
+.buff-item .buff-timer {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: var(--green);
+  font-family: 'Cinzel', serif;
+}
+.buff-item.expiring {
+  animation: buffExpiring 0.5s ease-in-out infinite;
+}
+@keyframes buffExpiring {
+  0%, 100% { border-color: var(--red); box-shadow: 0 0 10px rgba(198,40,40,0.5); }
+  50% { border-color: #ff6666; box-shadow: 0 0 20px rgba(198,40,40,0.8); }
+}
+
 @media (max-width:600px) {
   .talent-grid { grid-template-columns:repeat(2,1fr); }
   .currency-bar { gap:10px; font-size:0.8em; }
   .spell-upgrade-card { flex-direction:column; text-align:center; }
   .spell-upgrade-card .su-stats { justify-content:center; }
 }
+
+/* World Boss Styles */
+#bossAttackBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#bossAttackBtn:not(:disabled):hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255,68,68,0.5);
+}
+
+@keyframes bossShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.boss-hit {
+  animation: bossShake 0.1s ease-in-out;
+}
+
+@keyframes bossPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(198, 40, 40, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(198, 40, 40, 0.6); }
+}
+
+.boss-card-active {
+  animation: bossPulse 2s ease-in-out infinite;
+}
+
+.boss-leaderboard-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 6px;
+  font-size: 0.85em;
+}
+
+.boss-leaderboard-entry.me {
+  background: rgba(106,27,154,0.3);
+  border: 1px solid var(--purple);
+}
+
+.boss-leaderboard-entry .rank {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+  min-width: 30px;
+}
+
+.boss-leaderboard-entry .name {
+  flex: 1;
+  color: var(--parchment);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boss-leaderboard-entry .damage {
+  color: #ff6b6b;
+  font-family: 'Cinzel', serif;
+}
+
+/* Boss Battle Arena - Canvas Based */
+.boss-arena {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 15px;
+  border: 1px solid rgba(212,168,67,0.2);
+}
+
+.boss-arena canvas {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.boss-player-labels {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 10px;
+  pointer-events: none;
+}
+
+.boss-player-label {
+  font-size: 0.6em;
+  color: var(--gold);
+  font-family: 'Cinzel', serif;
+  background: rgba(0,0,0,0.7);
+  padding: 2px 6px;
+  border-radius: 4px;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boss-player-label.me {
+  color: #ce93d8;
+  border: 1px solid var(--purple);
+}
+
+.boss-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: playerAppear 0.3s ease-out;
+  flex-shrink: 0;
+}
+
+@keyframes playerAppear {
+  0% { opacity: 0; transform: scale(0) translateY(20px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.boss-player-name {
+  font-size: 0.55em;
+  color: var(--gold);
+  font-family: 'Cinzel', serif;
+  background: rgba(0,0,0,0.7);
+  padding: 1px 4px;
+  border-radius: 3px;
+  max-width: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.boss-player-name.me {
+  color: #ce93d8;
+  border: 1px solid var(--purple);
+}
+
+.boss-player-sprite {
+  font-size: 1.8em;
+  animation: playerIdle 1s ease-in-out infinite;
+}
+
+@keyframes playerIdle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.boss-player-sprite.attacking {
+  animation: playerAttack 0.3s ease-out;
+}
+
+@keyframes playerAttack {
+  0% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-10px) translateX(10px); }
+  100% { transform: translateY(0) translateX(0); }
+}
+
+.boss-damage-number {
+  position: absolute;
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  font-size: 1em;
+  color: #ff6b6b;
+  pointer-events: none;
+  animation: bossDmgFly 1s ease-out forwards;
+  text-shadow: 0 0 6px rgba(255,0,0,0.8), 2px 2px 2px rgba(0,0,0,0.8);
+  z-index: 20;
+}
+
+@keyframes bossDmgFly {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-50px) scale(0.6); }
+}
+
+.boss-player-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7em;
+  color: #888;
+}
+
+/* Boss Alert Banner */
+.boss-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.boss-alert-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.boss-alert-content {
+  text-align: center;
+  animation: bossAlertZoom 0.5s ease-out;
+}
+
+@keyframes bossAlertZoom {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.boss-alert-icon {
+  font-size: 8em;
+  animation: bossAlertPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes bossAlertPulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.8)); }
+  100% { transform: scale(1.1); filter: drop-shadow(0 0 40px rgba(255, 0, 0, 1)); }
+}
+
+.boss-alert-title {
+  font-family: 'Cinzel', serif;
+  font-size: 3em;
+  color: var(--red);
+  text-shadow: 0 0 30px rgba(198, 40, 40, 0.8), 0 0 60px rgba(198, 40, 40, 0.5);
+  margin: 20px 0;
+  animation: bossAlertFlash 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes bossAlertFlash {
+  0% { color: #c62828; }
+  100% { color: #ff5252; }
+}
+
+.boss-alert-name {
+  font-family: 'Cinzel', serif;
+  font-size: 2em;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(212, 168, 67, 0.8);
+  margin-bottom: 30px;
+}
+
+.boss-alert-btn {
+  font-size: 1.5em;
+  padding: 15px 50px;
+  animation: bossAlertBtnPulse 1s ease-in-out infinite;
+}
+
+@keyframes bossAlertBtnPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(212, 168, 67, 0.5); }
+  50% { box-shadow: 0 0 30px rgba(212, 168, 67, 0.8); }
+}
 `;
     document.head.appendChild(style);
+
+    // Load Firebase SDK from CDN
+    const firebaseScript1 = document.createElement('script');
+    firebaseScript1.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+    document.head.appendChild(firebaseScript1);
+
+    const firebaseScript2 = document.createElement('script');
+    firebaseScript2.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js';
+    document.head.appendChild(firebaseScript2);
+
+    const firebaseScript3 = document.createElement('script');
+    firebaseScript3.src = 'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js';
+    document.head.appendChild(firebaseScript3);
+
+    // Inject Firebase config (from env variables)
+    const configScript = document.createElement('script');
+    configScript.textContent = 'window.__FIREBASE_CONFIG__ = ' + JSON.stringify({
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+      databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL || '',
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || ''
+    }) + ';';
+    document.head.appendChild(configScript);
 
     // Inject HTML
     container.innerHTML = `
@@ -211,22 +679,38 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
     <div class="currency"><span class="c-icon">🪙</span><span class="c-val" id="goldVal">0</span><span class="c-ps" id="goldPs"></span></div>
     <div class="currency"><span class="c-icon">💎</span><span class="c-val" id="gemsVal">0</span></div>
     <div class="currency"><span class="c-icon">⭐</span><span class="c-val" id="tpVal">0</span></div>
-    <div class="currency" title="Multiplicateur total (Rebirth × Prestige)"><span class="c-icon">⏳</span><span class="c-val" id="multVal">x1</span></div>
+    <div class="currency" title="Niveau de Prestige"><span class="c-icon">🔮</span><span class="c-val" id="prestigeVal">Prestige 0</span></div>
+    <div id="userZone" style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <img id="userAvatar" src="" style="width:28px;height:28px;border-radius:50%;display:none;border:2px solid var(--gold);cursor:pointer;" onclick="promptChangeAvatar()" title="Cliquer pour changer l'avatar" />
+      <span id="userName" style="font-size:0.8em;color:#aaa;cursor:pointer;" onclick="promptChangeName()" title="Cliquer pour changer le pseudo"></span>
+      <button id="loginBtn" class="btn btn-sm" onclick="handleLogin()">🎮 Discord</button>
+    </div>
   </div>
 </div>
 
 <nav class="nav">
-  <button class="nav-btn active" onclick="switchPanel('zone',this)">Zone</button>
-  <button class="nav-btn" onclick="switchPanel('gates',this)">Portes</button>
-  <button class="nav-btn" onclick="switchPanel('spells',this)">Sorts</button>
-  <button class="nav-btn" onclick="switchPanel('talents',this)">Talents</button>
-  <button class="nav-btn" onclick="switchPanel('shop',this)">Shop</button>
-  <button class="nav-btn" onclick="switchPanel('pets',this)">Pets</button>
-  <button class="nav-btn" onclick="switchPanel('prestige',this)">Prestige</button>
-  <button class="nav-btn" onclick="switchPanel('stats',this)">Stats</button>
+  <button class="nav-btn active" onclick="switchPanel('zone',this)"><span class="nav-icon">⚔️</span><span class="nav-label">Combat</span></button>
+  <button class="nav-btn" onclick="switchPanel('gates',this)"><span class="nav-icon">🚪</span><span class="nav-label">Portes</span></button>
+  <button class="nav-btn" onclick="switchPanel('spells',this)"><span class="nav-icon">✨</span><span class="nav-label">Sorts</span></button>
+  <button class="nav-btn" onclick="switchPanel('talents',this)"><span class="nav-icon">📖</span><span class="nav-label">Talents</span></button>
+  <button class="nav-btn" onclick="switchPanel('shop',this)"><span class="nav-icon">🏪</span><span class="nav-label">Shop</span></button>
+  <button class="nav-btn" onclick="switchPanel('pets',this)"><span class="nav-icon">🐾</span><span class="nav-label">Pets</span><span id="petNotif" class="nav-notif" style="display:none;">!</span></button>
+  <button class="nav-btn" onclick="switchPanel('boss',this)"><span class="nav-icon" id="bossNavIcon">👹</span><span class="nav-label">Boss</span><span id="bossNotif" style="display:none;position:absolute;top:2px;right:2px;background:var(--red);color:#fff;font-size:0.5em;padding:2px 4px;border-radius:6px;animation:pulse-dot 1.5s infinite;">LIVE</span></button>
+  <button class="nav-btn" onclick="switchPanel('prestige',this)"><span class="nav-icon">🔮</span><span class="nav-label">Prestige</span></button>
+  <button class="nav-btn" onclick="switchPanel('stats',this)"><span class="nav-icon">📊</span><span class="nav-label">Stats</span></button>
 </nav>
 
 <div class="hero-recap" id="heroRecap"></div>
+
+<!-- Battle Area - en dehors des panels pour pouvoir flotter -->
+<div class="battle-area" id="battleArea">
+  <div id="battleSceneContainer"></div>
+  <div class="mob-info-bar">
+    <div class="mob-name" id="mobName">—</div>
+    <div class="mob-hp-bar"><div class="mob-hp-fill" id="mobHpFill" style="width:100%"></div></div>
+    <div class="mob-hp-text" id="mobHpText">0/0</div>
+  </div>
+</div>
 
 <div class="main">
   <div id="panel-zone" class="panel active">
@@ -235,14 +719,8 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
       <div class="zone-desc" id="zoneDesc">...</div>
       <div class="zone-progress" id="zoneProgress"></div>
     </div>
-    <div class="battle-area" id="battleArea">
-      <div id="battleSceneContainer"></div>
-      <div class="mob-info-bar">
-        <div class="mob-name" id="mobName">—</div>
-        <div class="mob-hp-bar"><div class="mob-hp-fill" id="mobHpFill" style="width:100%"></div></div>
-        <div class="mob-hp-text" id="mobHpText">0/0</div>
-      </div>
-    </div>
+    <!-- battleAreaPlaceholder pour quand on est sur l'onglet zone -->
+    <div id="battleAreaPlaceholder"></div>
     <div class="kill-counter" id="killCounter">Kills : 0</div>
     <div class="spell-bar" id="spellBar"></div>
   </div>
@@ -293,9 +771,119 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
   <div id="panel-stats" class="panel">
     <div class="card"><div class="card-title">📊 Statistiques</div><div id="statsContent"></div></div>
   </div>
+
+  <div id="panel-boss" class="panel">
+    <!-- En attente -->
+    <div id="bossWaiting" class="card" style="text-align:center;padding:40px 20px;">
+      <div style="font-size:3em;margin-bottom:15px;">⏳</div>
+      <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:1.2em;">Prochain World Boss</div>
+      <div id="bossCountdown" style="font-size:2em;color:#fff;margin:15px 0;">--:--</div>
+      <div style="font-size:0.8em;color:#666;">Connecte-toi avec Discord pour participer !</div>
+      <div id="bossLoginPrompt" style="margin-top:15px;">
+        <button class="btn" onclick="handleLogin()">🎮 Se connecter avec Discord</button>
+      </div>
+    </div>
+
+    <!-- Boss actif -->
+    <div id="bossActive" class="card boss-card-active" style="display:none;">
+      <!-- Arène de combat Canvas -->
+      <div class="boss-arena" id="bossArena">
+        <canvas id="bossCanvas" width="400" height="220"></canvas>
+        <div class="boss-player-labels" id="bossPlayerLabels"></div>
+      </div>
+
+      <!-- Info boss -->
+      <div style="text-align:center;padding:10px 20px 20px;">
+        <div id="bossName" style="font-family:'Cinzel',serif;color:var(--red);font-size:1.5em;">Lord Voldemort</div>
+        <div style="margin:10px 0;">
+          <div style="background:rgba(0,0,0,0.5);border-radius:10px;height:30px;overflow:hidden;border:1px solid var(--red);">
+            <div id="bossHpBar" style="height:100%;background:linear-gradient(90deg,#8b0000,#ff4444);width:100%;transition:width 0.3s;"></div>
+          </div>
+          <div id="bossHpText" style="font-size:0.9em;margin-top:5px;color:#ff6666;">500M / 500M</div>
+        </div>
+        <div id="bossTimer" style="color:var(--gold);font-size:1.1em;margin-bottom:10px;">⏱️ 4:59</div>
+        <div id="bossPlayerCount" style="font-size:0.85em;color:#888;">👥 0 joueurs</div>
+      </div>
+
+      <!-- Ancien bossIcon caché, pour compatibilité -->
+      <div id="bossIcon" style="display:none;">🐍</div>
+
+      <!-- Stats joueur -->
+      <div style="background:rgba(106,27,154,0.2);border:1px solid var(--purple);border-radius:10px;padding:15px;margin:0 15px 15px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.8em;color:#888;">Tes dégâts</div>
+            <div id="myBossDmg" style="font-size:1.3em;color:var(--gold);">0</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:0.8em;color:#888;">Contribution</div>
+            <div id="myBossPercent" style="font-size:1.3em;color:#ce93d8;">0%</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.8em;color:#888;">Classement</div>
+            <div id="myBossRank" style="font-size:1.3em;color:var(--green);">#--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto-attaque info -->
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="background:rgba(46,125,50,0.2);border:1px solid var(--green);border-radius:10px;padding:12px;display:inline-block;">
+          <div style="font-size:0.8em;color:#888;">⚔️ Auto-attaque active</div>
+          <div id="bossDpsDisplay" style="font-size:1.2em;color:var(--green);font-family:'Cinzel',serif;">0 DPS</div>
+        </div>
+        <div id="bossNotLoggedIn" style="display:none;font-size:0.8em;color:var(--red);margin-top:8px;">
+          Connecte-toi pour attaquer !
+        </div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div style="padding:0 15px 15px;">
+        <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:0.9em;margin-bottom:8px;">🏆 Top Contributeurs</div>
+        <div id="bossLeaderboard" style="font-size:0.85em;"></div>
+      </div>
+    </div>
+
+    <!-- Victoire -->
+    <div id="bossVictory" class="card" style="display:none;text-align:center;padding:40px 20px;">
+      <div style="font-size:4em;margin-bottom:15px;">🎉</div>
+      <div style="font-family:'Cinzel',serif;color:var(--green);font-size:1.5em;">Victoire !</div>
+      <div id="bossRewardText" style="margin:20px 0;font-size:1.1em;"></div>
+      <button id="bossClaimBtn" class="btn btn-green" onclick="claimBossReward()" style="display:none;font-size:1.1em;padding:12px 30px;">
+        🎁 Récupérer les récompenses
+      </button>
+      <div id="bossAlreadyClaimed" style="display:none;color:#888;font-size:0.9em;">✅ Récompenses déjà récupérées</div>
+      <div id="bossNextCountdown" style="color:#888;margin-top:15px;"></div>
+    </div>
+
+    <!-- Boss expiré -->
+    <div id="bossExpired" class="card" style="display:none;text-align:center;padding:40px 20px;">
+      <div style="font-size:4em;margin-bottom:15px;">💀</div>
+      <div style="font-family:'Cinzel',serif;color:var(--red);font-size:1.5em;">Boss échappé !</div>
+      <div style="margin:20px 0;font-size:0.9em;color:#888;">Le boss s'est enfui... mais tes dégâts comptent quand même !</div>
+      <div id="bossExpiredRewardText" style="margin:15px 0;font-size:1em;color:var(--gold);"></div>
+      <button id="bossExpiredClaimBtn" class="btn" onclick="claimBossReward()" style="display:none;font-size:1.1em;padding:12px 30px;">
+        🎁 Récupérer les récompenses
+      </button>
+      <div id="bossExpiredAlreadyClaimed" style="display:none;color:#888;font-size:0.9em;">✅ Récompenses récupérées</div>
+      <div id="bossExpiredCountdown" style="color:var(--gold);margin-top:15px;"></div>
+    </div>
+  </div>
 </div>
 
+<!-- Active Buffs Bar -->
+<div id="activeBuffsBar" class="active-buffs-bar"></div>
+
 <div id="toast" class="toast"></div>
+
+<div id="bossAlertOverlay" class="boss-alert-overlay" onclick="closeBossAlert()">
+  <div class="boss-alert-content">
+    <div class="boss-alert-icon" id="bossAlertIcon">🐍</div>
+    <div class="boss-alert-title">⚔️ WORLD BOSS ⚔️</div>
+    <div class="boss-alert-name" id="bossAlertName">Lord Voldemort</div>
+    <button class="btn boss-alert-btn" onclick="goToBossPanel(event)">COMBATTRE !</button>
+  </div>
+</div>
 
 <div class="patch-modal" id="patchModal">
   <div class="patch-content">
@@ -304,15 +892,29 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
       <button class="patch-close" onclick="togglePatchModal(false)">&times;</button>
     </div>
     <div class="patch-body">
-      <div class="patch-version">Version 1.7.0 — 3 Février 2026</div>
+      <div class="patch-version">Version 2.1.0 — 3 Février 2026</div>
       <div class="patch-section">
-        <h3>✨ Nouveau</h3>
+        <h3>✨ Animations & Interface</h3>
         <ul>
-          <li>Toggle ON/OFF pour Auto-Avance dans la boutique (après achat)</li>
+          <li>Nouvelles animations de sorts uniques (⚡🦌🔥💀)</li>
+          <li>Barre de sorts style MMO avec cooldown radial</li>
+          <li>Mini-aperçu du combat flottant</li>
+          <li>Barre des buffs actifs en bas de l'écran</li>
+          <li>Notification Pets quand nouveau familier</li>
+          <li>Navbar redesignée avec icônes</li>
+          <li>Affichage du niveau de Prestige</li>
         </ul>
       </div>
       <div class="patch-section" style="border-top:1px solid rgba(212,168,67,0.2);margin-top:15px;padding-top:15px;">
         <h3>📜 Historique</h3>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v2.0.0 — World Boss</summary>
+          <ul style="margin-top:5px;"><li>World Boss multijoueur toutes les 20 min</li><li>Connexion Discord</li><li>Leaderboard temps réel</li><li>Récompenses selon contribution</li></ul>
+        </details>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.7.0 — Auto-Avance</summary>
+          <ul style="margin-top:5px;"><li>Toggle ON/OFF pour Auto-Avance dans la boutique</li></ul>
+        </details>
         <details style="margin-bottom:8px;">
           <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.6.0 — Interface</summary>
           <ul style="margin-top:5px;"><li>Affichage multiplicateur prestige (⏳)</li><li>Bouton MAX pets auto-refresh</li></ul>
@@ -348,7 +950,7 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
     const script = document.createElement('script');
     script.textContent = `
 // ============ PATCH NOTES SYSTEM ============
-const PATCH_VERSION = '1.7.0';
+const PATCH_VERSION = '2.1.0';
 
 function togglePatchModal(show) {
   const modal = document.getElementById('patchModal');
@@ -568,6 +1170,77 @@ function petUpgradeCost(pet, level) {
   return Math.floor(base * Math.pow(1.2, level));
 }
 
+// ============ WORLD BOSS CONFIG ============
+const WORLD_BOSS_CONFIG = {
+  spawnInterval: 20 * 60 * 1000,  // 20 minutes
+  duration: 5 * 60 * 1000,         // 5 minutes pour tuer
+  baseHp: 50_000_000_000,          // 50 MILLIARDS HP de base (très difficile)
+  attackCooldown: 0.5,             // 0.5s entre chaque attaque
+
+  // Scaling dynamique (style MMO)
+  // HP effectif = baseHp * bossMultiplier * (1 + scalingFactor * sqrt(nombreJoueurs - 1))
+  // Donc 1 joueur = x1, 10 joueurs = x1.9, 25 joueurs = x2.4, 50 joueurs = x3, 100 joueurs = x4
+  scalingFactor: 0.3,
+
+  // Récompenses basées sur les dégâts (toujours données)
+  damageRewards: {
+    perPercent: { gems: 10, gold: 10000000000 },  // Par % de dégâts = 10 gems + 10B gold
+    maxPercent: 100,                               // Cap à 100% = max 1000 gems + 1T gold
+  },
+
+  // Bonus si le boss est tué (en plus des récompenses de dégâts)
+  victoryBonus: {
+    participation: { gems: 100, gold: 100000000000 },      // Participation = 100 gems + 100B
+    top50Percent: { gems: 250, gold: 500000000000 },       // Top 50% = 250 gems + 500B
+    top10Percent: { gems: 500, gold: 2000000000000 },      // Top 10% = 500 gems + 2T
+    top3: { gems: 1000, gold: 10000000000000 },            // Top 3 = 1000 gems + 10T
+    top1: { gems: 2500, gold: 50000000000000 },            // #1 = 2500 gems + 50T
+  }
+};
+
+const WORLD_BOSSES = [
+  { id: 'voldemort', name: 'Lord Voldemort', icon: '🐍', hpMult: 1.0 },
+  { id: 'grindelwald', name: 'Grindelwald', icon: '⚡', hpMult: 1.2 },
+  { id: 'basilisk', name: 'Basilic', icon: '🐉', hpMult: 0.8 },
+  { id: 'dementor_king', name: 'Roi Détraqueur', icon: '👻', hpMult: 1.5 },
+  { id: 'dragon', name: 'Magyar à Pointes', icon: '🔥', hpMult: 1.3 },
+];
+
+// World Boss State
+let worldBossState = {
+  active: false,
+  boss: null,           // { id, name, icon, hp, maxHp, baseMaxHp }
+  myDamage: 0,
+  myDisplayName: 'Sorcier',
+  attackCD: 0,
+  participants: [],     // [{ uid, name, damage }, ...]
+  nextSpawn: null,
+  status: 'waiting',    // waiting | active | victory | expired
+  claimed: false,
+  effectiveMaxHp: 0,    // HP max avec scaling (recalculé dynamiquement)
+};
+
+// Calcule le HP effectif en fonction du nombre de joueurs
+function calcEffectiveMaxHp(baseMaxHp, numPlayers) {
+  if (numPlayers <= 1) return baseMaxHp;
+  // Scaling: baseHp * (1 + 0.3 * sqrt(joueurs - 1))
+  // 1 joueur = x1, 10 joueurs = x1.9, 25 joueurs = x2.4, 50 joueurs = x3
+  const scaling = 1 + WORLD_BOSS_CONFIG.scalingFactor * Math.sqrt(numPlayers - 1);
+  return Math.floor(baseMaxHp * scaling);
+}
+
+// Calcule le HP restant avec le scaling
+function calcEffectiveHp(currentHp, baseMaxHp, effectiveMaxHp) {
+  // Ratio des dégâts infligés
+  const damageRatio = 1 - (currentHp / baseMaxHp);
+  // Applique ce ratio au HP effectif
+  return Math.floor(effectiveMaxHp * (1 - damageRatio));
+}
+
+// Firebase user state
+let firebaseUser = null;
+let bossUnsubscribers = [];
+
 // ============ STATE ============
 let G = null;
 
@@ -735,6 +1408,7 @@ function onMobKill(wasCrit) {
       if (!G.activePet) G.activePet = p.id;
       toast('🎉 Pet obtenu : ' + p.icon + ' ' + p.name + ' !');
       rebuildHeroRecap();
+      showPetNotif();
     }
   });
   spawnMob();
@@ -768,13 +1442,32 @@ function spawnGoldNumber(amount) {
 // ============ SPELL AUTO-CAST ============
 function tickSpells(dt) {
   getSpells().forEach(spell => {
+    const slotEl = document.getElementById('spell-slot-' + spell.id);
+    const cdEl = document.getElementById('spell-cd-' + spell.id);
+    const cdTextEl = document.getElementById('spell-cdtext-' + spell.id);
+    const maxCd = getSpellCD(spell.id);
+
     if (G.spellCDs[spell.id] > 0) {
       G.spellCDs[spell.id] = Math.max(0, G.spellCDs[spell.id] - dt);
+      // Update radial cooldown
+      const cdPercent = (G.spellCDs[spell.id] / maxCd) * 100;
+      if (cdEl) cdEl.style.setProperty('--cd-percent', cdPercent + '%');
+      if (cdTextEl) { cdTextEl.style.display = 'block'; cdTextEl.textContent = G.spellCDs[spell.id].toFixed(1); }
+      if (slotEl) { slotEl.classList.remove('ready'); slotEl.classList.add('on-cd'); }
     } else {
-      damageMob(getSpellDmg(spell.id));
-      G.spellCDs[spell.id] = getSpellCD(spell.id);
-      const slotEl = document.getElementById('spell-slot-' + spell.id);
-      if (slotEl) { slotEl.classList.add('casting'); setTimeout(() => slotEl.classList.remove('casting'), 200); }
+      // Cast spell
+      damageMob(getSpellDmg(spell.id), spell.id);
+      G.spellCDs[spell.id] = maxCd;
+      if (slotEl) {
+        slotEl.classList.remove('on-cd');
+        slotEl.classList.add('casting');
+        setTimeout(() => {
+          slotEl.classList.remove('casting');
+          slotEl.classList.add('on-cd');
+        }, 200);
+      }
+      if (cdEl) cdEl.style.setProperty('--cd-percent', '100%');
+      if (cdTextEl) { cdTextEl.style.display = 'block'; cdTextEl.textContent = maxCd.toFixed(1); }
     }
   });
 }
@@ -850,7 +1543,60 @@ function buyTalent(talentId) {
   if (G.talentPoints < cost) { toast('Pas assez de points !'); return; }
   G.talentPoints -= cost;
   G.talents[talentId]++;
-  rebuildTalents();
+  updateTalentNode(talentId);
+  updateUI();
+}
+
+function buyTalentMax(talentId) {
+  const t = TALENTS.find(x => x.id === talentId);
+  let lvl = G.talents[talentId];
+  let bought = 0;
+
+  while (lvl < t.maxLvl) {
+    const cost = t.costBase + lvl;
+    if (G.talentPoints < cost) break;
+    G.talentPoints -= cost;
+    lvl++;
+    bought++;
+  }
+
+  if (bought === 0) {
+    toast('Pas assez de points !');
+    return;
+  }
+
+  G.talents[talentId] = lvl;
+  toast('+' + bought + ' niveaux !');
+  updateTalentNode(talentId);
+  updateUI();
+}
+
+function updateTalentNode(talentId) {
+  const t = TALENTS.find(x => x.id === talentId);
+  const lvl = G.talents[talentId];
+  const cost = t.costBase + lvl;
+  const isMax = lvl >= t.maxLvl;
+
+  const levelEl = document.getElementById('talent-level-' + talentId);
+  const costEl = document.getElementById('talent-cost-' + talentId);
+  const btn1El = document.getElementById('talent-btn-' + talentId);
+  const btnMaxEl = document.getElementById('talent-btnmax-' + talentId);
+  const nodeEl = document.getElementById('talent-node-' + talentId);
+
+  if (levelEl) levelEl.textContent = lvl + '/' + t.maxLvl;
+  if (costEl) costEl.textContent = isMax ? '✅ MAX' : cost + ' ⭐';
+  if (btn1El) {
+    btn1El.disabled = isMax || G.talentPoints < cost;
+    btn1El.style.display = isMax ? 'none' : '';
+  }
+  if (btnMaxEl) {
+    btnMaxEl.disabled = isMax || G.talentPoints < cost;
+    btnMaxEl.style.display = isMax ? 'none' : '';
+  }
+  if (nodeEl) {
+    if (isMax) nodeEl.classList.add('maxed');
+    else nodeEl.classList.remove('maxed');
+  }
 }
 
 // ============ REBIRTH (soft reset) ============
@@ -947,6 +1693,7 @@ function tick(now) {
   const dt = Math.min((now - lastTime) / 1000, 0.1);
   lastTime = now;
   tickSpells(dt);
+  tickWorldBoss(dt);
   // Auto-advance
   if (hasShop('auto_advance') && G.autoAdvanceEnabled) {
     const next = G.unlockedZones;
@@ -969,6 +1716,7 @@ function tick(now) {
   if (G._refreshTimer >= 0.3) {
     G._refreshTimer = 0;
     refreshButtons();
+    updateMiniBattleInfo();
   }
   G._saveTimer = (G._saveTimer || 0) + dt;
   if (G._saveTimer >= 5) { G._saveTimer = 0; save(); }
@@ -981,7 +1729,7 @@ function updateUI() {
   document.getElementById('goldPs').textContent = '(' + fmt(getGoldPerSec()) + '/s)';
   document.getElementById('gemsVal').textContent = fmt(G.gems);
   document.getElementById('tpVal').textContent = G.talentPoints;
-  document.getElementById('multVal').textContent = 'x' + (G.rebirthMult * G.prestigeMult).toFixed(1);
+  document.getElementById('prestigeVal').textContent = 'Prestige ' + G.prestige;
 
   const zone = ZONES[G.currentZone] || ZONES[ZONES.length - 1];
   document.getElementById('zoneName').textContent = 'Zone ' + (G.currentZone + 1) + ' — ' + zone.name;
@@ -1036,6 +1784,35 @@ function updateUI() {
       else { el.style.display = 'none'; }
     }
   });
+
+  // Update active buffs bar
+  updateActiveBuffsBar();
+}
+
+function updateActiveBuffsBar() {
+  const bar = document.getElementById('activeBuffsBar');
+  if (!bar) return;
+
+  let html = '';
+  SHOP_CONSUMABLES.forEach(c => {
+    if (hasBuff(c.id)) {
+      const rem = buffRemaining(c.id);
+      const mins = Math.floor(rem / 60);
+      const secs = rem % 60;
+      const timeStr = mins > 0 ? mins + ':' + secs.toString().padStart(2, '0') : secs + 's';
+      const expiring = rem <= 10;
+
+      html += '<div class="buff-item ' + (expiring ? 'expiring' : '') + '">';
+      html += '<span class="buff-icon">' + c.icon + '</span>';
+      html += '<div class="buff-info">';
+      html += '<span class="buff-name">' + c.name + '</span>';
+      html += '<span class="buff-timer">' + timeStr + '</span>';
+      html += '</div>';
+      html += '</div>';
+    }
+  });
+
+  bar.innerHTML = html;
 }
 
 // ============ UI LIGHT REFRESH (no DOM rebuild) ============
@@ -1061,6 +1838,24 @@ function refreshButtons() {
   if (gateBtn) {
     gateBtn.disabled = G.gold < getGateCost(nextGate);
   }
+  // Update talent buttons with correct cost
+  if (activePanel === 'talents') {
+    TALENTS.forEach(t => {
+      const lvl = G.talents[t.id] || 0;
+      const cost = t.costBase + lvl;
+      const isMax = lvl >= t.maxLvl;
+      const btn1 = document.getElementById('talent-btn-' + t.id);
+      const btnMax = document.getElementById('talent-btnmax-' + t.id);
+      if (btn1) {
+        btn1.disabled = isMax || G.talentPoints < cost;
+        btn1.dataset.costTp = isMax ? 9999 : cost;
+      }
+      if (btnMax) {
+        btnMax.disabled = isMax || G.talentPoints < cost;
+        btnMax.dataset.costTp = isMax ? 9999 : cost;
+      }
+    });
+  }
 }
 
 // ============ UI HEAVY ============
@@ -1077,9 +1872,52 @@ function switchPanel(id, btnEl) {
   if (id === 'spells') rebuildSpellUpgrades();
   if (id === 'talents') rebuildTalents();
   if (id === 'shop') rebuildShop();
-  if (id === 'pets') rebuildPets();
+  if (id === 'pets') { rebuildPets(); clearPetNotif(); }
+  if (id === 'boss') rebuildBoss();
   if (id === 'prestige') rebuildPrestige();
   if (id === 'stats') rebuildStats();
+
+  // Afficher/masquer le mini combat popup
+  updateMiniBattlePopup(id);
+}
+
+// ============ MINI BATTLE MODE ============
+function updateMiniBattlePopup(panelId) {
+  const battleArea = document.getElementById('battleArea');
+  const placeholder = document.getElementById('battleAreaPlaceholder');
+  if (!battleArea) return;
+
+  // Mode mini si on n'est pas sur Combat ou Boss
+  if (panelId === 'zone') {
+    // Mode normal - dans le placeholder
+    battleArea.classList.remove('mini-mode');
+    battleArea.onclick = null;
+    if (placeholder && battleArea.parentNode !== placeholder) {
+      placeholder.appendChild(battleArea);
+    }
+  } else if (panelId === 'boss') {
+    // Sur Boss - cacher complètement
+    battleArea.classList.add('mini-mode');
+    battleArea.style.display = 'none';
+  } else {
+    // Autres onglets - mode mini flottant
+    battleArea.classList.add('mini-mode');
+    battleArea.style.display = 'block';
+    battleArea.onclick = goToZonePanel;
+    // Déplacer vers body si pas déjà
+    if (battleArea.parentNode !== document.body) {
+      document.body.appendChild(battleArea);
+    }
+  }
+}
+
+function updateMiniBattleInfo() {
+  // Plus nécessaire - la vraie battle area se met à jour toute seule
+}
+
+function goToZonePanel() {
+  const zoneBtn = document.querySelector('.nav-btn');
+  switchPanel('zone', zoneBtn);
 }
 
 function rebuildAll() {
@@ -1090,6 +1928,7 @@ function rebuildAll() {
   rebuildTalents();
   rebuildShop();
   rebuildPets();
+  rebuildBoss();
   rebuildPrestige();
   rebuildStats();
 }
@@ -1110,18 +1949,6 @@ function rebuildHeroRecap() {
   if (totalMult > 1) {
     html += '<div class="hr-divider"></div>';
     html += '<div class="hr-section"><div class="hr-icon">✨</div><div class="hr-val">x<span>' + totalMult.toFixed(1) + '</span></div></div>';
-  }
-  // Active buffs
-  let anyBuff = false;
-  SHOP_CONSUMABLES.forEach(c => {
-    if (hasBuff(c.id)) anyBuff = true;
-  });
-  if (anyBuff) {
-    html += '<div class="hr-divider"></div>';
-    SHOP_CONSUMABLES.forEach(c => {
-      const rem = buffRemaining(c.id);
-      html += '<span id="buff-' + c.id + '" style="font-size:0.7em;color:var(--green);' + (rem > 0 ? '' : 'display:none;') + '">' + c.icon + ' ' + rem + 's</span> ';
-    });
   }
   // Pet (if equipped)
   if (G.activePet) {
@@ -1144,14 +1971,23 @@ function rebuildSpellBar() {
     if (G.spellCDs[spell.id] === undefined) G.spellCDs[spell.id] = 0;
     const curCd = G.spellCDs[spell.id] || 0;
     const maxCd = getSpellCD(spell.id);
+    const cdPercent = curCd > 0 ? ((curCd / maxCd) * 100) : 0;
+    const isReady = curCd <= 0;
+    const stateClass = isReady ? 'ready' : 'on-cd';
+
     bar.innerHTML += \`
-      <div class="spell-slot" id="spell-slot-\${spell.id}">
-        <div class="s-icon">\${spell.icon}</div>
-        <div class="s-name">\${spell.name} Niv.\${G.spellLevels[spell.id]}</div>
-        <div class="s-dmg" id="spell-dmg-\${spell.id}">⚔️\${fmt(getSpellDmg(spell.id))}</div>
-        <div class="s-cd-label">\${getSpellCD(spell.id).toFixed(1)}s</div>
-        <div class="spell-cd-overlay" id="spell-cd-\${spell.id}" style="height:\${curCd > 0 ? (curCd/maxCd*100) : 0}%"></div>
-        <div class="spell-cd-text" id="spell-cdtext-\${spell.id}" style="\${curCd <= 0 ? 'display:none' : ''}">\${curCd.toFixed(1)}s</div>
+      <div class="spell-slot \${stateClass}" id="spell-slot-\${spell.id}" data-spell="\${spell.id}">
+        <div class="spell-circle">
+          <div class="s-icon">\${spell.icon}</div>
+          <div class="spell-cd-radial" id="spell-cd-\${spell.id}" style="--cd-percent:\${cdPercent}%"></div>
+          <div class="s-cd-text" id="spell-cdtext-\${spell.id}" style="\${isReady ? 'display:none' : ''}">\${curCd.toFixed(1)}</div>
+        </div>
+        <div class="s-info">Niv.\${G.spellLevels[spell.id]}</div>
+        <div class="spell-tooltip">
+          <div class="tt-name">\${spell.name}</div>
+          <div class="tt-dmg">\${fmt(getSpellDmg(spell.id))} dmg</div>
+          <div class="tt-cd">\${getSpellCD(spell.id).toFixed(1)}s cooldown</div>
+        </div>
       </div>
     \`;
   });
@@ -1252,7 +2088,17 @@ function rebuildTalents() {
     html += \`<div class="talent-section"><div class="talent-section-title">\${spell.icon} \${spell.name}</div><div class="talent-grid">\`;
     sts.forEach(t => {
       const lvl = G.talents[t.id] || 0; const cost = t.costBase + lvl; const isMax = lvl >= t.maxLvl;
-      html += \`<div class="talent-node \${isMax?'maxed':''}"><div class="t-icon">\${t.icon}</div><div class="t-name">\${t.name}</div><div class="t-level">\${lvl}/\${t.maxLvl}</div><div class="t-desc">\${t.desc}</div><div class="t-cost">\${isMax?'✅ MAX':cost+' ⭐'}</div><button class="btn btn-sm" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalent('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="margin-top:4px;">+</button></div>\`;
+      html += \`<div class="talent-node \${isMax?'maxed':''}" id="talent-node-\${t.id}">
+        <div class="t-icon">\${t.icon}</div>
+        <div class="t-name">\${t.name}</div>
+        <div class="t-level" id="talent-level-\${t.id}">\${lvl}/\${t.maxLvl}</div>
+        <div class="t-desc">\${t.desc}</div>
+        <div class="t-cost" id="talent-cost-\${t.id}">\${isMax?'✅ MAX':cost+' ⭐'}</div>
+        <div style="display:flex;gap:4px;margin-top:4px;justify-content:center;">
+          <button class="btn btn-sm" id="talent-btn-\${t.id}" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalent('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="\${isMax?'display:none':''}">+1</button>
+          <button class="btn btn-sm" id="talent-btnmax-\${t.id}" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalentMax('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="\${isMax?'display:none':''}">MAX</button>
+        </div>
+      </div>\`;
     });
     html += '</div></div>';
   });
@@ -1260,7 +2106,17 @@ function rebuildTalents() {
   html += \`<div class="talent-section"><div class="talent-section-title">🌟 Talents Globaux</div><div class="talent-grid">\`;
   globalTalents.forEach(t => {
     const lvl = G.talents[t.id] || 0; const cost = t.costBase + lvl; const isMax = lvl >= t.maxLvl;
-    html += \`<div class="talent-node \${isMax?'maxed':''}"><div class="t-icon">\${t.icon}</div><div class="t-name">\${t.name}</div><div class="t-level">\${lvl}/\${t.maxLvl}</div><div class="t-desc">\${t.desc}</div><div class="t-cost">\${isMax?'✅ MAX':cost+' ⭐'}</div><button class="btn btn-sm" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalent('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="margin-top:4px;">+</button></div>\`;
+    html += \`<div class="talent-node \${isMax?'maxed':''}" id="talent-node-\${t.id}">
+      <div class="t-icon">\${t.icon}</div>
+      <div class="t-name">\${t.name}</div>
+      <div class="t-level" id="talent-level-\${t.id}">\${lvl}/\${t.maxLvl}</div>
+      <div class="t-desc">\${t.desc}</div>
+      <div class="t-cost" id="talent-cost-\${t.id}">\${isMax?'✅ MAX':cost+' ⭐'}</div>
+      <div style="display:flex;gap:4px;margin-top:4px;justify-content:center;">
+        <button class="btn btn-sm" id="talent-btn-\${t.id}" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalent('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="\${isMax?'display:none':''}">+1</button>
+        <button class="btn btn-sm" id="talent-btnmax-\${t.id}" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalentMax('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="\${isMax?'display:none':''}">MAX</button>
+      </div>
+    </div>\`;
   });
   html += '</div></div>';
   el.innerHTML = html;
@@ -1407,6 +2263,16 @@ function equipPet(petId) {
   G.activePet = G.activePet === petId ? null : petId;
   rebuildPets();
   rebuildHeroRecap();
+}
+
+function showPetNotif() {
+  const notif = document.getElementById('petNotif');
+  if (notif) notif.style.display = 'flex';
+}
+
+function clearPetNotif() {
+  const notif = document.getElementById('petNotif');
+  if (notif) notif.style.display = 'none';
 }
 
 function rebuildPets() {
@@ -1557,6 +2423,1139 @@ function toast(msg) {
   t._to = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// ============ FIREBASE AUTH ============
+// Firebase SDK loaded from window globals (loaded via CDN in head)
+let firebaseApp = null;
+let firebaseAuth = null;
+let firebaseDb = null;
+
+async function initFirebase() {
+  try {
+    // Wait for Firebase SDK to be available
+    if (typeof firebase === 'undefined') {
+      console.log('Firebase SDK not loaded yet, waiting...');
+      await new Promise(resolve => {
+        const check = setInterval(() => {
+          if (typeof firebase !== 'undefined') {
+            clearInterval(check);
+            resolve();
+          }
+        }, 100);
+        // Timeout after 5 seconds
+        setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+      });
+    }
+
+    if (typeof firebase === 'undefined') {
+      console.log('Firebase SDK not available');
+      return;
+    }
+
+    // Get config from env (injected via Next.js)
+    const config = window.__FIREBASE_CONFIG__;
+    if (!config || !config.apiKey || config.apiKey === 'YOUR_API_KEY_HERE') {
+      console.log('Firebase not configured - set credentials in .env.local');
+      return;
+    }
+
+    // Initialize Firebase
+    if (!firebaseApp) {
+      firebaseApp = firebase.initializeApp(config);
+      firebaseAuth = firebase.auth();
+      firebaseDb = firebase.database();
+    }
+
+    // Listen for auth state changes
+    firebaseAuth.onAuthStateChanged((user) => {
+      firebaseUser = user;
+      updateUserUI();
+      if (user) {
+        subscribeToBoss();
+      } else {
+        unsubscribeFromBoss();
+      }
+    });
+
+    console.log('Firebase initialized successfully');
+  } catch (e) {
+    console.error('Firebase init error:', e);
+  }
+}
+
+function updateUserUI() {
+  const nameEl = document.getElementById('userName');
+  const btnEl = document.getElementById('loginBtn');
+  const avatarEl = document.getElementById('userAvatar');
+  const loginPrompt = document.getElementById('bossLoginPrompt');
+  const notLoggedIn = document.getElementById('bossNotLoggedIn');
+
+  if (firebaseUser) {
+    // Essayer de récupérer les infos Discord depuis providerData
+    let displayName = firebaseUser.displayName;
+    let photoURL = firebaseUser.photoURL;
+
+    // Chercher dans providerData
+    if (firebaseUser.providerData && firebaseUser.providerData.length > 0) {
+      const provider = firebaseUser.providerData[0];
+      if (provider.displayName) displayName = provider.displayName;
+      if (provider.photoURL) photoURL = provider.photoURL;
+    }
+
+    // Charger le pseudo sauvegardé ou utiliser celui de Discord
+    const savedName = localStorage.getItem('wandidle_username');
+    worldBossState.myDisplayName = savedName || displayName || 'Sorcier';
+
+    if (nameEl) {
+      if (worldBossState.myDisplayName === 'Sorcier') {
+        nameEl.innerHTML = 'Sorcier <span style="font-size:0.8em;opacity:0.6;">✏️</span>';
+      } else {
+        nameEl.textContent = worldBossState.myDisplayName;
+      }
+    }
+
+    // Avatar : priorité au sauvegardé, puis Discord, puis défaut
+    const savedAvatar = localStorage.getItem('wandidle_avatar');
+    if (avatarEl) {
+      if (savedAvatar) {
+        avatarEl.src = savedAvatar;
+        avatarEl.style.display = 'block';
+      } else if (photoURL) {
+        avatarEl.src = photoURL;
+        avatarEl.style.display = 'block';
+      } else {
+        // Avatar par défaut avec emoji
+        avatarEl.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
+        avatarEl.style.display = 'block';
+      }
+    }
+    if (btnEl) {
+      btnEl.textContent = '🚪';
+      btnEl.title = 'Se déconnecter';
+      btnEl.onclick = handleLogout;
+    }
+    if (loginPrompt) loginPrompt.style.display = 'none';
+    if (notLoggedIn) notLoggedIn.style.display = 'none';
+
+    console.log('User info:', { displayName, photoURL, providerData: firebaseUser.providerData });
+  } else {
+    if (nameEl) nameEl.textContent = '';
+    if (avatarEl) avatarEl.style.display = 'none';
+    if (btnEl) {
+      btnEl.textContent = '🎮 Discord';
+      btnEl.title = 'Se connecter avec Discord';
+      btnEl.onclick = handleLogin;
+    }
+    if (loginPrompt) loginPrompt.style.display = 'block';
+    if (notLoggedIn) notLoggedIn.style.display = 'block';
+  }
+}
+
+async function handleLogin() {
+  try {
+    if (!firebaseAuth) {
+      toast('❌ Firebase non configuré');
+      return;
+    }
+    // Discord login via OIDC provider
+    const provider = new firebase.auth.OAuthProvider('oidc.discord');
+    await firebaseAuth.signInWithPopup(provider);
+    toast('✅ Connecté !');
+  } catch (e) {
+    toast('❌ Erreur de connexion');
+    console.error(e);
+  }
+}
+
+async function handleLogout() {
+  try {
+    if (!firebaseAuth) return;
+    await firebaseAuth.signOut();
+    toast('👋 Déconnecté');
+    firebaseUser = null;
+    updateUserUI();
+    unsubscribeFromBoss();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// ============ WORLD BOSS SYNC ============
+async function subscribeToBoss() {
+  if (!firebaseUser || !firebaseDb) return;
+
+  try {
+    // Écouter l'état du boss
+    const bossRef = firebaseDb.ref('worldBoss/current');
+    bossRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.status === 'active') {
+        worldBossState.active = true;
+        worldBossState.boss = {
+          id: data.id,
+          name: data.name,
+          icon: data.icon,
+          hp: data.hp,
+          maxHp: data.maxHp,
+          startedAt: data.startedAt,
+          endsAt: data.endsAt,
+        };
+        worldBossState.status = 'active';
+        showBossNotification();
+      } else if (data && data.status === 'defeated') {
+        worldBossState.active = false;
+        worldBossState.status = 'victory';
+        worldBossState.boss = data;
+      } else if (data && data.status === 'expired') {
+        worldBossState.active = false;
+        worldBossState.status = 'expired';
+      } else {
+        worldBossState.active = false;
+        worldBossState.status = 'waiting';
+        worldBossState.myDamage = 0;
+        worldBossState.claimed = false;
+        bossAlertShown = false; // Reset pour le prochain boss
+      }
+      updateBossUI();
+    });
+    bossUnsubscribers.push(() => bossRef.off());
+
+    // Écouter les participants
+    const participantsRef = firebaseDb.ref('worldBoss/participants');
+    participantsRef.on('value', (snapshot) => {
+      const data = snapshot.val() || {};
+      worldBossState.participants = Object.entries(data)
+        .map(([uid, p]) => ({ uid, ...p }))
+        .sort((a, b) => b.damage - a.damage);
+
+      // Update my damage from server
+      if (firebaseUser) {
+        const myEntry = worldBossState.participants.find(p => p.uid === firebaseUser.uid);
+        if (myEntry) {
+          worldBossState.myDamage = myEntry.damage;
+        }
+      }
+      updateBossLeaderboard();
+    });
+    bossUnsubscribers.push(() => participantsRef.off());
+
+    // Écouter prochain spawn
+    const nextRef = firebaseDb.ref('worldBoss/nextSpawn');
+    nextRef.on('value', (snapshot) => {
+      worldBossState.nextSpawn = snapshot.val();
+      updateBossCountdown();
+    });
+    bossUnsubscribers.push(() => nextRef.off());
+
+    // Check if already claimed
+    const claimRef = firebaseDb.ref('worldBoss/claims/' + firebaseUser.uid);
+    claimRef.on('value', (snapshot) => {
+      worldBossState.claimed = !!snapshot.val();
+      updateBossUI();
+    });
+    bossUnsubscribers.push(() => claimRef.off());
+  } catch (e) {
+    console.error('Error subscribing to boss:', e);
+  }
+}
+
+function unsubscribeFromBoss() {
+  bossUnsubscribers.forEach(unsub => {
+    try { unsub(); } catch(e) {}
+  });
+  bossUnsubscribers = [];
+}
+
+let bossAlertShown = false;
+let lastSeenBossId = localStorage.getItem('lastSeenBossId') || null;
+
+function showBossNotification() {
+  const notif = document.getElementById('bossNotif');
+  if (notif) notif.style.display = 'inline';
+
+  // Seulement montrer l'alerte si c'est un NOUVEAU boss qu'on n'a pas encore vu
+  const currentBossKey = worldBossState.boss ? (worldBossState.boss.id + '_' + worldBossState.boss.startedAt) : null;
+  const isNewBoss = currentBossKey && currentBossKey !== lastSeenBossId;
+
+  if (!bossAlertShown && worldBossState.boss && isNewBoss) {
+    bossAlertShown = true;
+    lastSeenBossId = currentBossKey;
+    localStorage.setItem('lastSeenBossId', currentBossKey);
+    showBossAlert(worldBossState.boss.icon, worldBossState.boss.name);
+
+    // Notification système seulement pour un nouveau boss
+    if (Notification.permission === 'granted') {
+      new Notification('⚔️ World Boss actif !', { body: 'Un boss mondial est apparu !' });
+    }
+  }
+}
+
+function showBossAlert(icon, name) {
+  const overlay = document.getElementById('bossAlertOverlay');
+  const iconEl = document.getElementById('bossAlertIcon');
+  const nameEl = document.getElementById('bossAlertName');
+
+  if (iconEl) iconEl.textContent = icon;
+  if (nameEl) nameEl.textContent = name;
+  if (overlay) overlay.classList.add('show');
+
+  // Auto-fermer après 5 secondes
+  setTimeout(() => {
+    closeBossAlert();
+  }, 5000);
+}
+
+function closeBossAlert() {
+  const overlay = document.getElementById('bossAlertOverlay');
+  if (overlay) overlay.classList.remove('show');
+}
+
+function goToBossPanel(event) {
+  if (event) event.stopPropagation();
+  closeBossAlert();
+  switchPanel('boss', document.querySelector('.nav-btn:nth-child(7)'));
+}
+
+function hideBossNotification() {
+  const notif = document.getElementById('bossNotif');
+  if (notif) notif.style.display = 'none';
+}
+
+// ============ WORLD BOSS ATTACK ============
+async function attackWorldBoss() {
+  if (!firebaseUser || !firebaseDb) {
+    toast('❌ Connecte-toi pour attaquer !');
+    return;
+  }
+  if (!worldBossState.active || worldBossState.attackCD > 0) return;
+
+  // Calculer les dégâts (basé sur DPS total du joueur)
+  const damage = Math.floor(getDPS() * WORLD_BOSS_CONFIG.attackCooldown);
+
+  // Cooldown local
+  worldBossState.attackCD = WORLD_BOSS_CONFIG.attackCooldown;
+
+  // Animation
+  const bossIcon = document.getElementById('bossIcon');
+  if (bossIcon) {
+    bossIcon.classList.add('boss-hit');
+    setTimeout(() => bossIcon.classList.remove('boss-hit'), 100);
+  }
+
+  try {
+    // Update player participation
+    const playerRef = firebaseDb.ref('worldBoss/participants/' + firebaseUser.uid);
+    const currentSnap = await playerRef.get();
+    const current = currentSnap.val() || { damage: 0 };
+
+    await playerRef.set({
+      displayName: firebaseUser.displayName || 'Sorcier',
+      damage: current.damage + damage,
+      lastHit: Date.now(),
+      zone: G.currentZone,
+    });
+
+    // Décrémenter HP du boss avec transaction
+    const bossHpRef = firebaseDb.ref('worldBoss/current/hp');
+    await bossHpRef.transaction((currentHp) => {
+      if (currentHp === null) return currentHp;
+      const newHp = Math.max(0, currentHp - damage);
+      return newHp;
+    });
+
+    // Local update
+    worldBossState.myDamage += damage;
+    if (worldBossState.boss) {
+      worldBossState.boss.hp = Math.max(0, worldBossState.boss.hp - damage);
+    }
+
+    // Vérifier si boss mort
+    if (worldBossState.boss && worldBossState.boss.hp <= 0) {
+      await endWorldBoss('victory');
+    }
+
+    updateBossUI();
+  } catch (e) {
+    console.error('Error attacking boss:', e);
+    toast('❌ Erreur de connexion');
+  }
+}
+
+async function endWorldBoss(result) {
+  if (!firebaseDb) return;
+
+  try {
+    // Get final leaderboard
+    const participantsSnap = await firebaseDb.ref('worldBoss/participants').get();
+    const participants = participantsSnap.val() || {};
+    const topDamagers = Object.entries(participants)
+      .map(([uid, p]) => ({ uid, ...p }))
+      .sort((a, b) => b.damage - a.damage)
+      .slice(0, 10)
+      .map((p, i) => ({
+        uid: p.uid,
+        name: p.displayName,
+        damage: p.damage,
+        rank: i + 1
+      }));
+
+    // Update boss status
+    await firebaseDb.ref('worldBoss/current/status').set(result === 'victory' ? 'defeated' : 'expired');
+
+    // Set next spawn time
+    await firebaseDb.ref('worldBoss/nextSpawn').set(Date.now() + WORLD_BOSS_CONFIG.spawnInterval);
+
+    // Archive to history (optional)
+    if (worldBossState.boss) {
+      await firebaseDb.ref('worldBoss/history/' + Date.now()).set({
+        name: worldBossState.boss.name,
+        maxHp: worldBossState.boss.maxHp,
+        result: result,
+        endedAt: Date.now(),
+        topDamagers: topDamagers,
+      });
+    }
+  } catch (e) {
+    console.error('Error ending boss:', e);
+  }
+}
+
+// ============ WORLD BOSS REWARDS ============
+async function claimBossReward() {
+  if (!firebaseUser || worldBossState.claimed) return;
+  if (worldBossState.status !== 'victory' && worldBossState.status !== 'expired') return;
+
+  const totalPlayers = worldBossState.participants.length;
+  const myRank = worldBossState.participants.findIndex(p => p.uid === firebaseUser.uid) + 1;
+
+  if (myRank === 0 || worldBossState.myDamage <= 0) {
+    toast('❌ Tu n\\'as pas participé !');
+    return;
+  }
+
+  // Calcul de la récompense basée sur les dégâts (utilise HP effectif)
+  const effectiveMaxHp = worldBossState.effectiveMaxHp || worldBossState.boss?.maxHp || WORLD_BOSS_CONFIG.baseHp;
+  const damagePercent = Math.min((worldBossState.myDamage / effectiveMaxHp) * 100, WORLD_BOSS_CONFIG.damageRewards.maxPercent);
+
+  let totalGems = Math.floor(damagePercent * WORLD_BOSS_CONFIG.damageRewards.perPercent.gems);
+  let totalGold = Math.floor(damagePercent * WORLD_BOSS_CONFIG.damageRewards.perPercent.gold);
+
+  let bonusText = '';
+
+  // Bonus si victoire
+  if (worldBossState.status === 'victory') {
+    let bonus = { ...WORLD_BOSS_CONFIG.victoryBonus.participation };
+
+    if (myRank === 1) {
+      bonus = WORLD_BOSS_CONFIG.victoryBonus.top1;
+    } else if (myRank <= 3) {
+      bonus = WORLD_BOSS_CONFIG.victoryBonus.top3;
+    } else if (myRank <= Math.ceil(totalPlayers * 0.1)) {
+      bonus = WORLD_BOSS_CONFIG.victoryBonus.top10Percent;
+    } else if (myRank <= Math.ceil(totalPlayers * 0.5)) {
+      bonus = WORLD_BOSS_CONFIG.victoryBonus.top50Percent;
+    }
+
+    totalGems += bonus.gems;
+    totalGold += bonus.gold;
+    bonusText = ' (+ bonus victoire !)';
+  }
+
+  // Appliquer les récompenses
+  G.gems += totalGems;
+  G.gold += totalGold;
+
+  toast('🎁 +' + totalGems + ' 💎 +' + fmt(totalGold) + ' 🪙' + bonusText);
+  save();
+
+  // Marquer comme claim dans Firebase
+  try {
+    if (firebaseDb) {
+      await firebaseDb.ref('worldBoss/claims/' + firebaseUser.uid).set(Date.now());
+    }
+    worldBossState.claimed = true;
+    updateBossUI();
+  } catch (e) {
+    console.error('Error claiming reward:', e);
+  }
+}
+
+// ============ WORLD BOSS UI ============
+function updateBossUI() {
+  const waiting = document.getElementById('bossWaiting');
+  const active = document.getElementById('bossActive');
+  const victory = document.getElementById('bossVictory');
+  const expired = document.getElementById('bossExpired');
+
+  if (!waiting || !active || !victory || !expired) return;
+
+  // Hide all
+  waiting.style.display = 'none';
+  active.style.display = 'none';
+  victory.style.display = 'none';
+  expired.style.display = 'none';
+
+  if (worldBossState.status === 'active' && worldBossState.boss) {
+    active.style.display = 'block';
+    showBossNotification();
+
+    document.getElementById('bossIcon').textContent = worldBossState.boss.icon;
+    document.getElementById('bossName').textContent = worldBossState.boss.name;
+
+    // Mettre à jour les joueurs dans l'arène
+    updateBossArenaPlayers();
+
+    // Calcul du HP effectif avec scaling dynamique
+    const numPlayers = Math.max(1, worldBossState.participants.length);
+    const baseMaxHp = worldBossState.boss.maxHp;
+    const effectiveMaxHp = calcEffectiveMaxHp(baseMaxHp, numPlayers);
+    const effectiveHp = calcEffectiveHp(worldBossState.boss.hp, baseMaxHp, effectiveMaxHp);
+    worldBossState.effectiveMaxHp = effectiveMaxHp;
+
+    const hpPct = Math.max(0, (effectiveHp / effectiveMaxHp) * 100);
+    document.getElementById('bossHpBar').style.width = hpPct + '%';
+    document.getElementById('bossHpText').textContent = fmt(Math.max(0, effectiveHp)) + ' / ' + fmt(effectiveMaxHp);
+
+    // Afficher le nombre de joueurs
+    const playerCountEl = document.getElementById('bossPlayerCount');
+    if (playerCountEl) {
+      playerCountEl.textContent = '👥 ' + numPlayers + ' joueur' + (numPlayers > 1 ? 's' : '');
+    }
+
+    // Update DPS display
+    const dpsEl = document.getElementById('bossDpsDisplay');
+    if (dpsEl) dpsEl.textContent = fmt(getDPS()) + ' DPS';
+
+    // Timer
+    if (worldBossState.boss.endsAt) {
+      const remaining = Math.max(0, worldBossState.boss.endsAt - Date.now());
+      const mins = Math.floor(remaining / 60000);
+      const secs = Math.floor((remaining % 60000) / 1000);
+      document.getElementById('bossTimer').textContent = '⏱️ ' + mins + ':' + secs.toString().padStart(2, '0');
+    }
+
+    // My stats
+    document.getElementById('myBossDmg').textContent = fmt(worldBossState.myDamage);
+    const pct = effectiveMaxHp > 0 ? (worldBossState.myDamage / effectiveMaxHp * 100) : 0;
+    document.getElementById('myBossPercent').textContent = pct.toFixed(2) + '%';
+
+    const myRank = firebaseUser ? worldBossState.participants.findIndex(p => p.uid === firebaseUser.uid) + 1 : 0;
+    document.getElementById('myBossRank').textContent = myRank > 0 ? '#' + myRank : '#--';
+
+    updateBossLeaderboard();
+
+  } else if (worldBossState.status === 'victory') {
+    victory.style.display = 'block';
+    hideBossNotification();
+
+    const myRank = firebaseUser ? worldBossState.participants.findIndex(p => p.uid === firebaseUser.uid) + 1 : 0;
+    let rewardText = '';
+    if (myRank > 0 && worldBossState.myDamage > 0) {
+      const totalPlayers = worldBossState.participants.length;
+      const effectiveMaxHp = worldBossState.effectiveMaxHp || worldBossState.boss?.maxHp || WORLD_BOSS_CONFIG.baseHp;
+      const damagePercent = Math.min((worldBossState.myDamage / effectiveMaxHp) * 100, 100);
+
+      // Récompense dégâts
+      let totalGems = Math.floor(damagePercent * WORLD_BOSS_CONFIG.damageRewards.perPercent.gems);
+      let totalGold = Math.floor(damagePercent * WORLD_BOSS_CONFIG.damageRewards.perPercent.gold);
+
+      // Bonus victoire
+      let bonus = WORLD_BOSS_CONFIG.victoryBonus.participation;
+      if (myRank === 1) bonus = WORLD_BOSS_CONFIG.victoryBonus.top1;
+      else if (myRank <= 3) bonus = WORLD_BOSS_CONFIG.victoryBonus.top3;
+      else if (myRank <= Math.ceil(totalPlayers * 0.1)) bonus = WORLD_BOSS_CONFIG.victoryBonus.top10Percent;
+      else if (myRank <= Math.ceil(totalPlayers * 0.5)) bonus = WORLD_BOSS_CONFIG.victoryBonus.top50Percent;
+
+      totalGems += bonus.gems;
+      totalGold += bonus.gold;
+
+      rewardText = '🏆 Rang #' + myRank + ' — ' + damagePercent.toFixed(2) + '% dégâts\\n💎 ' + totalGems + ' gems + 🪙 ' + fmt(totalGold) + ' gold\\n(dont bonus victoire: +' + bonus.gems + ' 💎 +' + fmt(bonus.gold) + ' 🪙)';
+    } else {
+      rewardText = 'Tu n\\'as pas participé';
+    }
+    document.getElementById('bossRewardText').innerHTML = rewardText.replace(/\\n/g, '<br>');
+
+    const claimBtn = document.getElementById('bossClaimBtn');
+    const alreadyClaimed = document.getElementById('bossAlreadyClaimed');
+    if (worldBossState.claimed || myRank === 0) {
+      claimBtn.style.display = 'none';
+      alreadyClaimed.style.display = 'block';
+    } else {
+      claimBtn.style.display = 'inline-block';
+      alreadyClaimed.style.display = 'none';
+    }
+
+  } else if (worldBossState.status === 'expired') {
+    expired.style.display = 'block';
+    hideBossNotification();
+
+    // Calculer et afficher les récompenses même si expiré
+    const effectiveMaxHp = worldBossState.effectiveMaxHp || worldBossState.boss?.maxHp || WORLD_BOSS_CONFIG.baseHp;
+    const damagePercent = Math.min((worldBossState.myDamage / effectiveMaxHp) * 100, 100);
+    const estGems = Math.floor(damagePercent * WORLD_BOSS_CONFIG.damageRewards.perPercent.gems);
+    const estGold = Math.floor(damagePercent * WORLD_BOSS_CONFIG.damageRewards.perPercent.gold);
+
+    const expiredRewardText = document.getElementById('bossExpiredRewardText');
+    if (expiredRewardText) {
+      if (worldBossState.myDamage > 0) {
+        expiredRewardText.textContent = 'Tes dégâts: ' + fmt(worldBossState.myDamage) + ' (' + damagePercent.toFixed(2) + '%) → ' + estGems + ' 💎 + ' + fmt(estGold) + ' 🪙';
+      } else {
+        expiredRewardText.textContent = 'Tu n\\'as pas participé';
+      }
+    }
+
+    const expiredClaimBtn = document.getElementById('bossExpiredClaimBtn');
+    const expiredAlreadyClaimed = document.getElementById('bossExpiredAlreadyClaimed');
+    if (worldBossState.claimed || worldBossState.myDamage <= 0) {
+      if (expiredClaimBtn) expiredClaimBtn.style.display = 'none';
+      if (expiredAlreadyClaimed) expiredAlreadyClaimed.style.display = worldBossState.myDamage > 0 ? 'block' : 'none';
+    } else {
+      if (expiredClaimBtn) expiredClaimBtn.style.display = 'inline-block';
+      if (expiredAlreadyClaimed) expiredAlreadyClaimed.style.display = 'none';
+    }
+
+  } else {
+    waiting.style.display = 'block';
+    hideBossNotification();
+
+    if (firebaseUser) {
+      document.getElementById('bossLoginPrompt').style.display = 'none';
+    }
+  }
+
+  updateBossCountdown();
+}
+
+// ============ BOSS BATTLE CANVAS RENDERER ============
+
+// Wizard sprite (same as BattleScene)
+const BOSS_WIZARD_SPRITE = {
+  palette: ['#00000000', '#0a0a12', '#1a1a2e', '#2d2d4a', '#3d3d5c', '#4a4a6e', '#d4c4b0', '#b8a898', '#2a2a3a', '#6af', '#4cf'],
+  pixels: [
+    [0,0,0,0,0,0,0,0,0,8,8,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,8,8,8,8,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,8,8,7,7,7,7,8,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,8,7,6,6,6,6,7,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,8,7,6,6,6,6,7,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,7,6,6,6,6,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,7,6,6,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,1,1,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,2,2,3,3,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,2,3,3,4,3,3,2,2,1,0,0,0,0,0,9,10,9,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,3,3,4,4,4,3,3,2,1,0,0,0,9,10,10,10,9,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,2,3,4,4,4,4,4,3,2,2,6,6,9,10,10,9,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,3,3,4,4,5,4,4,3,3,6,6,9,10,9,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,3,4,4,5,5,5,4,4,3,6,9,9,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,3,4,4,5,5,5,4,4,3,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,3,4,4,4,5,4,4,4,3,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,3,3,4,4,4,4,4,3,3,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,2,3,3,4,4,4,3,3,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,3,3,3,4,3,3,3,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,2,3,3,3,3,3,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,2,2,3,3,3,2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,2,2,2,3,2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,2,2,2,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,2,0,0,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,2,0,0,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+};
+
+// Boss sprites (dark lord style)
+const BOSS_MONSTER_SPRITE = {
+  palette: ['#00000000','#1a0a1a','#2a1a2a','#3a2a3a','#5a3a5a','#7a4a7a','#ff0000','#00ff00','#ffcc00'],
+  pixels: [
+    [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,1,2,2,3,3,3,3,3,3,3,3,2,2,1,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3,3,3,3,3,3,2,1,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,3,3,3,6,6,3,3,3,6,6,3,3,3,3,2,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,3,3,3,6,7,3,3,3,6,7,3,3,3,3,2,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,3,3,3,3,3,3,4,4,4,3,3,3,3,3,3,3,2,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,3,3,3,3,3,4,4,4,4,4,3,3,3,3,3,3,2,1,0,0,0,0,0,0,0],
+    [0,0,0,0,1,2,3,3,3,3,3,3,3,4,4,4,3,3,3,3,3,3,3,3,2,1,0,0,0,0,0,0],
+    [0,0,0,0,1,2,3,3,4,4,4,4,3,3,3,3,3,4,4,4,4,3,3,3,2,1,0,0,0,0,0,0],
+    [0,0,0,1,2,3,3,4,4,5,5,4,4,3,3,3,4,4,5,5,4,4,3,3,3,2,1,0,0,0,0,0],
+    [0,0,0,1,2,3,3,4,5,5,5,5,4,3,3,3,4,5,5,5,5,4,3,3,3,2,1,0,0,0,0,0],
+    [0,0,0,1,2,3,3,3,4,5,5,4,3,3,3,3,3,4,5,5,4,3,3,3,3,2,1,0,0,0,0,0],
+    [0,0,0,1,2,3,3,3,3,4,4,3,3,3,3,3,3,3,4,4,3,3,3,3,3,2,1,0,0,0,0,0],
+    [0,0,0,0,1,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,1,0,0,0,0,0,0],
+    [0,0,0,0,1,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,1,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,2,3,3,3,3,3,3,3,3,3,3,3,3,2,2,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,2,2,3,3,3,3,3,3,3,3,3,3,2,2,1,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,1,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+};
+
+// Canvas state
+let bossCanvasCtx = null;
+let bossAnimFrame = 0;
+let bossHitFlash = 0;
+let bossFloatOffset = 0;
+let bossDamageNumbers = [];
+let bossPlayerPositions = [];
+
+function initBossCanvas() {
+  const canvas = document.getElementById('bossCanvas');
+  if (!canvas) return;
+  bossCanvasCtx = canvas.getContext('2d');
+  canvas.width = 400;
+  canvas.height = 220;
+}
+
+function drawSprite(ctx, sprite, x, y, scale = 1, flash = false) {
+  const { palette, pixels } = sprite;
+  const pixelSize = scale;
+
+  for (let row = 0; row < pixels.length; row++) {
+    for (let col = 0; col < pixels[row].length; col++) {
+      const colorIndex = pixels[row][col];
+      if (colorIndex === 0) continue;
+
+      let color = palette[colorIndex];
+      if (flash) {
+        color = '#ffffff';
+      }
+
+      ctx.fillStyle = color;
+      ctx.fillRect(
+        x + col * pixelSize,
+        y + row * pixelSize,
+        pixelSize,
+        pixelSize
+      );
+    }
+  }
+}
+
+function renderBossCanvas() {
+  if (!bossCanvasCtx) initBossCanvas();
+  if (!bossCanvasCtx) return;
+
+  const ctx = bossCanvasCtx;
+  const canvas = ctx.canvas;
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // Clear
+  ctx.clearRect(0, 0, W, H);
+
+  // Background gradient
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0, '#0a0515');
+  bgGrad.addColorStop(0.5, '#1a0a2e');
+  bgGrad.addColorStop(1, '#0f0a1a');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Floor
+  ctx.fillStyle = '#151020';
+  ctx.fillRect(0, H - 50, W, 50);
+  ctx.strokeStyle = 'rgba(212,168,67,0.3)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, H - 50);
+  ctx.lineTo(W, H - 50);
+  ctx.stroke();
+
+  // Update animations
+  bossAnimFrame++;
+  bossFloatOffset = Math.sin(bossAnimFrame * 0.05) * 5;
+  if (bossHitFlash > 0) bossHitFlash--;
+
+  // Draw boss
+  if (worldBossState.boss) {
+    const bossScale = 3;
+    const bossX = W / 2 - (32 * bossScale) / 2;
+    const bossY = 20 + bossFloatOffset;
+
+    // Boss glow
+    ctx.shadowColor = bossHitFlash > 0 ? '#ffffff' : '#ff0000';
+    ctx.shadowBlur = bossHitFlash > 0 ? 30 : 15;
+
+    drawSprite(ctx, BOSS_MONSTER_SPRITE, bossX, bossY, bossScale, bossHitFlash > 0);
+
+    ctx.shadowBlur = 0;
+  }
+
+  // Draw players
+  const participants = worldBossState.participants;
+  const maxVisible = 10;
+  const visible = participants.slice(0, maxVisible);
+  const playerScale = 1.5;
+  const playerSpacing = Math.min(35, (W - 40) / Math.max(visible.length, 1));
+  const startX = W / 2 - (visible.length * playerSpacing) / 2;
+
+  bossPlayerPositions = [];
+
+  visible.forEach((p, i) => {
+    const px = startX + i * playerSpacing;
+    const py = H - 80;
+
+    bossPlayerPositions.push({ uid: p.uid, x: px, y: py });
+
+    // Player glow for current user
+    if (firebaseUser && p.uid === firebaseUser.uid) {
+      ctx.shadowColor = '#ce93d8';
+      ctx.shadowBlur = 10;
+    }
+
+    drawSprite(ctx, BOSS_WIZARD_SPRITE, px, py, playerScale);
+    ctx.shadowBlur = 0;
+  });
+
+  // Draw damage numbers
+  bossDamageNumbers = bossDamageNumbers.filter(dmg => {
+    dmg.y -= 1.5;
+    dmg.alpha -= 0.02;
+
+    if (dmg.alpha <= 0) return false;
+
+    ctx.globalAlpha = dmg.alpha;
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.fillStyle = '#ff6b6b';
+    ctx.textAlign = 'center';
+    ctx.fillText('-' + fmt(dmg.value), dmg.x, dmg.y);
+    ctx.globalAlpha = 1;
+
+    return true;
+  });
+
+  // Update player labels
+  updateBossPlayerLabels(visible);
+
+  // Continue animation
+  if (worldBossState.status === 'active') {
+    requestAnimationFrame(renderBossCanvas);
+  }
+}
+
+function updateBossPlayerLabels(participants) {
+  const container = document.getElementById('bossPlayerLabels');
+  if (!container) return;
+
+  const maxVisible = 10;
+  const visible = participants.slice(0, maxVisible);
+  const extraCount = Math.max(0, worldBossState.participants.length - maxVisible);
+
+  let html = '';
+  visible.forEach((p) => {
+    const isMe = firebaseUser && p.uid === firebaseUser.uid;
+    const name = (p.visibleName || p.displayName || 'Sorcier').substring(0, 8);
+    html += '<span class="boss-player-label ' + (isMe ? 'me' : '') + '">' + name + '</span>';
+  });
+
+  if (extraCount > 0) {
+    html += '<span class="boss-player-label">+' + extraCount + '</span>';
+  }
+
+  container.innerHTML = html;
+}
+
+function updateBossArenaPlayers() {
+  // Start canvas rendering if not already running
+  if (worldBossState.status === 'active') {
+    initBossCanvas();
+    renderBossCanvas();
+  }
+}
+
+// Animation d'attaque pour un joueur dans l'arène
+function animateBossPlayerAttack(uid) {
+  // Flash effect handled in canvas render
+}
+
+// Animation de dégât sur le boss
+function showBossDamageNumber(damage) {
+  bossHitFlash = 10;
+  bossDamageNumbers.push({
+    value: damage,
+    x: 200 + (Math.random() - 0.5) * 40,
+    y: 80,
+    alpha: 1
+  });
+}
+
+function updateBossLeaderboard() {
+  const el = document.getElementById('bossLeaderboard');
+  if (!el) return;
+
+  let html = '';
+  const top = worldBossState.participants.slice(0, 10);
+  top.forEach((p, i) => {
+    const isMe = firebaseUser && p.uid === firebaseUser.uid;
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+    html += '<div class="boss-leaderboard-entry ' + (isMe ? 'me' : '') + '">';
+    html += '<span class="rank">' + medal + '#' + (i + 1) + '</span>';
+    html += '<span class="name">' + (p.visibleName || p.displayName || 'Sorcier') + '</span>';
+    html += '<span class="damage">' + fmt(p.damage) + '</span>';
+    html += '</div>';
+  });
+
+  if (top.length === 0) {
+    html = '<div style="text-align:center;color:#666;padding:10px;">Aucun participant</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function updateBossCountdown() {
+  const countdownEl = document.getElementById('bossCountdown');
+  const nextEl = document.getElementById('bossNextCountdown');
+  const expiredEl = document.getElementById('bossExpiredCountdown');
+
+  if (worldBossState.status === 'active') return;
+
+  if (worldBossState.nextSpawn) {
+    const remaining = Math.max(0, worldBossState.nextSpawn - Date.now());
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    const timeStr = mins + ':' + secs.toString().padStart(2, '0');
+
+    if (countdownEl) countdownEl.textContent = timeStr;
+    if (nextEl) nextEl.textContent = 'Prochain boss dans ' + timeStr;
+    if (expiredEl) expiredEl.textContent = 'Prochain boss dans ' + timeStr;
+  } else {
+    // No nextSpawn set - show waiting message
+    if (countdownEl) countdownEl.textContent = 'Bientôt...';
+    if (nextEl) nextEl.textContent = 'Prochain boss bientôt...';
+    if (expiredEl) expiredEl.textContent = 'Prochain boss bientôt...';
+  }
+}
+
+function updateBossAttackButton() {
+  const btn = document.getElementById('bossAttackBtn');
+  const cdEl = document.getElementById('bossAttackCD');
+  if (!btn || !cdEl) return;
+
+  if (worldBossState.attackCD > 0) {
+    btn.disabled = true;
+    cdEl.textContent = worldBossState.attackCD.toFixed(1) + 's';
+  } else {
+    btn.disabled = !firebaseUser;
+    cdEl.textContent = '';
+  }
+}
+
+function tickWorldBoss(dt) {
+  // Auto-attaque du boss
+  if (worldBossState.status === 'active' && firebaseUser && firebaseDb) {
+    worldBossState.attackCD = (worldBossState.attackCD || 0) - dt;
+
+    if (worldBossState.attackCD <= 0) {
+      // Reset cooldown
+      worldBossState.attackCD = WORLD_BOSS_CONFIG.attackCooldown;
+
+      // Calculer et envoyer les dégâts automatiquement
+      autoAttackBoss();
+    }
+  }
+
+  // Update timer if boss active
+  if (worldBossState.status === 'active' && worldBossState.boss && worldBossState.boss.endsAt) {
+    const remaining = Math.max(0, worldBossState.boss.endsAt - Date.now());
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    const timerEl = document.getElementById('bossTimer');
+    if (timerEl) timerEl.textContent = '⏱️ ' + mins + ':' + secs.toString().padStart(2, '0');
+
+    // Check if time expired locally
+    if (remaining <= 0 && worldBossState.boss.hp > 0) {
+      worldBossState.status = 'expired';
+      updateBossUI();
+    }
+  }
+
+  // Update countdown
+  if (worldBossState.status !== 'active') {
+    updateBossCountdown();
+  }
+}
+
+// Auto-attaque silencieuse (sans animation à chaque coup)
+let lastBossDamageSync = 0;
+let pendingBossDamage = 0;
+
+async function autoAttackBoss() {
+  if (!firebaseUser || !firebaseDb || !worldBossState.active) return;
+
+  // Calculer les dégâts (DPS * cooldown)
+  const damage = Math.floor(getDPS() * WORLD_BOSS_CONFIG.attackCooldown);
+
+  // Accumuler les dégâts localement
+  pendingBossDamage += damage;
+  worldBossState.myDamage += damage;
+
+  // Mettre à jour le boss HP localement
+  if (worldBossState.boss) {
+    worldBossState.boss.hp = Math.max(0, worldBossState.boss.hp - damage);
+  }
+
+  // Sync avec Firebase toutes les 2 secondes (pour éviter trop de requêtes)
+  const now = Date.now();
+  if (now - lastBossDamageSync >= 2000) {
+    lastBossDamageSync = now;
+
+    // Afficher l'animation d'attaque et dégâts
+    if (pendingBossDamage > 0) {
+      animateBossPlayerAttack(firebaseUser.uid);
+      showBossDamageNumber(pendingBossDamage);
+    }
+
+    try {
+      // Update player damage
+      const playerRef = firebaseDb.ref('worldBoss/participants/' + firebaseUser.uid);
+      const snap = await playerRef.get();
+      const current = snap.val() || { damage: 0 };
+
+      await playerRef.set({
+        displayName: firebaseUser.displayName || 'Sorcier',
+        visibleName: worldBossState.myDisplayName || firebaseUser.displayName || 'Sorcier',
+        damage: current.damage + pendingBossDamage,
+        lastHit: now,
+        zone: G.currentZone,
+      });
+
+      // Update boss HP
+      await firebaseDb.ref('worldBoss/current/hp').transaction((currentHp) => {
+        if (currentHp === null) return currentHp;
+        return Math.max(0, currentHp - pendingBossDamage);
+      });
+
+      pendingBossDamage = 0;
+
+      // Check if boss defeated
+      if (worldBossState.boss && worldBossState.boss.hp <= 0) {
+        await endWorldBoss('victory');
+      }
+    } catch (e) {
+      console.error('Boss sync error:', e);
+    }
+  }
+
+  updateBossUI();
+}
+
+function rebuildBoss() {
+  updateBossUI();
+}
+
+// ============ DEV: SPAWN TEST BOSS ============
+async function spawnTestBoss() {
+  if (!firebaseDb) {
+    toast('❌ Firebase non connecté');
+    return;
+  }
+
+  // Reset alert pour revoir la bannière
+  bossAlertShown = false;
+
+  const bosses = [
+    { id: 'voldemort', name: 'Lord Voldemort', icon: '🐍', hpMult: 1.0 },
+    { id: 'grindelwald', name: 'Grindelwald', icon: '⚡', hpMult: 1.2 },
+    { id: 'basilisk', name: 'Basilic', icon: '🐉', hpMult: 0.8 },
+    { id: 'dementor_king', name: 'Roi Détraqueur', icon: '👻', hpMult: 1.5 },
+    { id: 'dragon', name: 'Magyar à Pointes', icon: '🔥', hpMult: 1.3 },
+  ];
+
+  const boss = bosses[Math.floor(Math.random() * bosses.length)];
+  const now = Date.now();
+  const hp = Math.floor(WORLD_BOSS_CONFIG.baseHp * boss.hpMult);
+  const duration = WORLD_BOSS_CONFIG.duration;
+
+  try {
+    await firebaseDb.ref('worldBoss/current').set({
+      id: boss.id,
+      name: boss.name,
+      icon: boss.icon,
+      hp: hp,
+      maxHp: hp,
+      startedAt: now,
+      endsAt: now + duration,
+      status: 'active',
+    });
+
+    await firebaseDb.ref('worldBoss/participants').remove();
+    await firebaseDb.ref('worldBoss/claims').remove();
+    await firebaseDb.ref('worldBoss/nextSpawn').set(now + WORLD_BOSS_CONFIG.spawnInterval);
+
+    toast('⚔️ Boss ' + boss.name + ' invoqué !');
+  } catch (e) {
+    console.error('Error spawning boss:', e);
+    toast('❌ Erreur: ' + e.message);
+  }
+}
+
+// Expose to window for console testing
+window.spawnTestBoss = spawnTestBoss;
+
+// ============ CUSTOM PSEUDO & AVATAR ============
+function promptChangeName() {
+  if (!firebaseUser) return;
+
+  const currentName = localStorage.getItem('wandidle_username') || worldBossState.myDisplayName || 'Sorcier';
+  const newName = prompt('Entre ton pseudo pour le World Boss:', currentName);
+
+  if (newName && newName.trim().length > 0 && newName.trim().length <= 20) {
+    const cleanName = newName.trim();
+    localStorage.setItem('wandidle_username', cleanName);
+    worldBossState.myDisplayName = cleanName;
+
+    const nameEl = document.getElementById('userName');
+    if (nameEl) nameEl.textContent = cleanName; // Plus de stylo car pseudo personnalisé
+
+    toast('✅ Pseudo: ' + cleanName);
+  } else if (newName !== null) {
+    toast('❌ Pseudo invalide (1-20 caractères)');
+  }
+}
+
+function promptChangeAvatar() {
+  if (!firebaseUser) return;
+
+  const currentAvatar = localStorage.getItem('wandidle_avatar') || '';
+  const newAvatar = prompt('Colle l\\'URL de ton avatar Discord:\\n(Clic droit sur ton avatar Discord → Copier le lien)', currentAvatar);
+
+  if (newAvatar && newAvatar.trim().startsWith('http')) {
+    const cleanUrl = newAvatar.trim();
+    localStorage.setItem('wandidle_avatar', cleanUrl);
+
+    const avatarEl = document.getElementById('userAvatar');
+    if (avatarEl) {
+      avatarEl.src = cleanUrl;
+      avatarEl.style.display = 'block';
+    }
+
+    toast('✅ Avatar mis à jour !');
+  } else if (newAvatar !== null && newAvatar.trim() !== '') {
+    toast('❌ URL invalide');
+  }
+}
+
+// Load saved profile on init
+function loadSavedProfile() {
+  const savedName = localStorage.getItem('wandidle_username');
+  if (savedName) {
+    worldBossState.myDisplayName = savedName;
+  }
+
+  const savedAvatar = localStorage.getItem('wandidle_avatar');
+  if (savedAvatar) {
+    const avatarEl = document.getElementById('userAvatar');
+    if (avatarEl) {
+      avatarEl.src = savedAvatar;
+      avatarEl.style.display = 'block';
+    }
+  }
+}
+
 // ============ OFFLINE ============
 function calcOffline() {
   if (!G.lastTick) return;
@@ -1642,6 +3641,21 @@ const waitForBattleAPI = setInterval(() => {
 
 // Check for new patch notes
 checkPatchNotes();
+
+// Initialize Firebase for World Boss
+initFirebase();
+
+// Request notification permission for boss alerts
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+// Placer la battle area dans son placeholder initial
+const battleArea = document.getElementById('battleArea');
+const placeholder = document.getElementById('battleAreaPlaceholder');
+if (battleArea && placeholder) {
+  placeholder.appendChild(battleArea);
+}
 
 requestAnimationFrame(tick);
 `;

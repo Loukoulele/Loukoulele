@@ -995,7 +995,7 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
   const particlesRef = useRef<PIXI.Container | null>(null);
   const currentZoneRef = useRef<number>(currentZone);
 
-  const castSpell = useCallback((spellType: string = 'ice') => {
+  const castSpell = useCallback((spellType: string = 'stupefix') => {
     const app = appRef.current;
     const particles = particlesRef.current;
     const wizard = wizardRef.current;
@@ -1003,66 +1003,354 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
 
     const wizardBaseX = 80, wizardBaseY = 260;
     const mobBaseX = 380, mobBaseY = 220;
+    const startX = wizardBaseX + 60, startY = wizardBaseY - 50;
+    const endX = mobBaseX - 20, endY = mobBaseY - 30;
 
+    // Wizard cast animation
     wizard.x = wizardBaseX + 5;
     setTimeout(() => { wizard.x = wizardBaseX; }, 150);
 
-    const colors = spellType === 'fire' ? [0xff4400, 0xff8800, 0xffcc00] :
-                   spellType === 'dark' ? [0x6622aa, 0x8844cc, 0xaa66ee] :
-                   [0x2288ff, 0x44aaff, 0xaaddff];
+    // ============ STUPEFIX - Lightning Bolt ============
+    if (spellType === 'stupefix') {
+      const lightning = new PIXI.Graphics();
+      const points: {x: number, y: number}[] = [];
+      const segments = 8;
 
-    const spell = new PIXI.Graphics();
-    spell.circle(0, 0, 12);
-    spell.fill({ color: colors[2], alpha: 0.9 });
-    spell.circle(0, 0, 8);
-    spell.fill({ color: colors[1], alpha: 0.8 });
-    spell.circle(0, 0, 4);
-    spell.fill({ color: 0xffffff, alpha: 1 });
-
-    spell.x = wizardBaseX + 60;
-    spell.y = wizardBaseY - 50;
-    particles.addChild(spell);
-
-    const startX = spell.x, startY = spell.y;
-    const endX = mobBaseX - 20, endY = mobBaseY - 30;
-    const duration = 200;
-    const startTime = Date.now();
-
-    const animateSpell = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      spell.x = startX + (endX - startX) * progress;
-      spell.y = startY + (endY - startY) * progress;
-
-      if (Math.random() > 0.6) {
-        const trail = new PIXI.Graphics();
-        trail.circle(0, 0, 3);
-        trail.fill({ color: colors[1], alpha: 0.5 });
-        trail.x = spell.x;
-        trail.y = spell.y;
-        particles.addChild(trail);
-        const fade = () => { trail.alpha -= 0.1; if (trail.alpha > 0) requestAnimationFrame(fade); else particles.removeChild(trail); };
-        fade();
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const x = startX + (endX - startX) * t;
+        const y = startY + (endY - startY) * t;
+        const offset = i === 0 || i === segments ? 0 : (Math.random() - 0.5) * 30;
+        points.push({ x: x + offset * 0.3, y: y + offset });
       }
 
-      if (progress < 1) requestAnimationFrame(animateSpell);
-      else {
-        particles.removeChild(spell);
-        for (let i = 0; i < 10; i++) {
-          const p = new PIXI.Graphics();
-          p.circle(0, 0, 3);
-          p.fill({ color: colors[Math.floor(Math.random() * 3)], alpha: 0.8 });
-          p.x = endX; p.y = endY;
-          particles.addChild(p);
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 3 + Math.random() * 4;
-          const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
-          const anim = () => { p.x += vx; p.y += vy; p.alpha -= 0.05; if (p.alpha > 0) requestAnimationFrame(anim); else particles.removeChild(p); };
-          anim();
+      // Draw main bolt
+      lightning.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        lightning.lineTo(points[i].x, points[i].y);
+      }
+      lightning.stroke({ width: 4, color: 0x4fc3f7, alpha: 0.9 });
+
+      // Draw core
+      lightning.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        lightning.lineTo(points[i].x, points[i].y);
+      }
+      lightning.stroke({ width: 2, color: 0xffffff, alpha: 1 });
+
+      // Glow effect
+      lightning.circle(endX, endY, 15);
+      lightning.fill({ color: 0x4fc3f7, alpha: 0.3 });
+
+      particles.addChild(lightning);
+
+      // Electric sparks at impact
+      for (let i = 0; i < 8; i++) {
+        const spark = new PIXI.Graphics();
+        spark.moveTo(0, 0);
+        spark.lineTo(Math.random() * 20 - 10, Math.random() * 20 - 10);
+        spark.stroke({ width: 2, color: 0x4fc3f7, alpha: 0.8 });
+        spark.x = endX; spark.y = endY;
+        particles.addChild(spark);
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 3;
+        const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
+        const animSpark = () => {
+          spark.x += vx; spark.y += vy; spark.alpha -= 0.08;
+          if (spark.alpha > 0) requestAnimationFrame(animSpark);
+          else particles.removeChild(spark);
+        };
+        setTimeout(animSpark, 50);
+      }
+
+      // Fade lightning
+      const fadeLightning = () => {
+        lightning.alpha -= 0.15;
+        if (lightning.alpha > 0) requestAnimationFrame(fadeLightning);
+        else particles.removeChild(lightning);
+      };
+      setTimeout(fadeLightning, 100);
+    }
+
+    // ============ PATRONUS - Silver Deer ============
+    else if (spellType === 'patronus') {
+      const patronus = new PIXI.Graphics();
+
+      // Simple deer silhouette
+      patronus.moveTo(0, 0);
+      patronus.lineTo(15, -5);
+      patronus.lineTo(20, -15); // antler
+      patronus.moveTo(15, -5);
+      patronus.lineTo(25, -12); // antler 2
+      patronus.moveTo(15, -5);
+      patronus.lineTo(25, 0);
+      patronus.lineTo(30, 10);
+      patronus.lineTo(25, 10);
+      patronus.lineTo(20, 5);
+      patronus.lineTo(10, 5);
+      patronus.lineTo(5, 10);
+      patronus.lineTo(0, 10);
+      patronus.lineTo(0, 0);
+      patronus.stroke({ width: 3, color: 0xffffff, alpha: 0.9 });
+      patronus.fill({ color: 0xe0e0e0, alpha: 0.4 });
+
+      // Outer glow
+      patronus.circle(15, 0, 25);
+      patronus.fill({ color: 0xffffff, alpha: 0.2 });
+
+      patronus.x = startX;
+      patronus.y = startY;
+      particles.addChild(patronus);
+
+      const duration = 250;
+      const startTime = Date.now();
+
+      const animPatronus = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        patronus.x = startX + (endX - startX) * progress;
+        patronus.y = startY + (endY - startY) * progress;
+
+        // Light trail
+        if (Math.random() > 0.4) {
+          const trail = new PIXI.Graphics();
+          trail.circle(0, 0, 4 + Math.random() * 4);
+          trail.fill({ color: 0xffffff, alpha: 0.6 });
+          trail.x = patronus.x + Math.random() * 10 - 5;
+          trail.y = patronus.y + Math.random() * 10 - 5;
+          particles.addChild(trail);
+          const fadeTrail = () => {
+            trail.alpha -= 0.08;
+            trail.scale.x *= 0.95; trail.scale.y *= 0.95;
+            if (trail.alpha > 0) requestAnimationFrame(fadeTrail);
+            else particles.removeChild(trail);
+          };
+          fadeTrail();
         }
+
+        if (progress < 1) requestAnimationFrame(animPatronus);
+        else {
+          // Impact burst of light
+          for (let i = 0; i < 15; i++) {
+            const light = new PIXI.Graphics();
+            light.circle(0, 0, 3);
+            light.fill({ color: 0xffffff, alpha: 0.8 });
+            light.x = endX; light.y = endY;
+            particles.addChild(light);
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 4 + Math.random() * 5;
+            const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
+            const animLight = () => {
+              light.x += vx; light.y += vy; light.alpha -= 0.04;
+              if (light.alpha > 0) requestAnimationFrame(animLight);
+              else particles.removeChild(light);
+            };
+            animLight();
+          }
+          particles.removeChild(patronus);
+        }
+      };
+      animPatronus();
+    }
+
+    // ============ CONFRINGO - Fireball ============
+    else if (spellType === 'confringo') {
+      const fireball = new PIXI.Graphics();
+
+      // Core
+      fireball.circle(0, 0, 8);
+      fireball.fill({ color: 0xffff00, alpha: 1 });
+      fireball.circle(0, 0, 12);
+      fireball.fill({ color: 0xff8800, alpha: 0.8 });
+      fireball.circle(0, 0, 16);
+      fireball.fill({ color: 0xff4400, alpha: 0.5 });
+
+      fireball.x = startX;
+      fireball.y = startY;
+      particles.addChild(fireball);
+
+      const duration = 200;
+      const startTime = Date.now();
+
+      const animFireball = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        fireball.x = startX + (endX - startX) * progress;
+        fireball.y = startY + (endY - startY) * progress - Math.sin(progress * Math.PI) * 20;
+
+        // Fire trail
+        if (Math.random() > 0.3) {
+          const flame = new PIXI.Graphics();
+          const size = 5 + Math.random() * 8;
+          flame.moveTo(0, -size);
+          flame.lineTo(size * 0.5, 0);
+          flame.lineTo(0, size * 0.3);
+          flame.lineTo(-size * 0.5, 0);
+          flame.closePath();
+          flame.fill({ color: [0xff4400, 0xff8800, 0xffcc00][Math.floor(Math.random() * 3)], alpha: 0.7 });
+          flame.x = fireball.x + Math.random() * 10 - 5;
+          flame.y = fireball.y + Math.random() * 10 - 5;
+          flame.rotation = Math.random() * Math.PI;
+          particles.addChild(flame);
+          const fadeFlame = () => {
+            flame.alpha -= 0.1; flame.y -= 1; flame.scale.x *= 0.9; flame.scale.y *= 0.9;
+            if (flame.alpha > 0) requestAnimationFrame(fadeFlame);
+            else particles.removeChild(flame);
+          };
+          fadeFlame();
+        }
+
+        if (progress < 1) requestAnimationFrame(animFireball);
+        else {
+          // Explosion
+          for (let i = 0; i < 20; i++) {
+            const ember = new PIXI.Graphics();
+            ember.circle(0, 0, 2 + Math.random() * 4);
+            ember.fill({ color: [0xff4400, 0xff8800, 0xffcc00][Math.floor(Math.random() * 3)], alpha: 0.9 });
+            ember.x = endX; ember.y = endY;
+            particles.addChild(ember);
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 5 + Math.random() * 7;
+            const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed - 2;
+            const animEmber = () => {
+              ember.x += vx; ember.y += vy; ember.alpha -= 0.04;
+              if (ember.alpha > 0) requestAnimationFrame(animEmber);
+              else particles.removeChild(ember);
+            };
+            animEmber();
+          }
+          // Explosion ring
+          const ring = new PIXI.Graphics();
+          ring.circle(0, 0, 10);
+          ring.stroke({ width: 4, color: 0xff8800, alpha: 0.8 });
+          ring.x = endX; ring.y = endY;
+          particles.addChild(ring);
+          const expandRing = () => {
+            ring.scale.x += 0.3; ring.scale.y += 0.3; ring.alpha -= 0.1;
+            if (ring.alpha > 0) requestAnimationFrame(expandRing);
+            else particles.removeChild(ring);
+          };
+          expandRing();
+          particles.removeChild(fireball);
+        }
+      };
+      animFireball();
+    }
+
+    // ============ AVADA KEDAVRA - Death Ray ============
+    else if (spellType === 'avada') {
+      // Green death beam
+      const beam = new PIXI.Graphics();
+      beam.moveTo(startX, startY);
+      beam.lineTo(endX, endY);
+      beam.stroke({ width: 8, color: 0x00ff00, alpha: 0.3 });
+      beam.moveTo(startX, startY);
+      beam.lineTo(endX, endY);
+      beam.stroke({ width: 4, color: 0x44ff44, alpha: 0.6 });
+      beam.moveTo(startX, startY);
+      beam.lineTo(endX, endY);
+      beam.stroke({ width: 2, color: 0xaaffaa, alpha: 1 });
+      particles.addChild(beam);
+
+      // Death particles along beam
+      for (let i = 0; i < 12; i++) {
+        setTimeout(() => {
+          const t = Math.random();
+          const deathP = new PIXI.Graphics();
+          // Skull-like shape (simplified)
+          deathP.circle(0, -2, 4);
+          deathP.fill({ color: 0x00ff00, alpha: 0.7 });
+          deathP.circle(-2, 0, 1.5);
+          deathP.circle(2, 0, 1.5);
+          deathP.fill({ color: 0x003300, alpha: 1 });
+          deathP.x = startX + (endX - startX) * t;
+          deathP.y = startY + (endY - startY) * t;
+          particles.addChild(deathP);
+          const vy = -1 - Math.random() * 2;
+          const animDeath = () => {
+            deathP.y += vy; deathP.alpha -= 0.05;
+            if (deathP.alpha > 0) requestAnimationFrame(animDeath);
+            else particles.removeChild(deathP);
+          };
+          animDeath();
+        }, i * 15);
       }
-    };
-    animateSpell();
+
+      // Impact dark explosion
+      setTimeout(() => {
+        for (let i = 0; i < 15; i++) {
+          const dark = new PIXI.Graphics();
+          dark.circle(0, 0, 3 + Math.random() * 3);
+          dark.fill({ color: i % 2 === 0 ? 0x00ff00 : 0x004400, alpha: 0.8 });
+          dark.x = endX; dark.y = endY;
+          particles.addChild(dark);
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 4 + Math.random() * 5;
+          const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
+          const animDark = () => {
+            dark.x += vx; dark.y += vy; dark.alpha -= 0.05;
+            if (dark.alpha > 0) requestAnimationFrame(animDark);
+            else particles.removeChild(dark);
+          };
+          animDark();
+        }
+        // Shockwave
+        const shock = new PIXI.Graphics();
+        shock.circle(0, 0, 8);
+        shock.stroke({ width: 3, color: 0x00ff00, alpha: 0.8 });
+        shock.x = endX; shock.y = endY;
+        particles.addChild(shock);
+        const expandShock = () => {
+          shock.scale.x += 0.4; shock.scale.y += 0.4; shock.alpha -= 0.08;
+          if (shock.alpha > 0) requestAnimationFrame(expandShock);
+          else particles.removeChild(shock);
+        };
+        expandShock();
+      }, 50);
+
+      // Fade beam
+      const fadeBeam = () => {
+        beam.alpha -= 0.1;
+        if (beam.alpha > 0) requestAnimationFrame(fadeBeam);
+        else particles.removeChild(beam);
+      };
+      setTimeout(fadeBeam, 150);
+    }
+
+    // ============ DEFAULT (fallback) ============
+    else {
+      const spell = new PIXI.Graphics();
+      spell.circle(0, 0, 10);
+      spell.fill({ color: 0x8866ff, alpha: 0.8 });
+      spell.x = startX; spell.y = startY;
+      particles.addChild(spell);
+
+      const duration = 200;
+      const startTime = Date.now();
+      const animSpell = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        spell.x = startX + (endX - startX) * progress;
+        spell.y = startY + (endY - startY) * progress;
+        if (progress < 1) requestAnimationFrame(animSpell);
+        else {
+          particles.removeChild(spell);
+          for (let i = 0; i < 8; i++) {
+            const p = new PIXI.Graphics();
+            p.circle(0, 0, 3);
+            p.fill({ color: 0x8866ff, alpha: 0.7 });
+            p.x = endX; p.y = endY;
+            particles.addChild(p);
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 3 + Math.random() * 3;
+            const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
+            const anim = () => { p.x += vx; p.y += vy; p.alpha -= 0.06; if (p.alpha > 0) requestAnimationFrame(anim); else particles.removeChild(p); };
+            anim();
+          }
+        }
+      };
+      animSpell();
+    }
   }, []);
 
   const hitMob = useCallback(() => {
