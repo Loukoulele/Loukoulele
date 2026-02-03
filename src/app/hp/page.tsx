@@ -144,6 +144,7 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
 .btn:disabled { opacity:0.3; cursor:not-allowed; }
 .btn-sm { padding:4px 10px; font-size:0.75em; }
 .btn-purple { border-color:var(--purple); color:#ce93d8; }
+.btn-green { border-color:var(--green); color:var(--green); background:rgba(76,175,80,0.15); }
 
 .spell-upgrade-card { background:linear-gradient(145deg,rgba(30,30,55,0.95),rgba(15,15,30,0.95)); border:1px solid rgba(212,168,67,0.2); border-radius:10px; padding:15px; margin-bottom:10px; display:flex; align-items:center; gap:15px; }
 .spell-upgrade-card .su-icon { font-size:2.5em; }
@@ -303,23 +304,19 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
       <button class="patch-close" onclick="togglePatchModal(false)">&times;</button>
     </div>
     <div class="patch-body">
-      <div class="patch-version">Version 1.6.0 — 3 Février 2026</div>
+      <div class="patch-version">Version 1.7.0 — 3 Février 2026</div>
       <div class="patch-section">
         <h3>✨ Nouveau</h3>
         <ul>
-          <li>Affichage du multiplicateur de prestige (⏳) dans la barre du haut</li>
-          <li>Le bouton MAX des pets se rafraîchit automatiquement</li>
-        </ul>
-      </div>
-      <div class="patch-section">
-        <h3>⚖️ Équilibrage</h3>
-        <ul>
-          <li>Avada Kedavra : dégâts 40 → 100, CD 3.0s → 2.0s (DPS x4)</li>
-          <li>Ordre des sorts : Stupefix → Patronus → Confringo → Avada</li>
+          <li>Toggle ON/OFF pour Auto-Avance dans la boutique (après achat)</li>
         </ul>
       </div>
       <div class="patch-section" style="border-top:1px solid rgba(212,168,67,0.2);margin-top:15px;padding-top:15px;">
         <h3>📜 Historique</h3>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.6.0 — Interface</summary>
+          <ul style="margin-top:5px;"><li>Affichage multiplicateur prestige (⏳)</li><li>Bouton MAX pets auto-refresh</li></ul>
+        </details>
         <details style="margin-bottom:8px;">
           <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.5.0 — Équilibrage Avada</summary>
           <ul style="margin-top:5px;"><li>Buff Avada Kedavra (100 dmg, 2.0s CD)</li><li>Réorganisation des sorts</li><li>Historique des patch notes</li></ul>
@@ -351,7 +348,7 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
     const script = document.createElement('script');
     script.textContent = `
 // ============ PATCH NOTES SYSTEM ============
-const PATCH_VERSION = '1.6.0';
+const PATCH_VERSION = '1.7.0';
 
 function togglePatchModal(show) {
   const modal = document.getElementById('patchModal');
@@ -592,6 +589,7 @@ function defaultState() {
     shopUnlocks: [],  // array of unlock ids
     shopBuys: {},     // consumableId → number of times bought (for cost scaling)
     buffs: {},        // buffId → expiry timestamp
+    autoAdvanceEnabled: true,  // toggle for auto-advance feature
     mobHp: 0, mobMaxHp: 0,
     spellCDs: { stupefix: 0, confringo: 0, patronus: 0 },
     lastTick: Date.now(),
@@ -950,7 +948,7 @@ function tick(now) {
   lastTime = now;
   tickSpells(dt);
   // Auto-advance
-  if (hasShop('auto_advance')) {
+  if (hasShop('auto_advance') && G.autoAdvanceEnabled) {
     const next = G.unlockedZones;
     if (next < ZONES.length && canAccessZone(next)) {
       const cost = getGateCost(next);
@@ -1285,6 +1283,12 @@ function buyShopUnlock(id) {
   rebuildSpellBar();
 }
 
+function toggleAutoAdvance() {
+  G.autoAdvanceEnabled = !G.autoAdvanceEnabled;
+  toast(G.autoAdvanceEnabled ? '🚀 Auto-Avance activé' : '⏸️ Auto-Avance désactivé');
+  rebuildShop();
+}
+
 function buyConsumable(id) {
   const item = SHOP_CONSUMABLES.find(c => c.id === id);
   if (!item) return;
@@ -1307,16 +1311,30 @@ function rebuildShop() {
 
   SHOP_UNLOCKS.forEach(u => {
     const owned = hasShop(u.id);
+    let actionHtml;
+    if (!owned) {
+      actionHtml = \`<button class="btn" data-cost-gold="\${u.cost}" onclick="buyShopUnlock('\${u.id}')" \${G.gold < u.cost ? 'disabled' : ''}>\${fmt(u.cost)} 🪙</button>\`;
+    } else if (u.id === 'auto_advance') {
+      // Toggle for auto-advance
+      const isOn = G.autoAdvanceEnabled;
+      actionHtml = \`
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:0.75em;color:\${isOn ? 'var(--green)' : '#666'};">\${isOn ? 'ON' : 'OFF'}</span>
+          <button class="btn btn-sm \${isOn ? 'btn-green' : ''}" onclick="toggleAutoAdvance()" style="min-width:50px;">\${isOn ? '✓' : '✗'}</button>
+        </div>
+      \`;
+    } else {
+      actionHtml = '<div style="color:var(--green);font-family:\\'Cinzel\\',serif;">✅ Acheté</div>';
+    }
     html += \`
-      <div class="spell-upgrade-card" style="\${owned ? 'opacity:0.6;' : ''}">
+      <div class="spell-upgrade-card" style="\${owned && u.id !== 'auto_advance' ? 'opacity:0.6;' : ''}">
         <div class="su-icon">\${u.icon}</div>
         <div class="su-info">
           <div class="su-name">\${u.name}</div>
           <div class="su-desc">\${u.desc}</div>
         </div>
         <div class="su-actions">
-          \${owned ? '<div style="color:var(--green);font-family:\\'Cinzel\\',serif;">✅ Acheté</div>'
-            : \`<button class="btn" data-cost-gold="\${u.cost}" onclick="buyShopUnlock('\${u.id}')" \${G.gold < u.cost ? 'disabled' : ''}>\${fmt(u.cost)} 🪙</button>\`}
+          \${actionHtml}
         </div>
       </div>
     \`;
@@ -1580,6 +1598,7 @@ if (load()) {
   if (!G.shopUnlocks) G.shopUnlocks = [];
   if (!G.shopBuys) G.shopBuys = {};
   if (!G.buffs) G.buffs = {};
+  if (G.autoAdvanceEnabled === undefined) G.autoAdvanceEnabled = true;
   // Fix: réparer TOUS les sorts (base + avada si débloqué)
   ['stupefix', 'confringo', 'patronus'].forEach(id => {
     if (!G.spellLevels[id] || isNaN(G.spellLevels[id])) G.spellLevels[id] = 1;
