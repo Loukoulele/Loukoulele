@@ -1340,6 +1340,28 @@ function upgradePet(petId) {
   rebuildHeroRecap();
 }
 
+function maxPet(petId) {
+  const pet = PETS.find(p => p.id === petId);
+  if (!pet || !G.ownedPets.includes(petId)) return;
+  let lvl = G.petLevels[petId] || 1;
+  let upgraded = 0;
+  while (true) {
+    const cost = petUpgradeCost(pet, lvl);
+    if (G.gold < cost) break;
+    G.gold -= cost;
+    lvl++;
+    upgraded++;
+  }
+  if (upgraded > 0) {
+    G.petLevels[petId] = lvl;
+    toast('+' + upgraded + ' niveaux !');
+    rebuildPets();
+    rebuildHeroRecap();
+  } else {
+    toast('Pas assez de gold !');
+  }
+}
+
 function equipPet(petId) {
   if (!G.ownedPets.includes(petId)) return;
   G.activePet = G.activePet === petId ? null : petId;
@@ -1375,7 +1397,10 @@ function rebuildPets() {
         </div>
         <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
           <button class="btn btn-sm \${isActive ? 'btn-purple' : ''}" onclick="equipPet('\${p.id}')">\${isActive ? 'Retirer' : 'Équiper'}</button>
-          <button class="btn btn-sm" data-cost-gold="\${cost}" onclick="upgradePet('\${p.id}')" \${G.gold < cost ? 'disabled' : ''}>⬆ \${fmt(cost)} 🪙</button>
+          <div style="display:flex;gap:4px;">
+            <button class="btn btn-sm" data-cost-gold="\${cost}" onclick="upgradePet('\${p.id}')" \${G.gold < cost ? 'disabled' : ''}>⬆ \${fmt(cost)} 🪙</button>
+            <button class="btn btn-sm" onclick="maxPet('\${p.id}')" \${G.gold < cost ? 'disabled' : ''}>MAX</button>
+          </div>
           <div style="font-size:0.6em;color:#555;">→ \${nextVal}%</div>
         </div>
       </div>
@@ -1385,12 +1410,19 @@ function rebuildPets() {
   if (unowned.length > 0) {
     html += '<div style="font-family:\\'Cinzel\\',serif;color:#555;font-size:0.8em;margin:12px 0 6px;">Pas encore découverts :</div>';
     unowned.forEach(p => {
+      const canGo = p.zone < G.unlockedZones;
       html += \`
-        <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;margin-bottom:4px;background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.04);border-radius:8px;opacity:0.5;">
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;margin-bottom:4px;background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.04);border-radius:8px;opacity:0.6;">
           <div style="font-size:1.8em;">❓</div>
           <div style="flex:1;">
             <div style="font-family:'Cinzel',serif;color:#555;font-size:0.85em;">???</div>
             <div style="font-size:0.7em;color:#444;">Zone \${p.zone + 1} — \${(p.dropRate * 100).toFixed(2)}% drop</div>
+          </div>
+          <div>
+            \${canGo
+              ? \`<button class="btn btn-sm" onclick="goToZone(\${p.zone});switchPanel('zone',document.querySelector('.nav-btn'));">Aller</button>\`
+              : '<span style="font-size:0.7em;color:#555;">🔒</span>'
+            }
           </div>
         </div>
       \`;
