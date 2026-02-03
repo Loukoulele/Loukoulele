@@ -1856,6 +1856,10 @@ function refreshButtons() {
       }
     });
   }
+  // Refresh shop consumables when on shop panel (for buff expiry)
+  if (activePanel === 'shop') {
+    rebuildShop();
+  }
 }
 
 // ============ UI HEAVY ============

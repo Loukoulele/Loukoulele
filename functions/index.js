@@ -1,6 +1,9 @@
-const functions = require('firebase-functions');
+const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 admin.initializeApp();
+
+// Use europe-west1 region (same as database)
+const euroFunctions = functions.region('europe-west1');
 
 // World Boss Configuration
 const WORLD_BOSS_CONFIG = {
@@ -21,8 +24,9 @@ const WORLD_BOSSES = [
  * Spawns a World Boss every 20 minutes
  * Deploy with: firebase deploy --only functions
  */
-exports.spawnWorldBoss = functions.pubsub
+exports.spawnWorldBoss = euroFunctions.pubsub
   .schedule('every 20 minutes')
+  .timeZone('Europe/Paris')
   .onRun(async (context) => {
     const db = admin.database();
 
@@ -67,8 +71,9 @@ exports.spawnWorldBoss = functions.pubsub
  * Checks if the active boss has expired (time limit reached)
  * Runs every minute
  */
-exports.checkBossExpiry = functions.pubsub
+exports.checkBossExpiry = euroFunctions.pubsub
   .schedule('every 1 minutes')
+  .timeZone('Europe/Paris')
   .onRun(async (context) => {
     const db = admin.database();
     const bossSnap = await db.ref('worldBoss/current').get();
@@ -136,7 +141,7 @@ exports.checkBossExpiry = functions.pubsub
  * HTTP endpoint to manually trigger a boss spawn (for testing)
  * Call with: https://your-region-your-project.cloudfunctions.net/manualSpawnBoss
  */
-exports.manualSpawnBoss = functions.https.onRequest(async (req, res) => {
+exports.manualSpawnBoss = euroFunctions.https.onRequest(async (req, res) => {
   // Only allow POST requests
   if (req.method !== 'POST') {
     res.status(405).send('Method Not Allowed');
