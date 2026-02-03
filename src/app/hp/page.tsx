@@ -2875,6 +2875,10 @@ async function claimBossReward() {
   toast('🎁 +' + totalGems + ' 💎 +' + fmt(totalGold) + ' 🪙' + bonusText);
   save();
 
+  // Mettre à jour l'affichage des currencies
+  document.getElementById('goldVal').textContent = fmt(G.gold);
+  document.getElementById('gemsVal').textContent = G.gems;
+
   // Marquer comme claim dans Firebase
   try {
     if (firebaseDb) {
