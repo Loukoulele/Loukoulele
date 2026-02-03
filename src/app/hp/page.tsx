@@ -302,23 +302,23 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
       <button class="patch-close" onclick="togglePatchModal(false)">&times;</button>
     </div>
     <div class="patch-body">
-      <div class="patch-version">Version 1.3.0 — 3 Février 2026</div>
+      <div class="patch-version">Version 1.4.0 — 3 Février 2026</div>
       <div class="patch-section">
         <h3>✨ Nouveau</h3>
         <ul>
           <li>Système de combat visuel en pixel art style Castlevania</li>
           <li>25 sprites de monstres uniques — un pour chaque zone !</li>
-          <li>Décor de donjon sombre avec murs de pierre et œil mystérieux</li>
-          <li>Système de Patch Notes avec notification au premier lancement</li>
+          <li>Talents Avada Kedavra : Puissance (+25% dmg) et Vélocité (-5% CD)</li>
+          <li>Système de Patch Notes avec notification</li>
         </ul>
       </div>
       <div class="patch-section">
         <h3>🔧 Améliorations</h3>
         <ul>
-          <li>Mage sorcier animé avec effets de sorts</li>
+          <li>Bouton MAX pour monter les pets au niveau max</li>
+          <li>Bouton "Aller" pour aller à la zone d'un pet non découvert</li>
+          <li>Avada Kedavra peut maintenant scaler et devenir le sort le plus puissant</li>
           <li>Monstres qui changent dynamiquement selon la zone</li>
-          <li>Effets visuels de dégâts et particules magiques</li>
-          <li>Icône Patch Notes dans la barre du haut</li>
         </ul>
       </div>
       <div class="patch-section">
@@ -339,7 +339,7 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
     const script = document.createElement('script');
     script.textContent = `
 // ============ PATCH NOTES SYSTEM ============
-const PATCH_VERSION = '1.3.0';
+const PATCH_VERSION = '1.4.0';
 
 function togglePatchModal(show) {
   const modal = document.getElementById('patchModal');
