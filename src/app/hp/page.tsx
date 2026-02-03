@@ -767,11 +767,11 @@ function doRebirth() {
   G = defaultState();
   G.rebirth = newRebirth;
   G.rebirthMult = newRebirthMult;
-  G.prestige = keepPrestige;
-  G.prestigeMult = keepPrestigeMult;
+  G.prestige = isNaN(keepPrestige) ? 0 : keepPrestige;
+  G.prestigeMult = isNaN(keepPrestigeMult) ? 1 : keepPrestigeMult;
   G.talents = keepTalents;
-  G.talentPoints = keepTP;
-  G.gems = keepGems;
+  G.talentPoints = isNaN(keepTP) ? 0 : keepTP;
+  G.gems = isNaN(keepGems) ? 0 : keepGems;
   G.ownedPets = keepPets;
   G.activePet = keepActivePet;
   G.petLevels = keepPetLevels;
@@ -782,9 +782,9 @@ function doRebirth() {
     G.spellLevels['avada'] = 1;
     G.spellCDs['avada'] = 0;
   }
-  G.totalKills = keepTotalKills;
-  G.totalGoldEarned = keepTotalGold;
-  G.startTime = keepStartTime;
+  G.totalKills = isNaN(keepTotalKills) ? 0 : keepTotalKills;
+  G.totalGoldEarned = isNaN(keepTotalGold) ? 0 : keepTotalGold;
+  G.startTime = keepStartTime || Date.now();
 
   spawnMob();
   save();
@@ -1423,15 +1423,24 @@ if (load()) {
   if (!G.shopUnlocks) G.shopUnlocks = [];
   if (!G.shopBuys) G.shopBuys = {};
   if (!G.buffs) G.buffs = {};
-  // Fix: initialiser avada si spell4 est débloqué mais manquant
+  // Fix: réparer TOUS les sorts (base + avada si débloqué)
+  ['stupefix', 'confringo', 'patronus'].forEach(id => {
+    if (!G.spellLevels[id] || isNaN(G.spellLevels[id])) G.spellLevels[id] = 1;
+    if (G.spellCDs[id] === undefined || isNaN(G.spellCDs[id])) G.spellCDs[id] = 0;
+  });
   if (G.shopUnlocks.includes('spell4')) {
     if (!G.spellLevels['avada'] || isNaN(G.spellLevels['avada'])) G.spellLevels['avada'] = 1;
     if (G.spellCDs['avada'] === undefined || isNaN(G.spellCDs['avada'])) G.spellCDs['avada'] = 0;
   }
-  // Fix: réparer gold/gems si NaN
-  if (isNaN(G.gold) || G.gold === undefined) G.gold = 0;
-  if (isNaN(G.gems) || G.gems === undefined) G.gems = 0;
-  if (isNaN(G.talentPoints) || G.talentPoints === undefined) G.talentPoints = 0;
+  // Fix: réparer gold/gems/etc si NaN
+  if (isNaN(G.gold) || G.gold === undefined || G.gold === null) G.gold = 0;
+  if (isNaN(G.gems) || G.gems === undefined || G.gems === null) G.gems = 0;
+  if (isNaN(G.talentPoints) || G.talentPoints === undefined || G.talentPoints === null) G.talentPoints = 0;
+  if (isNaN(G.kills) || G.kills === undefined) G.kills = 0;
+  if (isNaN(G.totalKills) || G.totalKills === undefined) G.totalKills = 0;
+  if (isNaN(G.totalGoldEarned) || G.totalGoldEarned === undefined) G.totalGoldEarned = 0;
+  if (isNaN(G.rebirthMult) || G.rebirthMult === undefined) G.rebirthMult = 1;
+  if (isNaN(G.prestigeMult) || G.prestigeMult === undefined) G.prestigeMult = 1;
   // Init pet levels for already owned pets
   G.ownedPets.forEach(id => { if (!G.petLevels[id]) G.petLevels[id] = 1; });
   calcOffline();
