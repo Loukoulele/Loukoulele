@@ -2848,20 +2848,45 @@ async function endWorldBoss(result) {
 
 // ============ WORLD BOSS REWARDS ============
 async function claimBossReward() {
-  if (!firebaseUser || worldBossState.claimed) return;
-  if (worldBossState.status !== 'victory' && worldBossState.status !== 'expired') return;
+  if (!firebaseUser || !firebaseDb) {
+    toast('❌ Non connecté');
+    return;
+  }
+  if (worldBossState.claimed) {
+    toast('✅ Déjà récupéré !');
+    return;
+  }
+  if (worldBossState.status !== 'victory' && worldBossState.status !== 'expired') {
+    toast('❌ Pas de boss terminé');
+    return;
+  }
 
-  const totalPlayers = worldBossState.participants.length;
+  // Récupérer les dégâts directement depuis Firebase (plus fiable que l'état local)
+  let myDamage = worldBossState.myDamage;
+  try {
+    const myParticipantSnap = await firebaseDb.ref('worldBoss/participants/' + firebaseUser.uid).get();
+    const myParticipantData = myParticipantSnap.val();
+    if (myParticipantData && myParticipantData.damage > 0) {
+      myDamage = myParticipantData.damage;
+    }
+  } catch (e) {
+    console.error('Error fetching participant data:', e);
+  }
+
+  const totalPlayers = Math.max(worldBossState.participants.length, 1);
   const myRank = worldBossState.participants.findIndex(p => p.uid === firebaseUser.uid) + 1;
 
-  if (myRank === 0 || worldBossState.myDamage <= 0) {
-    toast('❌ Tu n\\'as pas participé !');
+  if (myDamage <= 0) {
+    toast('❌ Tu n\\'as pas participé ! (0 dégâts)');
+    console.log('Claim failed - myDamage:', myDamage, 'participants:', worldBossState.participants);
     return;
   }
 
   // Calcul de la récompense basée sur les dégâts (utilise HP effectif)
   const effectiveMaxHp = worldBossState.effectiveMaxHp || worldBossState.boss?.maxHp || WORLD_BOSS_CONFIG.baseHp;
-  const damagePercent = Math.min((worldBossState.myDamage / effectiveMaxHp) * 100, WORLD_BOSS_CONFIG.damageRewards.maxPercent);
+  const damagePercent = Math.min((myDamage / effectiveMaxHp) * 100, WORLD_BOSS_CONFIG.damageRewards.maxPercent);
+
+  console.log('Claiming reward - damage:', myDamage, 'effectiveMaxHp:', effectiveMaxHp, 'percent:', damagePercent);
 
   let totalGems = Math.floor(damagePercent * WORLD_BOSS_CONFIG.damageRewards.perPercent.gems);
   let totalGold = Math.floor(damagePercent * WORLD_BOSS_CONFIG.damageRewards.perPercent.gold);
@@ -2872,13 +2897,16 @@ async function claimBossReward() {
   if (worldBossState.status === 'victory') {
     let bonus = { ...WORLD_BOSS_CONFIG.victoryBonus.participation };
 
-    if (myRank === 1) {
+    // Si pas dans le classement mais a des dégâts, donner au moins participation
+    const effectiveRank = myRank > 0 ? myRank : totalPlayers;
+
+    if (effectiveRank === 1) {
       bonus = WORLD_BOSS_CONFIG.victoryBonus.top1;
-    } else if (myRank <= 3) {
+    } else if (effectiveRank <= 3) {
       bonus = WORLD_BOSS_CONFIG.victoryBonus.top3;
-    } else if (myRank <= Math.ceil(totalPlayers * 0.1)) {
+    } else if (effectiveRank <= Math.ceil(totalPlayers * 0.1)) {
       bonus = WORLD_BOSS_CONFIG.victoryBonus.top10Percent;
-    } else if (myRank <= Math.ceil(totalPlayers * 0.5)) {
+    } else if (effectiveRank <= Math.ceil(totalPlayers * 0.5)) {
       bonus = WORLD_BOSS_CONFIG.victoryBonus.top50Percent;
     }
 
