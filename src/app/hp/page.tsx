@@ -210,6 +210,7 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
     <div class="currency"><span class="c-icon">🪙</span><span class="c-val" id="goldVal">0</span><span class="c-ps" id="goldPs"></span></div>
     <div class="currency"><span class="c-icon">💎</span><span class="c-val" id="gemsVal">0</span></div>
     <div class="currency"><span class="c-icon">⭐</span><span class="c-val" id="tpVal">0</span></div>
+    <div class="currency" title="Multiplicateur total (Rebirth × Prestige)"><span class="c-icon">⏳</span><span class="c-val" id="multVal">x1</span></div>
   </div>
 </div>
 
@@ -981,6 +982,7 @@ function updateUI() {
   document.getElementById('goldPs').textContent = '(' + fmt(getGoldPerSec()) + '/s)';
   document.getElementById('gemsVal').textContent = fmt(G.gems);
   document.getElementById('tpVal').textContent = G.talentPoints;
+  document.getElementById('multVal').textContent = 'x' + (G.rebirthMult * G.prestigeMult).toFixed(1);
 
   const zone = ZONES[G.currentZone] || ZONES[ZONES.length - 1];
   document.getElementById('zoneName').textContent = 'Zone ' + (G.currentZone + 1) + ' — ' + zone.name;
