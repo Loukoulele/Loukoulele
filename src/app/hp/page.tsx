@@ -1418,7 +1418,7 @@ function rebuildPets() {
           <button class="btn btn-sm \${isActive ? 'btn-purple' : ''}" onclick="equipPet('\${p.id}')">\${isActive ? 'Retirer' : 'Équiper'}</button>
           <div style="display:flex;gap:4px;">
             <button class="btn btn-sm" data-cost-gold="\${cost}" onclick="upgradePet('\${p.id}')" \${G.gold < cost ? 'disabled' : ''}>⬆ \${fmt(cost)} 🪙</button>
-            <button class="btn btn-sm" onclick="maxPet('\${p.id}')" \${G.gold < cost ? 'disabled' : ''}>MAX</button>
+            <button class="btn btn-sm" data-cost-gold="\${cost}" onclick="maxPet('\${p.id}')" \${G.gold < cost ? 'disabled' : ''}>MAX</button>
           </div>
           <div style="font-size:0.6em;color:#555;">→ \${nextVal}%</div>
         </div>
