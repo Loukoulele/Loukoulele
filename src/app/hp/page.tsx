@@ -2473,6 +2473,10 @@ async function initFirebase() {
       firebaseDb = firebase.database();
     }
 
+    // Show loading state while checking auth
+    const btnEl = document.getElementById('loginBtn');
+    if (btnEl) btnEl.textContent = '⏳...';
+
     // Listen for auth state changes
     firebaseAuth.onAuthStateChanged((user) => {
       firebaseUser = user;
@@ -2558,19 +2562,34 @@ function updateUserUI() {
   }
 }
 
+let loginInProgress = false;
+
 async function handleLogin() {
+  if (loginInProgress) {
+    toast('⏳ Connexion en cours...');
+    return;
+  }
   try {
     if (!firebaseAuth) {
       toast('❌ Firebase non configuré');
       return;
     }
+    loginInProgress = true;
+    const btnEl = document.getElementById('loginBtn');
+    if (btnEl) btnEl.textContent = '⏳...';
+
     // Discord login via OIDC provider
     const provider = new firebase.auth.OAuthProvider('oidc.discord');
     await firebaseAuth.signInWithPopup(provider);
     toast('✅ Connecté !');
   } catch (e) {
-    toast('❌ Erreur de connexion');
-    console.error(e);
+    if (e.code !== 'auth/popup-closed-by-user') {
+      toast('❌ Erreur de connexion');
+      console.error(e);
+    }
+  } finally {
+    loginInProgress = false;
+    updateUserUI();
   }
 }
 
