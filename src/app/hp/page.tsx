@@ -730,81 +730,88 @@ body {
   color: #888;
 }
 
-/* Boss Alert Banner */
+/* Boss Alert Banner - Non-blocking notification style */
 .boss-alert-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-150%);
+  width: auto;
+  max-width: 90%;
+  background: linear-gradient(180deg, rgba(30, 20, 50, 0.98), rgba(15, 10, 30, 0.98));
+  border: 2px solid var(--red);
+  border-radius: 16px;
   z-index: 9999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding: 15px 25px;
+  box-shadow: 0 10px 40px rgba(198, 40, 40, 0.5), 0 0 60px rgba(198, 40, 40, 0.3);
+  pointer-events: auto;
   opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
 }
 
 .boss-alert-overlay.show {
   opacity: 1;
-  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
 }
 
 .boss-alert-content {
-  text-align: center;
-  animation: bossAlertZoom 0.5s ease-out;
-}
-
-@keyframes bossAlertZoom {
-  0% { transform: scale(0.3); opacity: 0; }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .boss-alert-icon {
-  font-size: 8em;
-  animation: bossAlertPulse 0.5s ease-in-out infinite alternate;
+  font-size: 3em;
+  animation: bossAlertPulse 0.8s ease-in-out infinite alternate;
 }
 
 @keyframes bossAlertPulse {
-  0% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.8)); }
-  100% { transform: scale(1.1); filter: drop-shadow(0 0 40px rgba(255, 0, 0, 1)); }
+  0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.6)); }
+  100% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.9)); }
+}
+
+.boss-alert-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .boss-alert-title {
   font-family: 'Cinzel', serif;
-  font-size: 3em;
+  font-size: 1em;
   color: var(--red);
-  text-shadow: 0 0 30px rgba(198, 40, 40, 0.8), 0 0 60px rgba(198, 40, 40, 0.5);
-  margin: 20px 0;
-  animation: bossAlertFlash 0.3s ease-in-out infinite alternate;
-}
-
-@keyframes bossAlertFlash {
-  0% { color: #c62828; }
-  100% { color: #ff5252; }
+  text-shadow: 0 0 10px rgba(198, 40, 40, 0.5);
+  margin: 0;
 }
 
 .boss-alert-name {
   font-family: 'Cinzel', serif;
-  font-size: 2em;
+  font-size: 1.3em;
   color: var(--gold);
-  text-shadow: 0 0 20px rgba(212, 168, 67, 0.8);
-  margin-bottom: 30px;
+  text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+  margin: 0;
 }
 
 .boss-alert-btn {
-  font-size: 1.5em;
-  padding: 15px 50px;
-  animation: bossAlertBtnPulse 1s ease-in-out infinite;
+  font-size: 0.9em;
+  padding: 10px 20px;
+  margin-left: 10px;
+  white-space: nowrap;
 }
 
-@keyframes bossAlertBtnPulse {
-  0%, 100% { box-shadow: 0 0 10px rgba(212, 168, 67, 0.5); }
-  50% { box-shadow: 0 0 30px rgba(212, 168, 67, 0.8); }
+.boss-alert-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
 }
+.boss-alert-close:hover { color: #fff; }
 `;
     document.head.appendChild(style);
 
@@ -1037,12 +1044,15 @@ body {
 
 <div id="toast" class="toast"></div>
 
-<div id="bossAlertOverlay" class="boss-alert-overlay" onclick="closeBossAlert()">
+<div id="bossAlertOverlay" class="boss-alert-overlay">
+  <button class="boss-alert-close" onclick="closeBossAlert()" title="Fermer">✕</button>
   <div class="boss-alert-content">
     <div class="boss-alert-icon" id="bossAlertIcon">🐍</div>
-    <div class="boss-alert-title">⚔️ WORLD BOSS ⚔️</div>
-    <div class="boss-alert-name" id="bossAlertName">Lord Voldemort</div>
-    <button class="btn boss-alert-btn" onclick="goToBossPanel(event)">COMBATTRE !</button>
+    <div class="boss-alert-text">
+      <div class="boss-alert-title">⚔️ WORLD BOSS</div>
+      <div class="boss-alert-name" id="bossAlertName">Lord Voldemort</div>
+    </div>
+    <button class="btn boss-alert-btn" onclick="goToBossPanel(event)">Combattre</button>
   </div>
 </div>
 
@@ -2910,6 +2920,9 @@ async function handleLogout() {
 }
 
 // ============ WORLD BOSS SYNC ============
+let lastBossHpPercent = -1;
+let lastBossStatus = '';
+
 async function subscribeToBoss() {
   if (!firebaseUser || !firebaseDb) return;
 
@@ -2918,6 +2931,8 @@ async function subscribeToBoss() {
     const bossRef = firebaseDb.ref('worldBoss/current');
     bossRef.on('value', (snapshot) => {
       const data = snapshot.val();
+      const prevStatus = worldBossState.status;
+
       if (data && data.status === 'active') {
         worldBossState.active = true;
         worldBossState.boss = {
@@ -2930,26 +2945,51 @@ async function subscribeToBoss() {
           endsAt: data.endsAt,
         };
         worldBossState.status = 'active';
-        showBossNotification();
+
+        // Only show notification on status change
+        if (prevStatus !== 'active') {
+          showBossNotification();
+        }
+
+        // Only update UI if HP changed significantly (1%) or status changed
+        const hpPercent = Math.floor((data.hp / data.maxHp) * 100);
+        if (lastBossStatus !== 'active' || Math.abs(hpPercent - lastBossHpPercent) >= 1) {
+          lastBossHpPercent = hpPercent;
+          lastBossStatus = 'active';
+          updateBossUI();
+        }
       } else if (data && data.status === 'defeated') {
         worldBossState.active = false;
         worldBossState.status = 'victory';
         worldBossState.boss = data;
+        if (lastBossStatus !== 'victory') {
+          lastBossStatus = 'victory';
+          updateBossUI();
+        }
       } else if (data && data.status === 'expired') {
         worldBossState.active = false;
         worldBossState.status = 'expired';
+        if (lastBossStatus !== 'expired') {
+          lastBossStatus = 'expired';
+          updateBossUI();
+        }
       } else {
         worldBossState.active = false;
         worldBossState.status = 'waiting';
         worldBossState.myDamage = 0;
         worldBossState.claimed = false;
-        bossAlertShown = false; // Reset pour le prochain boss
+        bossAlertShown = false;
+        if (lastBossStatus !== 'waiting') {
+          lastBossStatus = 'waiting';
+          lastBossHpPercent = -1;
+          updateBossUI();
+        }
       }
-      updateBossUI();
     });
     bossUnsubscribers.push(() => bossRef.off());
 
-    // Écouter les participants
+    // Écouter les participants (throttled)
+    let participantsUpdatePending = false;
     const participantsRef = firebaseDb.ref('worldBoss/participants');
     participantsRef.on('value', (snapshot) => {
       const data = snapshot.val() || {};
@@ -2964,7 +3004,15 @@ async function subscribeToBoss() {
           worldBossState.myDamage = myEntry.damage;
         }
       }
-      updateBossLeaderboard();
+
+      // Throttle leaderboard updates to max 2/sec
+      if (!participantsUpdatePending) {
+        participantsUpdatePending = true;
+        setTimeout(() => {
+          participantsUpdatePending = false;
+          updateBossLeaderboard();
+        }, 500);
+      }
     });
     bossUnsubscribers.push(() => participantsRef.off());
 
@@ -3028,10 +3076,10 @@ function showBossAlert(icon, name) {
   if (nameEl) nameEl.textContent = name;
   if (overlay) overlay.classList.add('show');
 
-  // Auto-fermer après 5 secondes
+  // Auto-fermer après 4 secondes (notification non-bloquante)
   setTimeout(() => {
     closeBossAlert();
-  }, 5000);
+  }, 4000);
 }
 
 function closeBossAlert() {
@@ -3243,6 +3291,26 @@ async function claimBossReward() {
 
 // ============ WORLD BOSS UI ============
 function updateBossUI() {
+  // Throttle UI updates to prevent lag from frequent Firebase updates
+  if (bossUIUpdateScheduled) return;
+
+  const now = performance.now();
+  const timeSinceLastUpdate = now - bossUILastUpdateTime;
+
+  if (timeSinceLastUpdate < BOSS_UI_MIN_INTERVAL) {
+    bossUIUpdateScheduled = true;
+    setTimeout(() => {
+      bossUIUpdateScheduled = false;
+      updateBossUIInternal();
+    }, BOSS_UI_MIN_INTERVAL - timeSinceLastUpdate);
+    return;
+  }
+
+  bossUILastUpdateTime = now;
+  updateBossUIInternal();
+}
+
+function updateBossUIInternal() {
   const waiting = document.getElementById('bossWaiting');
   const active = document.getElementById('bossActive');
   const victory = document.getElementById('bossVictory');
@@ -3462,6 +3530,16 @@ let bossAnimFrame = 0;
 let bossHitFlash = 0;
 let bossFloatOffset = 0;
 let bossDamageNumbers = [];
+let bossRenderScheduled = false;
+let bossLastRenderTime = 0;
+const BOSS_RENDER_MIN_INTERVAL = 50; // Max 20 FPS for boss canvas
+const spriteCache = new Map(); // Cache for rendered sprites
+
+// Boss UI throttling
+let bossUIUpdateScheduled = false;
+let bossUILastUpdateTime = 0;
+const BOSS_UI_MIN_INTERVAL = 100; // Max 10 updates/sec for boss UI
+let bossCanvasRunning = false; // Track if boss canvas loop is running
 let bossPlayerPositions = [];
 
 function initBossCanvas() {
@@ -3472,29 +3550,39 @@ function initBossCanvas() {
   canvas.height = 220;
 }
 
-function drawSprite(ctx, sprite, x, y, scale = 1, flash = false) {
+function getCachedSprite(sprite, scale, flash = false) {
+  const cacheKey = JSON.stringify({ p: sprite.palette, s: scale, f: flash });
+  if (spriteCache.has(cacheKey)) return spriteCache.get(cacheKey);
+
   const { palette, pixels } = sprite;
-  const pixelSize = scale;
+  const w = pixels[0].length * scale;
+  const h = pixels.length * scale;
+  const offscreen = document.createElement('canvas');
+  offscreen.width = w;
+  offscreen.height = h;
+  const offCtx = offscreen.getContext('2d');
 
   for (let row = 0; row < pixels.length; row++) {
     for (let col = 0; col < pixels[row].length; col++) {
       const colorIndex = pixels[row][col];
       if (colorIndex === 0) continue;
-
-      let color = palette[colorIndex];
-      if (flash) {
-        color = '#ffffff';
-      }
-
-      ctx.fillStyle = color;
-      ctx.fillRect(
-        x + col * pixelSize,
-        y + row * pixelSize,
-        pixelSize,
-        pixelSize
-      );
+      offCtx.fillStyle = flash ? '#ffffff' : palette[colorIndex];
+      offCtx.fillRect(col * scale, row * scale, scale, scale);
     }
   }
+
+  // Limit cache size
+  if (spriteCache.size > 50) {
+    const firstKey = spriteCache.keys().next().value;
+    spriteCache.delete(firstKey);
+  }
+  spriteCache.set(cacheKey, offscreen);
+  return offscreen;
+}
+
+function drawSprite(ctx, sprite, x, y, scale = 1, flash = false) {
+  const cached = getCachedSprite(sprite, scale, flash);
+  ctx.drawImage(cached, x, y);
 }
 
 function renderBossCanvas() {
@@ -3590,14 +3678,21 @@ function renderBossCanvas() {
     return true;
   });
 
-  // Update player labels
-  updateBossPlayerLabels(visible);
+  // Update player labels (only every 500ms)
+  if (!window._lastLabelUpdate || performance.now() - window._lastLabelUpdate > 500) {
+    window._lastLabelUpdate = performance.now();
+    updateBossPlayerLabels(visible);
+  }
 
-  // Continue animation
-  if (worldBossState.status === 'active') {
-    requestAnimationFrame(renderBossCanvas);
+  // Continue animation only if on boss panel and boss active (15 FPS)
+  if (worldBossState.status === 'active' && activePanel === 'boss' && bossCanvasRunning) {
+    setTimeout(() => requestAnimationFrame(renderBossCanvas), 66);
+  } else {
+    bossCanvasRunning = false;
   }
 }
+
+let lastPlayerLabelsHash = '';
 
 function updateBossPlayerLabels(participants) {
   const container = document.getElementById('bossPlayerLabels');
@@ -3606,6 +3701,11 @@ function updateBossPlayerLabels(participants) {
   const maxVisible = 10;
   const visible = participants.slice(0, maxVisible);
   const extraCount = Math.max(0, worldBossState.participants.length - maxVisible);
+
+  // Only rebuild if participants changed
+  const hash = visible.map(p => p.uid).join(',') + '|' + extraCount;
+  if (hash === lastPlayerLabelsHash) return;
+  lastPlayerLabelsHash = hash;
 
   let html = '';
   visible.forEach((p) => {
@@ -3622,10 +3722,15 @@ function updateBossPlayerLabels(participants) {
 }
 
 function updateBossArenaPlayers() {
-  // Start canvas rendering if not already running
-  if (worldBossState.status === 'active') {
+  // Only render when on boss panel and boss is active
+  if (worldBossState.status !== 'active') return;
+  if (activePanel !== 'boss') return;
+
+  // Start canvas loop if not already running
+  if (!bossCanvasRunning) {
+    bossCanvasRunning = true;
     initBossCanvas();
-    renderBossCanvas();
+    requestAnimationFrame(renderBossCanvas);
   }
 }
 
@@ -3645,12 +3750,19 @@ function showBossDamageNumber(damage) {
   });
 }
 
+let lastLeaderboardHash = '';
+
 function updateBossLeaderboard() {
   const el = document.getElementById('bossLeaderboard');
   if (!el) return;
 
-  let html = '';
+  // Only update if data changed (compare hash of top 10 uids + damage rounded)
   const top = worldBossState.participants.slice(0, 10);
+  const hash = top.map(p => p.uid + ':' + Math.floor(p.damage / 1000000)).join('|');
+  if (hash === lastLeaderboardHash) return;
+  lastLeaderboardHash = hash;
+
+  let html = '';
   top.forEach((p, i) => {
     const isMe = firebaseUser && p.uid === firebaseUser.uid;
     const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
@@ -3814,6 +3926,12 @@ async function autoAttackBoss() {
 
 function rebuildBoss() {
   updateBossUI();
+  // Start canvas loop if boss is active and we just switched to boss panel
+  if (worldBossState.status === 'active' && !bossCanvasRunning) {
+    bossCanvasRunning = true;
+    initBossCanvas();
+    requestAnimationFrame(renderBossCanvas);
+  }
 }
 
 // ============ DEV: SPAWN TEST BOSS ============
