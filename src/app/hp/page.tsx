@@ -5611,6 +5611,17 @@ function useCloudSave() {
     const fresh = defaultState();
     G = { ...fresh, ...cloudData };
     delete G.cloudSaveTime;
+
+    // Apply pet reset migration to cloud data too
+    if (!G.petResetV2) {
+      G.ownedPets = [];
+      G.petLevels = {};
+      G.shinyPets = [];
+      G.activePets = [];
+      G.activePet = null;
+      G.petResetV2 = true;
+    }
+
     localStorage.setItem('wandIdle', JSON.stringify(G));
     toast('☁️ Sauvegarde cloud chargée !');
     setTimeout(() => location.reload(), 500);
