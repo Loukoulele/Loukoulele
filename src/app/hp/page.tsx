@@ -4298,6 +4298,7 @@ function rebuildSpellBar() {
 }
 
 function rebuildSpellUpgrades() {
+  _goldButtons = null; // Invalidate cache when rebuilding
   const el = document.getElementById('spellUpgradeList');
   if (!el) return;
   el.innerHTML = '';
@@ -4337,6 +4338,7 @@ function rebuildSpellUpgrades() {
 }
 
 function rebuildGates() {
+  _goldButtons = null; // Invalidate cache when rebuilding
   const el = document.getElementById('gatesList');
   if (!el) return;
   let html = '';
@@ -4473,6 +4475,7 @@ function buyConsumable(id) {
 }
 
 function rebuildShop() {
+  _goldButtons = null; // Invalidate cache when rebuilding
   const el = document.getElementById('shopList');
   if (!el) return;
   let html = '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:0.95em;margin-bottom:8px;">Améliorations permanentes</div>';
@@ -4639,6 +4642,7 @@ function equipPet(petId) {
 }
 
 function rebuildPets() {
+  _goldButtons = null; // Invalidate cache when rebuilding
   const el = document.getElementById('petsList');
   if (!el) return;
   let html = '';
@@ -4767,7 +4771,7 @@ function rebuildPets() {
             \${isActive ? '<span style="color:var(--green);font-size:0.8em;"> — Équipé</span>' : ''}
           </div>
           <div style="font-size:0.8em;color:#ce93d8;">\${p.desc} → <span style="color:var(--gold);">\${curVal}%</span>\${shiny ? ' <span style="color:#ffd700;">(x' + SHINY_MULT + ' shiny)</span>' : ''}</div>
-          <div style="font-size:0.7em;color:#555;">\${isSecret ? '✓ Obtenu : ' + p.unlock.desc : 'Zone ' + (p.zone + 1) + ' — ' + (p.dropRate * 100).toFixed(2) + '% drop'}</div>
+          <div style="font-size:0.7em;color:#555;">\${isSecret ? '✓ Obtenu : ' + p.unlock.desc : 'Zone ' + (p.zone + 1)}</div>
         </div>
         <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
           <button class="btn btn-sm \${isActive ? 'btn-purple' : ''}" onclick="equipPetMulti('\${p.id}')">\${isActive ? 'Retirer' : 'Équiper'}</button>
@@ -4792,7 +4796,7 @@ function rebuildPets() {
           <div style="font-size:1.8em;">❓</div>
           <div style="flex:1;">
             <div style="font-family:'Cinzel',serif;color:#555;font-size:0.85em;">??? <span style="font-size:0.7em;background:\${rarityInfo.color}50;color:\${rarityInfo.color};padding:1px 5px;border-radius:3px;">\${rarityInfo.name}</span></div>
-            <div style="font-size:0.7em;color:#444;">Zone \${p.zone + 1} — \${(p.dropRate * 100).toFixed(2)}% drop</div>
+            <div style="font-size:0.7em;color:#444;">Zone \${p.zone + 1}</div>
           </div>
           <div>
             \${canGo
