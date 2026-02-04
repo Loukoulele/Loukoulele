@@ -1271,8 +1271,15 @@ function defaultState() {
   };
 }
 
-function save() { G.lastTick = Date.now(); localStorage.setItem('wandIdle', JSON.stringify(G)); }
+function save() {
+  G.lastTick = Date.now();
+  localStorage.setItem('wandIdle', JSON.stringify(G));
+  // Sync to cloud if logged in
+  saveToCloud();
+}
 function load() { try { const d = localStorage.getItem('wandIdle'); if (d) { G = JSON.parse(d); return true; } } catch(e) {} return false; }
+
+// Cloud sync functions are defined after Firebase initialization (see below)
 
 // ============ COMPUTED ============
 function getTalent(id) { return G.talents[id] || 0; }
@@ -2437,6 +2444,110 @@ let firebaseApp = null;
 let firebaseAuth = null;
 let firebaseDb = null;
 
+// ============ CLOUD SYNC ============
+let cloudSyncEnabled = true;
+let lastCloudSave = 0;
+
+async function saveToCloud() {
+  if (!firebaseUser || !firebaseDb || !cloudSyncEnabled) return;
+
+  // Throttle cloud saves to every 10 seconds max
+  const now = Date.now();
+  if (now - lastCloudSave < 10000) return;
+  lastCloudSave = now;
+
+  try {
+    const saveData = { ...G };
+    delete saveData._saveTimer;
+    saveData.cloudSaveTime = now;
+
+    await firebaseDb.ref('saves/' + firebaseUser.uid).set(saveData);
+    console.log('Cloud save OK');
+  } catch (e) {
+    console.error('Cloud save error:', e);
+  }
+}
+
+async function loadFromCloud() {
+  if (!firebaseUser || !firebaseDb) return null;
+
+  try {
+    const snapshot = await firebaseDb.ref('saves/' + firebaseUser.uid).get();
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+  } catch (e) {
+    console.error('Cloud load error:', e);
+  }
+  return null;
+}
+
+async function checkCloudSave() {
+  if (!firebaseUser) return;
+  console.log('Checking cloud save...');
+
+  const cloudData = await loadFromCloud();
+  if (!cloudData) {
+    console.log('No cloud save found, uploading local save...');
+    lastCloudSave = 0;
+    saveToCloud();
+    toast('☁️ Sauvegarde synchronisée !');
+    return;
+  }
+
+  const localTime = G.lastTick || 0;
+  const cloudTime = cloudData.cloudSaveTime || cloudData.lastTick || 0;
+  console.log('Cloud time:', cloudTime, 'Local time:', localTime);
+
+  if (cloudTime > localTime + 60000) {
+    showSyncModal(cloudData, cloudTime, localTime);
+  } else if (localTime > cloudTime + 60000) {
+    console.log('Local save is newer, uploading to cloud...');
+    lastCloudSave = 0;
+    saveToCloud();
+    toast('☁️ Cloud mis à jour !');
+  } else {
+    toast('☁️ Saves synchronisées !');
+  }
+}
+
+function showSyncModal(cloudData, cloudTime, localTime) {
+  const modal = document.createElement('div');
+  modal.id = 'syncModal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:2000;display:flex;justify-content:center;align-items:center;';
+
+  const cloudDate = new Date(cloudTime).toLocaleString('fr-FR');
+  const localDate = new Date(localTime).toLocaleString('fr-FR');
+  const cloudGold = cloudData.gold || 0;
+  const cloudGems = cloudData.gems || 0;
+  const cloudZone = cloudData.highestZone || 0;
+
+  modal.innerHTML = '<div style="background:linear-gradient(180deg,var(--dark),var(--darker));border:2px solid var(--gold);border-radius:12px;padding:25px;max-width:400px;text-align:center;"><h2 style="color:var(--gold);font-family:Cinzel,serif;margin-bottom:20px;">☁️ Sauvegarde Cloud Trouvée</h2><p style="color:var(--parchment);margin-bottom:15px;">Une sauvegarde plus récente existe sur le cloud.</p><div style="display:flex;gap:15px;margin-bottom:20px;"><div style="flex:1;background:rgba(0,100,255,0.1);border:1px solid #4488ff;border-radius:8px;padding:12px;"><div style="color:#4488ff;font-weight:bold;margin-bottom:8px;">☁️ CLOUD</div><div style="color:#aaa;font-size:0.8em;">' + cloudDate + '</div><div style="color:var(--gold);margin-top:8px;">💰 ' + fmt(cloudGold) + '</div><div style="color:#ce93d8;">💎 ' + cloudGems + '</div><div style="color:#aaa;font-size:0.85em;">Zone ' + cloudZone + '</div></div><div style="flex:1;background:rgba(255,150,0,0.1);border:1px solid #ff9800;border-radius:8px;padding:12px;"><div style="color:#ff9800;font-weight:bold;margin-bottom:8px;">💾 LOCAL</div><div style="color:#aaa;font-size:0.8em;">' + localDate + '</div><div style="color:var(--gold);margin-top:8px;">💰 ' + fmt(G.gold) + '</div><div style="color:#ce93d8;">💎 ' + G.gems + '</div><div style="color:#aaa;font-size:0.85em;">Zone ' + G.highestZone + '</div></div></div><div style="display:flex;gap:10px;"><button onclick="useCloudSave()" style="flex:1;padding:12px;background:linear-gradient(180deg,#1565c0,#0d47a1);border:none;border-radius:8px;color:#fff;font-family:Cinzel,serif;cursor:pointer;">☁️ Utiliser Cloud</button><button onclick="useLocalSave()" style="flex:1;padding:12px;background:linear-gradient(180deg,#ff9800,#f57c00);border:none;border-radius:8px;color:#fff;font-family:Cinzel,serif;cursor:pointer;">💾 Garder Local</button></div></div>';
+
+  document.body.appendChild(modal);
+  window._pendingCloudData = cloudData;
+}
+
+function useCloudSave() {
+  const cloudData = window._pendingCloudData;
+  if (cloudData) {
+    const fresh = defaultState();
+    G = { ...fresh, ...cloudData };
+    delete G.cloudSaveTime;
+    localStorage.setItem('wandIdle', JSON.stringify(G));
+    toast('☁️ Sauvegarde cloud chargée !');
+    setTimeout(() => location.reload(), 500);
+  }
+  document.getElementById('syncModal')?.remove();
+}
+
+function useLocalSave() {
+  lastCloudSave = 0;
+  saveToCloud();
+  toast('💾 Sauvegarde locale conservée !');
+  document.getElementById('syncModal')?.remove();
+}
+
 async function initFirebase() {
   try {
     // Wait for Firebase SDK to be available
@@ -2483,6 +2594,12 @@ async function initFirebase() {
       updateUserUI();
       if (user) {
         subscribeToBoss();
+        // Check for cloud save when user logs in
+        console.log('User logged in, will check cloud save in 1s...');
+        setTimeout(() => {
+          console.log('Timeout fired, firebaseUser:', !!firebaseUser, 'firebaseDb:', !!firebaseDb);
+          checkCloudSave().catch(e => console.error('checkCloudSave error:', e));
+        }, 1000);
       } else {
         unsubscribeFromBoss();
       }
