@@ -35,15 +35,24 @@ export default function WandIdle() {
 :root {
   --gold: #d4a843;
   --gold-dark: #a07830;
-  --parchment: #f5e6c8;
-  --dark: #1a1a2e;
-  --darker: #0f0f1a;
-  --darkest: #080812;
-  --red: #c62828;
-  --green: #2e7d32;
-  --blue: #1565c0;
-  --purple: #6a1b9a;
-  --accent: #ff9800;
+  --gold-glow: rgba(212,168,67,0.4);
+  --parchment: #e8e2d6;
+  --text-dim: #8a8a9a;
+  --dark: #1e2028;
+  --darker: #161820;
+  --darkest: #0d0e12;
+  --panel-bg: rgba(30,32,40,0.85);
+  --panel-border: rgba(80,85,100,0.4);
+  --red: #e74c3c;
+  --red-dark: #c0392b;
+  --green: #27ae60;
+  --green-glow: rgba(39,174,96,0.4);
+  --blue: #3498db;
+  --purple: #9b59b6;
+  --accent: #f39c12;
+  --hp-gradient: linear-gradient(90deg, #c0392b, #e74c3c);
+  --mana-gradient: linear-gradient(90deg, #2980b9, #3498db);
+  --xp-gradient: linear-gradient(90deg, #27ae60, #2ecc71);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -55,7 +64,12 @@ html {
 
 body {
   font-family:'Crimson Text',serif;
-  background:var(--darkest);
+  background: var(--darkest);
+  background-image:
+    radial-gradient(ellipse at 20% 30%, rgba(106,27,154,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(212,168,67,0.05) 0%, transparent 50%),
+    linear-gradient(180deg, var(--darkest) 0%, #0a0b0f 100%);
+  background-attachment: fixed;
   color:var(--parchment);
   min-height:100vh;
   min-height:100dvh;
@@ -65,54 +79,231 @@ body {
   -webkit-touch-callout: none;
 }
 
-.top-bar { background:linear-gradient(180deg, rgba(35,30,50,0.98), rgba(20,15,35,0.98)); border-bottom:2px solid var(--gold-dark); padding:8px 15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 15px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(212,168,67,0.1); }
-.game-logo { font-family:'Cinzel',serif; color:var(--gold); font-size:1.1em; text-shadow:0 0 15px rgba(212,168,67,0.3); display:flex; align-items:center; gap:10px; }
-.patch-note-btn { background:none; border:none; font-size:1.1em; cursor:pointer; position:relative; opacity:0.7; transition:opacity 0.2s, transform 0.2s; }
+/* ============ MELVOR-STYLE TOP BAR ============ */
+.top-bar {
+  background: linear-gradient(180deg, rgba(30,32,40,0.98), rgba(22,24,32,0.98));
+  border-bottom: 1px solid var(--panel-border);
+  padding: 8px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.game-logo {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+  font-size: 1.15em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-shadow: 0 0 20px var(--gold-glow);
+}
+.game-logo .logo-icon {
+  font-size: 1.4em;
+  animation: wandFloat 3s ease-in-out infinite;
+}
+@keyframes wandFloat { 0%,100%{transform:translateY(0) rotate(0deg);} 50%{transform:translateY(-3px) rotate(5deg);} }
+
+.patch-note-btn { background:none; border:none; font-size:1.1em; cursor:pointer; position:relative; opacity:0.6; transition:all 0.2s; }
 .patch-note-btn:hover { opacity:1; transform:scale(1.1); }
-.patch-note-btn.has-new::after { content:''; position:absolute; top:-2px; right:-2px; width:8px; height:8px; background:#ff4444; border-radius:50%; animation:pulse-dot 1.5s infinite; }
+.patch-note-btn.has-new::after { content:''; position:absolute; top:-2px; right:-2px; width:8px; height:8px; background:var(--red); border-radius:50%; animation:pulse-dot 1.5s infinite; }
 @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.3);opacity:0.7;} }
-.patch-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; }
+.patch-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; justify-content:center; align-items:center; backdrop-filter:blur(4px); }
 .patch-modal.show { display:flex; }
-.patch-content { background:linear-gradient(180deg,var(--dark),var(--darker)); border:2px solid var(--gold-dark); border-radius:12px; max-width:450px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 0 40px rgba(212,168,67,0.2); }
-.patch-header { padding:15px 20px; border-bottom:1px solid var(--gold-dark); display:flex; justify-content:space-between; align-items:center; }
-.patch-header h2 { font-family:'Cinzel',serif; color:var(--gold); font-size:1.2em; margin:0; }
-.patch-close { background:none; border:none; color:var(--parchment); font-size:1.5em; cursor:pointer; opacity:0.7; }
-.patch-close:hover { opacity:1; }
+.patch-content { background:linear-gradient(180deg,var(--dark),var(--darker)); border:1px solid var(--panel-border); border-radius:12px; max-width:450px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 10px 50px rgba(0,0,0,0.5); }
+.patch-header { padding:15px 20px; border-bottom:1px solid var(--panel-border); display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.2); }
+.patch-header h2 { font-family:'Cinzel',serif; color:var(--gold); font-size:1.1em; margin:0; }
+.patch-close { background:none; border:none; color:var(--text-dim); font-size:1.5em; cursor:pointer; transition:color 0.2s; }
+.patch-close:hover { color:var(--parchment); }
 .patch-body { padding:20px; }
 .patch-version { color:var(--gold); font-family:'Cinzel',serif; font-size:0.9em; margin-bottom:15px; }
 .patch-section { margin-bottom:15px; }
-.patch-section h3 { color:var(--accent); font-size:0.95em; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.patch-section h3 { color:var(--accent); font-size:0.9em; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
 .patch-section ul { list-style:none; padding-left:5px; }
-.patch-section li { color:var(--parchment); font-size:0.85em; margin-bottom:6px; padding-left:15px; position:relative; }
+.patch-section li { color:var(--parchment); font-size:0.85em; margin-bottom:6px; padding-left:15px; position:relative; opacity:0.9; }
 .patch-section li::before { content:'•'; position:absolute; left:0; color:var(--gold-dark); }
-.currency-bar { display:flex; gap:12px; align-items:center; }
-.currency { display:flex; align-items:center; gap:5px; font-size:0.95em; background:linear-gradient(145deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2)); border:1px solid rgba(212,168,67,0.2); border-radius:20px; padding:5px 12px 5px 8px; }
-.currency .c-icon { font-size:1.15em; }
-.currency .c-val { color:var(--gold); font-weight:700; font-family:'Cinzel',serif; text-shadow:0 0 8px rgba(212,168,67,0.3); }
-.currency .c-ps { color:#666; font-size:0.75em; margin-left:2px; }
 
-.nav { display:flex; background:linear-gradient(180deg, rgba(30,25,40,0.98), rgba(15,12,25,0.98)); border-bottom:2px solid var(--gold-dark); position:sticky; top:42px; z-index:100; padding:4px 2px; gap:2px; box-shadow:0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,168,67,0.1); }
-.nav-btn { flex:1; padding:10px 4px; background:linear-gradient(180deg, rgba(40,35,55,0.6), rgba(25,20,40,0.8)); border:1px solid rgba(212,168,67,0.15); border-radius:6px; color:#888; font-family:'Cinzel',serif; font-size:0.85em; cursor:pointer; transition:all 0.25s ease; display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; overflow:hidden; }
-.nav-btn::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, rgba(212,168,67,0.3), transparent); }
-.nav-btn .nav-icon { font-size:1.5em; transition:transform 0.2s, filter 0.2s; }
-.nav-btn .nav-label { font-size:0.9em; letter-spacing:0.5px; }
-.nav-btn:hover { color:var(--parchment); background:linear-gradient(180deg, rgba(60,50,80,0.7), rgba(35,28,55,0.9)); border-color:rgba(212,168,67,0.3); transform:translateY(-1px); }
-.nav-btn:hover .nav-icon { transform:scale(1.1); }
-.nav-btn.active { color:var(--gold); background:linear-gradient(180deg, rgba(212,168,67,0.2), rgba(160,120,48,0.1)); border-color:var(--gold); box-shadow:0 0 12px rgba(212,168,67,0.3), inset 0 0 20px rgba(212,168,67,0.05); }
-.nav-btn.active::after { content:''; position:absolute; bottom:-2px; left:20%; right:20%; height:2px; background:var(--gold); border-radius:2px; box-shadow:0 0 8px var(--gold); }
-.nav-btn.active .nav-icon { filter:drop-shadow(0 0 4px rgba(212,168,67,0.6)); }
-.nav-notif { position:absolute; top:2px; right:2px; background:var(--red); color:#fff; font-size:0.5em; font-weight:bold; min-width:14px; height:14px; border-radius:50%; display:flex; align-items:center; justify-content:center; animation:pulse-dot 1.5s infinite; }
+/* Currency Bar - Style Melvor */
+.currency-bar { display:flex; gap:8px; align-items:center; }
+.currency {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9em;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  transition: all 0.2s;
+}
+.currency:hover {
+  background: rgba(0,0,0,0.4);
+  border-color: rgba(212,168,67,0.3);
+}
+.currency .c-icon { font-size: 1.1em; }
+.currency .c-val { color: var(--gold); font-weight: 700; font-family: 'Cinzel', serif; }
+.currency .c-ps { color: var(--text-dim); font-size: 0.75em; margin-left: 2px; }
 
-.main { max-width:900px; margin:0 auto; padding:10px; }
-.panel { display:none; }
-.panel.active { display:block; padding-bottom:80px; }
+/* ============ LAYOUT WRAPPER ============ */
+.game-layout {
+  display: flex;
+  min-height: calc(100vh - 48px);
+}
 
-.zone-header { text-align:center; padding:10px; background:linear-gradient(180deg,rgba(106,27,154,0.15),transparent); border-radius:10px; margin-bottom:10px; }
-.zone-name { font-family:'Cinzel',serif; color:var(--gold); font-size:1.3em; }
-.zone-desc { color:#888; font-size:0.85em; }
-.zone-progress { font-size:0.75em; color:#666; margin-top:3px; }
+/* ============ SIDEBAR NAVIGATION - MELVOR STYLE ============ */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 48px;
+  bottom: 0;
+  width: 70px;
+  background: linear-gradient(180deg, rgba(22,24,32,0.98), rgba(16,18,26,0.98));
+  border-right: 1px solid var(--panel-border);
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+  z-index: 99;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar { display: none; }
 
-.battle-area { position:relative; border:1px solid rgba(212,168,67,0.15); border-radius:12px; overflow:hidden; margin-bottom:10px; transition: all 0.3s ease; }
+.nav-btn {
+  width: 100%;
+  padding: 12px 8px;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 0.65em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+.nav-btn .nav-icon {
+  font-size: 1.6em;
+  transition: transform 0.2s, filter 0.2s;
+}
+.nav-btn .nav-label {
+  font-size: 0.9em;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  text-align: center;
+}
+.nav-btn:hover {
+  color: var(--parchment);
+  background: rgba(255,255,255,0.03);
+}
+.nav-btn:hover .nav-icon { transform: scale(1.1); }
+.nav-btn.active {
+  color: var(--green);
+  background: rgba(39,174,96,0.1);
+  border-left-color: var(--green);
+}
+.nav-btn.active .nav-icon {
+  filter: drop-shadow(0 0 6px var(--green-glow));
+}
+.nav-notif {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.55em;
+  font-weight: bold;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse-dot 1.5s infinite;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--panel-border);
+  margin: 8px 10px;
+}
+
+/* ============ MAIN CONTENT AREA ============ */
+.main-content {
+  flex: 1;
+  margin-left: 70px;
+  min-height: calc(100vh - 48px);
+}
+
+.main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 15px 20px;
+}
+.panel { display: none; }
+.panel.active { display: block; padding-bottom: 100px; }
+
+/* ============ ZONE HEADER - MELVOR STYLE ============ */
+.zone-header {
+  text-align: center;
+  padding: 15px 20px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  margin-bottom: 15px;
+  position: relative;
+  overflow: hidden;
+}
+.zone-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--purple), transparent);
+}
+.zone-name {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+  font-size: 1.4em;
+  font-weight: 700;
+  text-shadow: 0 0 20px var(--gold-glow);
+}
+.zone-desc {
+  color: var(--text-dim);
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+.zone-progress {
+  font-size: 0.8em;
+  color: var(--green);
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: rgba(39,174,96,0.1);
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* ============ BATTLE AREA - MELVOR STYLE ============ */
+.battle-area {
+  position: relative;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+}
 
 /* Mini Battle Mode - flottant en bas à gauche */
 .battle-area.mini-mode {
@@ -155,19 +346,59 @@ body {
 }
 
 #battleSceneContainer { display:flex; justify-content:center; }
-.mob-info-bar { text-align:center; padding:8px; background:rgba(0,0,0,0.5); }
-.mob-info-bar .mob-name { font-family:'Cinzel',serif; color:var(--gold); font-size:1em; margin-bottom:4px; }
-.mob-info-bar .mob-hp-bar { width:200px; height:12px; background:#1a1a1a; border-radius:6px; margin:0 auto; border:1px solid rgba(212,168,67,0.3); overflow:hidden; }
-.mob-info-bar .mob-hp-fill { height:100%; background:linear-gradient(90deg,#c62828,#ff5252); transition:width 0.1s; }
-.mob-info-bar .mob-hp-text { font-size:0.75em; color:#888; margin-top:2px; }
+/* Mob Info Bar - Melvor Style */
+.mob-info-bar {
+  text-align: center;
+  padding: 12px 15px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.6));
+  border-top: 1px solid var(--panel-border);
+}
+.mob-info-bar .mob-name {
+  font-family: 'Cinzel', serif;
+  color: var(--parchment);
+  font-size: 1.05em;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.mob-info-bar .mob-hp-bar {
+  width: 250px;
+  height: 20px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 10px;
+  margin: 0 auto;
+  border: 1px solid rgba(231,76,60,0.4);
+  overflow: hidden;
+  position: relative;
+}
+.mob-info-bar .mob-hp-fill {
+  height: 100%;
+  background: var(--hp-gradient);
+  transition: width 0.15s ease-out;
+  box-shadow: 0 0 10px rgba(231,76,60,0.4);
+}
+.mob-info-bar .mob-hp-text {
+  font-size: 0.85em;
+  color: var(--parchment);
+  margin-top: 6px;
+  font-family: 'Cinzel', serif;
+}
 
 .dmg-number { position:absolute; font-family:'Cinzel',serif; font-weight:900; font-size:1.2em; color:#ff6b6b; pointer-events:none; animation:dmgFly 0.8s ease-out forwards; text-shadow:0 0 6px rgba(255,0,0,0.5); z-index:10; }
 .dmg-number.crit { font-size:1.6em; color:#ffd740; text-shadow:0 0 10px rgba(255,215,0,0.7); }
 .dmg-number.gold-drop { color:var(--gold); font-size:0.9em; text-shadow:0 0 6px rgba(212,168,67,0.5); }
 @keyframes dmgFly { 0%{opacity:1;transform:translateY(0) scale(1);} 100%{opacity:0;transform:translateY(-60px) scale(0.5);} }
 
-/* Spell Bar - MMO Style */
-.spell-bar { display:flex; justify-content:center; gap:8px; margin-bottom:10px; padding:10px; background:linear-gradient(180deg,rgba(15,12,25,0.9),rgba(10,8,18,0.95)); border-radius:12px; border:1px solid rgba(212,168,67,0.15); }
+/* ============ SPELL BAR - MELVOR ACTION BAR ============ */
+.spell-bar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 15px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+}
 
 .spell-slot {
   width:72px; height:72px; position:relative; cursor:default;
@@ -246,101 +477,537 @@ body {
 .spell-tooltip .tt-dmg { color:#ff6b6b; font-size:0.8em; }
 .spell-tooltip .tt-cd { color:#888; font-size:0.75em; }
 
-.kill-counter { text-align:center; font-size:0.8em; color:#666; margin-bottom:5px; }
+/* Kill Counter */
+.kill-counter {
+  text-align: center;
+  font-size: 0.85em;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  padding: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
 
-.hero-recap { display:flex; align-items:center; justify-content:center; gap:15px; background:linear-gradient(145deg,rgba(25,25,45,0.95),rgba(15,15,30,0.95)); border-bottom:1px solid rgba(212,168,67,0.12); padding:8px 15px; flex-wrap:wrap; position:sticky; top:82px; z-index:98; }
-.hero-recap .hr-section { display:flex; align-items:center; gap:6px; }
-.hero-recap .hr-label { font-family:'Cinzel',serif; font-size:0.65em; color:#666; text-transform:uppercase; letter-spacing:0.5px; }
-.hero-recap .hr-icon { font-size:1.4em; }
-.hero-recap .hr-val { font-size:0.75em; color:var(--parchment); }
-.hero-recap .hr-val span { color:var(--gold); font-family:'Cinzel',serif; }
-.hero-recap .hr-divider { width:1px; height:25px; background:rgba(212,168,67,0.15); }
-.hero-recap .hr-pet { display:flex; align-items:center; gap:4px; background:rgba(106,27,154,0.15); border:1px solid rgba(106,27,154,0.25); border-radius:6px; padding:4px 8px; }
-.hero-recap .hr-pet .pet-icon { font-size:1.3em; animation:petBounce 1.5s ease-in-out infinite; }
-.hero-recap .hr-pet .pet-name { font-size:0.7em; color:#ce93d8; font-family:'Cinzel',serif; }
-.hero-recap .hr-pet .pet-bonus { font-size:0.6em; color:#888; }
+/* ============ HERO RECAP BAR ============ */
+.hero-recap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(180deg, rgba(22,24,32,0.98), rgba(18,20,28,0.98));
+  border-bottom: 1px solid var(--panel-border);
+  padding: 10px 20px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 98;
+}
+.hero-recap .hr-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,0.25);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+}
+.hero-recap .hr-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.hero-recap .hr-icon { font-size: 1.3em; }
+.hero-recap .hr-val {
+  font-size: 0.8em;
+  color: var(--parchment);
+}
+.hero-recap .hr-val span {
+  color: var(--green);
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+}
+.hero-recap .hr-divider {
+  width: 1px;
+  height: 25px;
+  background: var(--panel-border);
+}
+.hero-recap .hr-pet {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(155,89,182,0.1);
+  border: 1px solid rgba(155,89,182,0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.hero-recap .hr-pet .pet-icon {
+  font-size: 1.3em;
+  animation: petBounce 1.5s ease-in-out infinite;
+}
+.hero-recap .hr-pet .pet-name {
+  font-size: 0.75em;
+  color: var(--purple);
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+}
+.hero-recap .hr-pet .pet-bonus {
+  font-size: 0.65em;
+  color: var(--text-dim);
+}
 @keyframes petBounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
 
-.gate-item { display:flex; align-items:center; justify-content:space-between; background:linear-gradient(145deg,rgba(30,30,50,0.9),rgba(20,20,35,0.9)); border:1px solid rgba(212,168,67,0.15); border-radius:10px; padding:12px 15px; margin-bottom:8px; }
-.gate-item.unlocked { border-color:var(--green); opacity:0.6; }
-.gate-item.current { border-color:var(--gold); box-shadow:0 0 10px rgba(212,168,67,0.15); }
-.gate-item.locked { opacity:0.5; }
-.gate-item.prestige-wall { border-color:var(--purple); background:linear-gradient(145deg,rgba(106,27,154,0.2),rgba(50,10,80,0.15)); opacity:1; }
-.gate-info { flex:1; }
-.gate-zone { font-family:'Cinzel',serif; color:var(--gold); font-size:0.95em; }
-.gate-cost { font-size:0.8em; color:#aaa; margin-top:2px; }
-.gate-mob { font-size:0.8em; color:#ce93d8; }
-.gate-time { font-size:0.7em; color:#555; font-style:italic; }
+/* ============ GATES - MELVOR SELECTION STYLE ============ */
+.gate-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+.gate-item:hover {
+  background: rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.1);
+}
+.gate-item.unlocked {
+  border-left: 3px solid var(--green);
+  opacity: 0.7;
+}
+.gate-item.current {
+  border-left: 3px solid var(--gold);
+  background: rgba(212,168,67,0.08);
+  box-shadow: 0 0 15px var(--gold-glow);
+}
+.gate-item.locked {
+  opacity: 0.4;
+  border-left: 3px solid var(--red);
+}
+.gate-item.prestige-wall {
+  border-left: 3px solid var(--purple);
+  background: rgba(155,89,182,0.1);
+}
+.gate-info { flex: 1; }
+.gate-zone {
+  font-family: 'Cinzel', serif;
+  color: var(--parchment);
+  font-size: 0.95em;
+  font-weight: 600;
+}
+.gate-cost {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.gate-mob {
+  font-size: 0.8em;
+  color: var(--purple);
+}
+.gate-time {
+  font-size: 0.75em;
+  color: var(--text-dim);
+  font-style: italic;
+}
 
-.btn { padding:7px 14px; border:1px solid var(--gold-dark); background:linear-gradient(145deg,rgba(212,168,67,0.12),rgba(160,120,48,0.08)); color:var(--gold); font-family:'Cinzel',serif; font-size:0.8em; border-radius:6px; cursor:pointer; transition:all 0.2s; }
-.btn:hover { background:linear-gradient(145deg,rgba(212,168,67,0.25),rgba(160,120,48,0.15)); }
-.btn:disabled { opacity:0.3; cursor:not-allowed; }
-.btn-sm { padding:4px 10px; font-size:0.75em; }
-.btn-purple { border-color:var(--purple); color:#ce93d8; }
-.btn-green { border-color:var(--green); color:var(--green); background:rgba(76,175,80,0.15); }
+/* ============ BUTTONS - MELVOR STYLE ============ */
+.btn {
+  padding: 10px 18px;
+  border: none;
+  background: var(--green);
+  color: #fff;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85em;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(39,174,96,0.3);
+}
+.btn:hover {
+  background: #2ecc71;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(39,174,96,0.4);
+}
+.btn:active {
+  transform: translateY(0);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.75em;
+}
+.btn-gold {
+  background: linear-gradient(145deg, var(--gold), var(--gold-dark));
+  box-shadow: 0 2px 8px var(--gold-glow);
+}
+.btn-gold:hover {
+  background: linear-gradient(145deg, #e0b84a, var(--gold));
+}
+.btn-purple {
+  background: var(--purple);
+  box-shadow: 0 2px 8px rgba(155,89,182,0.3);
+}
+.btn-purple:hover {
+  background: #a569bd;
+}
+.btn-red {
+  background: var(--red);
+  box-shadow: 0 2px 8px rgba(231,76,60,0.3);
+}
+.btn-red:hover {
+  background: #ec7063;
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--text-dim);
+  box-shadow: none;
+}
+.btn-outline:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: var(--green);
+  color: var(--green);
+}
 
-.spell-upgrade-card { background:linear-gradient(145deg,rgba(30,30,55,0.95),rgba(15,15,30,0.95)); border:1px solid rgba(212,168,67,0.2); border-radius:10px; padding:15px; margin-bottom:10px; display:flex; align-items:center; gap:15px; }
-.spell-upgrade-card .su-icon { font-size:2.5em; }
-.spell-upgrade-card .su-info { flex:1; }
-.spell-upgrade-card .su-name { font-family:'Cinzel',serif; color:var(--gold); font-size:1em; }
-.spell-upgrade-card .su-desc { font-size:0.8em; color:#aaa; }
-.spell-upgrade-card .su-stats { display:flex; gap:15px; margin-top:5px; font-size:0.8em; flex-wrap:wrap; }
-.spell-upgrade-card .su-stat { color:#ccc; }
-.spell-upgrade-card .su-stat span { color:var(--gold); font-family:'Cinzel',serif; }
-.spell-upgrade-card .su-actions { text-align:right; }
-.spell-upgrade-card .su-level { font-family:'Cinzel',serif; color:var(--gold); font-size:1.1em; margin-bottom:5px; }
-.spell-upgrade-card .su-cost { font-size:0.75em; color:var(--accent); margin-top:3px; }
+/* ============ SPELL UPGRADE CARDS ============ */
+.spell-upgrade-card {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.2s ease;
+}
+.spell-upgrade-card:hover {
+  background: rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.1);
+}
+.spell-upgrade-card .su-icon {
+  font-size: 2.5em;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.3);
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+}
+.spell-upgrade-card .su-info { flex: 1; }
+.spell-upgrade-card .su-name {
+  font-family: 'Cinzel', serif;
+  color: var(--parchment);
+  font-size: 1em;
+  font-weight: 600;
+}
+.spell-upgrade-card .su-desc {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.spell-upgrade-card .su-stats {
+  display: flex;
+  gap: 15px;
+  margin-top: 8px;
+  font-size: 0.8em;
+  flex-wrap: wrap;
+}
+.spell-upgrade-card .su-stat { color: var(--text-dim); }
+.spell-upgrade-card .su-stat span {
+  color: var(--green);
+  font-family: 'Cinzel', serif;
+}
+.spell-upgrade-card .su-actions { text-align: right; }
+.spell-upgrade-card .su-level {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+  font-size: 1.1em;
+  margin-bottom: 8px;
+}
+.spell-upgrade-card .su-cost {
+  font-size: 0.75em;
+  color: var(--accent);
+  margin-top: 5px;
+}
 
-.talent-section { margin-bottom:15px; }
-.talent-section-title { font-family:'Cinzel',serif; color:var(--gold); font-size:1em; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid rgba(212,168,67,0.2); }
-.talent-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-.talent-node { background:rgba(0,0,0,0.35); border:1px solid rgba(212,168,67,0.15); border-radius:8px; padding:10px; text-align:center; }
-.talent-node:hover { border-color:rgba(212,168,67,0.4); }
-.talent-node .t-icon { font-size:1.5em; }
-.talent-node .t-name { font-family:'Cinzel',serif; font-size:0.75em; color:var(--gold); margin:3px 0; }
-.talent-node .t-level { font-size:0.7em; color:#aaa; }
-.talent-node .t-desc { font-size:0.7em; color:#888; margin:3px 0; }
-.talent-node .t-cost { font-size:0.7em; color:var(--accent); }
-.talent-node.maxed { border-color:var(--green); }
+/* ============ TALENTS - MELVOR GRID ============ */
+.talent-section { margin-bottom: 20px; }
+.talent-section-title {
+  font-family: 'Cinzel', serif;
+  color: var(--parchment);
+  font-size: 0.95em;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  border-left: 3px solid var(--green);
+}
+.talent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.talent-node {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.talent-node:hover {
+  background: rgba(0,0,0,0.35);
+  border-color: var(--green);
+  transform: translateY(-2px);
+}
+.talent-node .t-icon {
+  font-size: 1.6em;
+  margin-bottom: 4px;
+}
+.talent-node .t-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8em;
+  color: var(--parchment);
+  margin: 4px 0;
+  font-weight: 600;
+}
+.talent-node .t-level {
+  font-size: 0.75em;
+  color: var(--green);
+  background: rgba(39,174,96,0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  display: inline-block;
+}
+.talent-node .t-desc {
+  font-size: 0.7em;
+  color: var(--text-dim);
+  margin: 6px 0;
+}
+.talent-node .t-cost {
+  font-size: 0.75em;
+  color: var(--accent);
+  font-weight: 600;
+}
+.talent-node.maxed {
+  border-color: var(--green);
+  background: rgba(39,174,96,0.1);
+}
+.talent-node.maxed .t-level {
+  background: var(--green);
+  color: #fff;
+}
 
-.prestige-box { text-align:center; padding:20px; background:linear-gradient(145deg,rgba(106,27,154,0.15),rgba(50,10,80,0.1)); border:1px solid rgba(106,27,154,0.3); border-radius:12px; margin-bottom:15px; }
-.prestige-box .p-icon { font-size:4em; animation:wandFloat 3s ease-in-out infinite; }
-.prestige-box .p-title { font-family:'Cinzel',serif; color:var(--gold); font-size:1.3em; margin:10px 0; }
-.prestige-box .p-desc { color:#aaa; font-size:0.85em; margin-bottom:15px; }
-.prestige-box .p-mult { font-family:'Cinzel',serif; color:#ce93d8; font-size:1.2em; margin:10px 0; }
+/* ============ PRESTIGE - MELVOR STYLE ============ */
+.prestige-box {
+  text-align: center;
+  padding: 25px;
+  background: linear-gradient(145deg, rgba(155,89,182,0.1), rgba(100,50,150,0.05));
+  border: 1px solid rgba(155,89,182,0.3);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.prestige-box .p-icon {
+  font-size: 4em;
+  animation: wandFloat 3s ease-in-out infinite;
+}
+.prestige-box .p-title {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+  font-size: 1.4em;
+  margin: 12px 0;
+  font-weight: 700;
+}
+.prestige-box .p-desc {
+  color: var(--text-dim);
+  font-size: 0.9em;
+  margin-bottom: 15px;
+}
+.prestige-box .p-mult {
+  font-family: 'Cinzel', serif;
+  color: var(--purple);
+  font-size: 1.3em;
+  margin: 12px 0;
+  padding: 10px 20px;
+  background: rgba(155,89,182,0.15);
+  border-radius: 8px;
+  display: inline-block;
+}
 
-.prestige-tier { background:rgba(0,0,0,0.3); border:1px solid rgba(212,168,67,0.15); border-radius:8px; padding:12px; margin-bottom:10px; text-align:center; }
-.prestige-tier.done { border-color:var(--green); opacity:0.7; }
-.prestige-tier.available { border-color:var(--purple); box-shadow:0 0 10px rgba(106,27,154,0.2); }
-.prestige-tier .pt-name { font-family:'Cinzel',serif; color:var(--gold); }
-.prestige-tier .pt-req { font-size:0.8em; color:#aaa; }
-.prestige-tier .pt-reward { font-size:0.85em; color:#ce93d8; margin:5px 0; }
+.prestige-tier {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 10px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+.prestige-tier.done {
+  border-left: 3px solid var(--green);
+  opacity: 0.7;
+}
+.prestige-tier.available {
+  border-left: 3px solid var(--purple);
+  background: rgba(155,89,182,0.08);
+  box-shadow: 0 0 15px rgba(155,89,182,0.2);
+}
+.prestige-tier .pt-name {
+  font-family: 'Cinzel', serif;
+  color: var(--parchment);
+  font-weight: 600;
+}
+.prestige-tier .pt-req {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.prestige-tier .pt-reward {
+  font-size: 0.85em;
+  color: var(--purple);
+  margin: 8px 0;
+  font-weight: 600;
+}
 
-.stat-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.85em; }
-.stat-row .stat-label { color:#aaa; }
-.stat-row .stat-value { color:var(--gold); font-family:'Cinzel',serif; }
+/* ============ STATS - MELVOR STYLE ============ */
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.9em;
+  transition: background 0.2s;
+}
+.stat-row:hover {
+  background: rgba(255,255,255,0.02);
+}
+.stat-row .stat-label { color: var(--text-dim); }
+.stat-row .stat-value {
+  color: var(--green);
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+}
 
-.card { background:linear-gradient(145deg,rgba(30,30,50,0.9),rgba(18,18,32,0.9)); border:1px solid rgba(212,168,67,0.12); border-radius:10px; padding:12px; margin-bottom:10px; }
-.card-title { font-family:'Cinzel',serif; color:var(--gold); font-size:0.95em; margin-bottom:8px; padding-bottom:5px; border-bottom:1px solid rgba(212,168,67,0.15); }
+/* ============ CARDS - MELVOR STYLE PANELS ============ */
+.card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.card-title {
+  font-family: 'Cinzel', serif;
+  color: var(--parchment);
+  font-size: 1em;
+  font-weight: 600;
+  padding: 12px 15px;
+  margin: 0;
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: var(--green);
+  border-radius: 2px;
+}
+.card > *:not(.card-title) { padding: 15px; }
+.card > .card-title + * { padding-top: 15px; }
 
-.toast { position:fixed; bottom:15px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--dark); border:1px solid var(--gold); border-radius:8px; padding:8px 18px; color:var(--gold); font-family:'Cinzel',serif; font-size:0.85em; z-index:300; opacity:0; transition:all 0.3s; }
-.toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+/* ============ TOAST NOTIFICATIONS ============ */
+.toast {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--panel-bg);
+  border: 1px solid var(--green);
+  border-radius: 10px;
+  padding: 12px 24px;
+  color: var(--parchment);
+  font-family: 'Cinzel', serif;
+  font-size: 0.9em;
+  z-index: 500;
+  opacity: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 20px var(--green-glow);
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ============ BOTTOM PROGRESS BAR - MELVOR STYLE ============ */
+.bottom-progress-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, rgba(25,27,35,0.98), rgba(18,20,28,0.98));
+  border-top: 1px solid var(--panel-border);
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 400;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+}
+.bottom-progress-bar .bp-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85em;
+}
+.bottom-progress-bar .bp-label {
+  color: var(--text-dim);
+}
+.bottom-progress-bar .bp-value {
+  color: var(--green);
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+}
+.bottom-progress-bar .bp-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--panel-border);
+}
 
 /* Active Buffs Bar */
 .active-buffs-bar {
   position: fixed;
-  bottom: 0;
+  bottom: 45px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 15px;
-  padding: 10px 20px;
-  background: linear-gradient(180deg, rgba(30,25,45,0.95), rgba(15,12,25,0.98));
-  border: 2px solid var(--gold-dark);
-  border-bottom: none;
-  border-radius: 12px 12px 0 0;
-  z-index: 400;
-  box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+  gap: 12px;
+  padding: 10px 15px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  z-index: 399;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 .active-buffs-bar:empty {
   display: none;
@@ -349,18 +1016,18 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(212,168,67,0.3);
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--green);
   border-radius: 8px;
   padding: 8px 12px;
   animation: buffPulse 2s ease-in-out infinite;
 }
 @keyframes buffPulse {
-  0%, 100% { box-shadow: 0 0 5px rgba(46,125,50,0.3); }
-  50% { box-shadow: 0 0 15px rgba(46,125,50,0.6); }
+  0%, 100% { box-shadow: 0 0 5px var(--green-glow); }
+  50% { box-shadow: 0 0 15px var(--green-glow); }
 }
 .buff-item .buff-icon {
-  font-size: 1.8em;
+  font-size: 1.6em;
 }
 .buff-item .buff-info {
   display: flex;
@@ -368,143 +1035,241 @@ body {
 }
 .buff-item .buff-name {
   font-family: 'Cinzel', serif;
-  font-size: 0.85em;
-  color: var(--gold);
+  font-size: 0.8em;
+  color: var(--parchment);
 }
 .buff-item .buff-timer {
-  font-size: 1.1em;
+  font-size: 1em;
   font-weight: bold;
   color: var(--green);
   font-family: 'Cinzel', serif;
 }
 .buff-item.expiring {
+  border-color: var(--red);
   animation: buffExpiring 0.5s ease-in-out infinite;
 }
 @keyframes buffExpiring {
-  0%, 100% { border-color: var(--red); box-shadow: 0 0 10px rgba(198,40,40,0.5); }
-  50% { border-color: #ff6666; box-shadow: 0 0 20px rgba(198,40,40,0.8); }
+  0%, 100% { box-shadow: 0 0 10px rgba(231,76,60,0.4); }
+  50% { box-shadow: 0 0 20px rgba(231,76,60,0.6); }
 }
 
 /* ========== MOBILE RESPONSIVE ========== */
+@media (max-width:768px) {
+  /* Game Layout - mobile */
+  .game-layout {
+    flex-direction: column;
+  }
+
+  /* Sidebar becomes bottom nav on mobile */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    flex-direction: row;
+    padding: 0;
+    border-right: none;
+    border-top: 1px solid var(--panel-border);
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 500;
+  }
+  .sidebar-divider {
+    width: 1px;
+    height: 100%;
+    margin: 0 2px;
+  }
+  .nav-btn {
+    min-width: 55px;
+    padding: 6px 4px;
+    border-left: none;
+    border-top: 3px solid transparent;
+  }
+  .nav-btn.active {
+    border-left-color: transparent;
+    border-top-color: var(--green);
+  }
+  .nav-btn .nav-icon { font-size: 1.4em; }
+  .nav-btn .nav-label { font-size: 0.6em; }
+
+  .main-content {
+    margin-left: 0;
+    padding-bottom: 70px;
+  }
+
+  /* Bottom progress bar - above mobile nav */
+  .bottom-progress-bar {
+    bottom: 60px;
+  }
+
+  /* Buffs bar - above bottom bar */
+  .active-buffs-bar {
+    bottom: 105px;
+  }
+
+  /* Toast - above bottom bar */
+  .toast {
+    bottom: 130px;
+  }
+}
+
 @media (max-width:600px) {
   /* Top Bar - plus compact */
-  .top-bar { padding:6px 10px; }
-  .game-logo { font-size:0.9em; gap:6px; }
-  .currency-bar { gap:6px; }
-  .currency { padding:4px 8px 4px 6px; font-size:0.8em; border-radius:15px; }
-  .currency .c-icon { font-size:1em; }
-  .currency .c-ps { display:none; }
-
-  /* Nav bar - icônes seulement */
-  .nav { padding:3px 1px; gap:1px; top:38px; }
-  .nav-btn { padding:8px 2px; }
-  .nav-btn .nav-icon { font-size:1.4em; }
-  .nav-btn .nav-label { font-size:0.65em; }
+  .top-bar {
+    padding: 6px 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .game-logo { font-size: 0.85em; gap: 6px; }
+  .game-logo .logo-icon { font-size: 1.2em; }
+  .currency-bar {
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+    order: 3;
+    width: 100%;
+  }
+  .currency {
+    padding: 4px 8px;
+    font-size: 0.75em;
+    border-radius: 6px;
+  }
+  .currency .c-icon { font-size: 0.9em; }
+  .currency .c-ps { display: none; }
+  #userZone { order: 2; }
 
   /* Main content */
-  .main { padding:6px; }
-  .panel.active { padding-bottom:100px; }
+  .main { padding: 8px; }
+  .panel.active { padding-bottom: 120px; }
 
   /* Zone header */
-  .zone-header { padding:8px; margin-bottom:8px; }
-  .zone-name { font-size:1.1em; }
-  .zone-desc { font-size:0.8em; }
+  .zone-header { padding: 10px; margin-bottom: 10px; }
+  .zone-name { font-size: 1.15em; }
+  .zone-desc { font-size: 0.8em; }
+  .zone-progress { font-size: 0.75em; padding: 4px 10px; }
 
   /* Battle area */
-  .battle-area { border-radius:8px; margin-bottom:8px; }
-  #battleSceneContainer canvas { max-height:180px; }
-  .mob-info-bar { padding:6px; }
-  .mob-info-bar .mob-name { font-size:0.9em; }
-  .mob-info-bar .mob-hp-bar { width:160px; height:10px; }
-  .mob-info-bar .mob-hp-text { font-size:0.7em; }
+  .battle-area { border-radius: 10px; margin-bottom: 10px; }
+  #battleSceneContainer canvas { max-height: 180px; }
+  .mob-info-bar { padding: 10px; }
+  .mob-info-bar .mob-name { font-size: 0.9em; }
+  .mob-info-bar .mob-hp-bar { width: 180px; height: 16px; }
+  .mob-info-bar .mob-hp-text { font-size: 0.75em; }
 
-  /* Mini mode sur mobile - en bas, pleine largeur */
+  /* Mini mode sur mobile */
   .battle-area.mini-mode {
     width: calc(100% - 20px) !important;
     left: 10px;
-    bottom: 10px;
+    bottom: 130px;
   }
   .battle-area.mini-mode #battleSceneContainer { height: 80px; }
 
-  /* Spell bar - plus petit */
-  .spell-bar { gap:4px; padding:8px 4px; flex-wrap:wrap; }
-  .spell-slot { width:56px; height:56px; }
-  .spell-slot .spell-circle { width:46px; height:46px; border-width:2px; }
-  .spell-slot .s-icon { font-size:1.4em; }
-  .spell-cd-radial { width:46px; height:46px; }
-  .spell-slot .s-info { font-size:0.55em; padding:1px 4px; bottom:-4px; }
-  .spell-slot .s-cd-text { font-size:0.85em; }
-  .spell-slot .spell-tooltip { display:none; }
+  /* Spell bar */
+  .spell-bar { gap: 6px; padding: 10px 8px; flex-wrap: wrap; }
+  .spell-slot { width: 56px; height: 56px; }
+  .spell-slot .spell-circle { width: 46px; height: 46px; border-width: 2px; }
+  .spell-slot .s-icon { font-size: 1.4em; }
+  .spell-cd-radial { width: 46px; height: 46px; }
+  .spell-slot .s-info { font-size: 0.55em; padding: 1px 4px; bottom: -4px; }
+  .spell-slot .s-cd-text { font-size: 0.85em; }
+  .spell-slot .spell-tooltip { display: none; }
 
-  /* Hero recap - empilé */
-  .hero-recap { padding:6px 10px; top:76px; gap:8px; }
-  .hero-recap .hr-section { gap:4px; }
-  .hero-recap .hr-label { font-size:0.55em; }
-  .hero-recap .hr-icon { font-size:1.1em; }
-  .hero-recap .hr-val { font-size:0.7em; }
-  .hero-recap .hr-divider { height:20px; }
-  .hero-recap .hr-pet { padding:3px 6px; }
-  .hero-recap .hr-pet .pet-icon { font-size:1.1em; }
-  .hero-recap .hr-pet .pet-name { font-size:0.65em; }
-  .hero-recap .hr-pet .pet-bonus { display:none; }
+  /* Hero recap */
+  .hero-recap {
+    padding: 6px 10px;
+    top: 0;
+    gap: 6px;
+  }
+  .hero-recap .hr-section {
+    gap: 4px;
+    padding: 4px 8px;
+  }
+  .hero-recap .hr-label { font-size: 0.55em; }
+  .hero-recap .hr-icon { font-size: 1em; }
+  .hero-recap .hr-val { font-size: 0.7em; }
+  .hero-recap .hr-divider { height: 18px; }
+  .hero-recap .hr-pet { padding: 4px 6px; }
+  .hero-recap .hr-pet .pet-icon { font-size: 1em; }
+  .hero-recap .hr-pet .pet-name { font-size: 0.65em; }
+  .hero-recap .hr-pet .pet-bonus { display: none; }
 
   /* Cards */
-  .card { padding:10px; margin-bottom:8px; border-radius:8px; }
-  .card-title { font-size:0.85em; margin-bottom:6px; }
+  .card { margin-bottom: 10px; border-radius: 10px; }
+  .card-title { font-size: 0.9em; padding: 10px 12px; }
+  .card > *:not(.card-title) { padding: 12px; }
 
   /* Spell upgrade cards */
-  .spell-upgrade-card { flex-direction:column; text-align:center; padding:12px; gap:10px; }
-  .spell-upgrade-card .su-icon { font-size:2em; }
-  .spell-upgrade-card .su-name { font-size:0.9em; }
-  .spell-upgrade-card .su-desc { font-size:0.75em; }
-  .spell-upgrade-card .su-stats { justify-content:center; gap:10px; font-size:0.75em; }
-  .spell-upgrade-card .su-actions { text-align:center; margin-top:8px; }
-  .spell-upgrade-card .su-level { font-size:1em; }
+  .spell-upgrade-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 12px;
+    gap: 10px;
+  }
+  .spell-upgrade-card .su-icon { width: 50px; height: 50px; font-size: 1.8em; }
+  .spell-upgrade-card .su-name { font-size: 0.9em; }
+  .spell-upgrade-card .su-desc { font-size: 0.75em; }
+  .spell-upgrade-card .su-stats { justify-content: center; gap: 10px; font-size: 0.75em; }
+  .spell-upgrade-card .su-actions { text-align: center; margin-top: 8px; }
+  .spell-upgrade-card .su-level { font-size: 1em; }
 
   /* Talents */
-  .talent-grid { grid-template-columns:repeat(2,1fr); gap:6px; }
-  .talent-node { padding:8px; }
-  .talent-node .t-icon { font-size:1.3em; }
-  .talent-node .t-name { font-size:0.7em; }
-  .talent-node .t-level { font-size:0.65em; }
-  .talent-node .t-desc { font-size:0.65em; }
+  .talent-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .talent-section-title { font-size: 0.85em; padding: 6px 10px; }
+  .talent-node { padding: 10px; }
+  .talent-node .t-icon { font-size: 1.4em; }
+  .talent-node .t-name { font-size: 0.75em; }
+  .talent-node .t-level { font-size: 0.65em; }
+  .talent-node .t-desc { font-size: 0.65em; }
 
   /* Gates */
-  .gate-item { padding:10px 12px; border-radius:8px; }
-  .gate-zone { font-size:0.85em; }
-  .gate-cost { font-size:0.75em; }
-  .gate-mob { font-size:0.75em; }
+  .gate-item { padding: 10px 12px; border-radius: 8px; }
+  .gate-zone { font-size: 0.85em; }
+  .gate-cost { font-size: 0.75em; }
+  .gate-mob { font-size: 0.75em; }
 
   /* Prestige */
-  .prestige-box { padding:15px; }
-  .prestige-box .p-icon { font-size:3em; }
-  .prestige-box .p-title { font-size:1.1em; }
-  .prestige-box .p-desc { font-size:0.8em; }
-  .prestige-tier { padding:10px; }
-  .prestige-tier .pt-name { font-size:0.9em; }
+  .prestige-box { padding: 20px 15px; }
+  .prestige-box .p-icon { font-size: 3em; }
+  .prestige-box .p-title { font-size: 1.15em; }
+  .prestige-box .p-desc { font-size: 0.8em; }
+  .prestige-box .p-mult { font-size: 1.1em; padding: 8px 15px; }
+  .prestige-tier { padding: 12px; }
+  .prestige-tier .pt-name { font-size: 0.9em; }
 
-  /* Buttons - plus gros pour le tactile */
-  .btn { padding:10px 16px; font-size:0.85em; min-height:44px; }
-  .btn-sm { padding:8px 12px; font-size:0.75em; min-height:36px; }
+  /* Buttons - tactile friendly */
+  .btn { padding: 12px 18px; font-size: 0.85em; min-height: 44px; }
+  .btn-sm { padding: 8px 14px; font-size: 0.75em; min-height: 38px; }
 
   /* Stats */
-  .stat-row { font-size:0.8em; padding:5px 0; }
+  .stat-row { font-size: 0.8em; padding: 8px 10px; }
+
+  /* Bottom progress bar */
+  .bottom-progress-bar {
+    padding: 6px 10px;
+    gap: 10px;
+  }
+  .bottom-progress-bar .bp-item { font-size: 0.75em; gap: 4px; }
+  .bottom-progress-bar .bp-divider { height: 15px; }
 
   /* Buffs bar */
   .active-buffs-bar {
-    padding:8px 12px;
-    gap:8px;
-    max-width:100%;
-    flex-wrap:wrap;
-    justify-content:center;
+    bottom: 40px;
+    padding: 8px 10px;
+    gap: 6px;
+    max-width: calc(100% - 20px);
+    flex-wrap: wrap;
+    justify-content: center;
   }
-  .buff-item { padding:6px 10px; gap:6px; }
-  .buff-item .buff-icon { font-size:1.4em; }
-  .buff-item .buff-name { font-size:0.75em; }
-  .buff-item .buff-timer { font-size:0.95em; }
+  .buff-item { padding: 6px 8px; gap: 6px; }
+  .buff-item .buff-icon { font-size: 1.3em; }
+  .buff-item .buff-name { font-size: 0.7em; }
+  .buff-item .buff-timer { font-size: 0.9em; }
 
   /* Toast */
-  .toast { font-size:0.8em; padding:8px 15px; bottom:70px; }
+  .toast { font-size: 0.8em; padding: 10px 16px; bottom: 80px; }
 
   /* Kill counter */
   .kill-counter { font-size:0.75em; }
@@ -537,6 +1302,515 @@ body {
 
   .hero-recap { flex-wrap:wrap; justify-content:center; }
   .hero-recap .hr-divider { display:none; }
+}
+
+/* ========== SHINY PETS ========== */
+.pet-card.shiny {
+  position: relative;
+  border: 2px solid transparent;
+  background: linear-gradient(145deg, rgba(255,215,0,0.15), rgba(255,180,0,0.05));
+  animation: shinyGlow 2s ease-in-out infinite;
+}
+
+@keyframes shinyGlow {
+  0%, 100% {
+    border-color: rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1);
+  }
+  50% {
+    border-color: rgba(255, 180, 0, 0.9);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), inset 0 0 25px rgba(255, 215, 0, 0.2);
+  }
+}
+
+.shiny-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #ffd700, #ffab00);
+  color: #000;
+  font-size: 0.6em;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-family: 'Cinzel', serif;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+  animation: shinyBadgePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes shinyBadgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.shiny-sparkle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.shiny-sparkle::before,
+.shiny-sparkle::after {
+  content: '✨';
+  position: absolute;
+  font-size: 0.8em;
+  animation: sparkleFloat 2s ease-in-out infinite;
+}
+
+.shiny-sparkle::before { top: 10%; left: 10%; animation-delay: 0s; }
+.shiny-sparkle::after { bottom: 10%; right: 10%; animation-delay: 1s; }
+
+@keyframes sparkleFloat {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
+  50% { opacity: 1; transform: translateY(-5px) scale(1); }
+}
+
+/* ========== PET RARITIES ========== */
+.pet-card.rare {
+  background: linear-gradient(145deg, rgba(33,150,243,0.1), rgba(33,150,243,0.02)) !important;
+}
+.pet-card.epic {
+  background: linear-gradient(145deg, rgba(156,39,176,0.15), rgba(156,39,176,0.05)) !important;
+}
+.pet-card.secret {
+  background: linear-gradient(145deg, rgba(255,152,0,0.15), rgba(255,152,0,0.05)) !important;
+  animation: secretGlow 3s ease-in-out infinite;
+}
+.pet-card.legendary {
+  background: linear-gradient(145deg, rgba(255,215,0,0.2), rgba(255,180,0,0.1)) !important;
+  animation: legendaryGlow 2s ease-in-out infinite;
+}
+
+@keyframes secretGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255,152,0,0.3); }
+  50% { box-shadow: 0 0 20px rgba(255,152,0,0.5); }
+}
+
+@keyframes legendaryGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255,215,0,0.4), 0 0 30px rgba(255,180,0,0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255,215,0,0.6), 0 0 50px rgba(255,180,0,0.3);
+  }
+}
+
+/* ========== ACHIEVEMENTS - MELVOR STYLE ========== */
+.achievement-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+.achievement-card:hover {
+  background: rgba(0,0,0,0.3);
+}
+
+.achievement-card.unlocked {
+  background: linear-gradient(145deg, rgba(39,174,96,0.15), rgba(39,174,96,0.05));
+  border-left: 3px solid var(--green);
+}
+.achievement-card.unlocked .achievement-icon {
+  filter: drop-shadow(0 0 6px var(--green-glow));
+}
+
+.achievement-card.locked {
+  opacity: 0.5;
+}
+
+.achievement-icon {
+  font-size: 2em;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.25);
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+}
+
+.achievement-info {
+  flex: 1;
+}
+
+.achievement-name {
+  font-family: 'Cinzel', serif;
+  color: var(--parchment);
+  font-size: 0.95em;
+  font-weight: 600;
+}
+
+.achievement-desc {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.achievement-progress {
+  margin-top: 6px;
+  height: 8px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.achievement-progress-fill {
+  height: 100%;
+  background: var(--xp-gradient);
+  transition: width 0.3s;
+}
+
+.achievement-reward {
+  display: flex;
+  gap: 8px;
+  font-size: 0.75em;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+.achievement-reward span {
+  background: rgba(0,0,0,0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.category-complete-bonus {
+  background: linear-gradient(145deg, rgba(155,89,182,0.15), rgba(155,89,182,0.05));
+  border: 1px solid rgba(155,89,182,0.4);
+  border-radius: 10px;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* Achievement Category Tabs */
+.achievement-category-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin: 0 4px 8px 0;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.achievement-category-tab:hover {
+  background: rgba(0,0,0,0.3);
+  color: var(--parchment);
+}
+.achievement-category-tab.active {
+  background: rgba(39,174,96,0.15);
+  border-color: var(--green);
+  color: var(--green);
+}
+.achievement-category-tab .tab-count {
+  background: rgba(0,0,0,0.3);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.85em;
+}
+
+/* ========== ETERNALS (Relics & Star Dust) - MELVOR STYLE ========== */
+.stardust-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.2em;
+  margin-bottom: 20px;
+  padding: 15px 20px;
+  background: linear-gradient(145deg, rgba(155,89,182,0.15), rgba(100,50,150,0.08));
+  border: 1px solid rgba(155,89,182,0.35);
+  border-radius: 12px;
+}
+
+.stardust-icon {
+  font-size: 1.6em;
+  animation: stardustGlow 2s ease-in-out infinite;
+}
+
+@keyframes stardustGlow {
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(155,89,182,0.5)); }
+  50% { filter: drop-shadow(0 0 15px rgba(155,89,182,0.8)); }
+}
+
+.relic-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  margin-bottom: 10px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.relic-card:hover {
+  background: rgba(0,0,0,0.3);
+  border-color: var(--purple);
+}
+
+.relic-card.maxed {
+  border-left: 3px solid var(--green);
+  background: linear-gradient(145deg, rgba(39,174,96,0.1), rgba(0,0,0,0.2));
+}
+
+.relic-icon {
+  font-size: 2.2em;
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(155,89,182,0.15);
+  border-radius: 10px;
+  border: 1px solid rgba(155,89,182,0.3);
+}
+
+.relic-info {
+  flex: 1;
+}
+
+.relic-name {
+  font-family: 'Cinzel', serif;
+  color: var(--parchment);
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.relic-desc {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.relic-level {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.relic-pip {
+  width: 22px;
+  height: 8px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+}
+
+.relic-pip.filled {
+  background: var(--purple);
+  border-color: transparent;
+  box-shadow: 0 0 6px rgba(155,89,182,0.4);
+}
+
+/* ========== SPELL EVOLUTIONS ========== */
+.spell-evolution-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  font-size: 0.7em;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.8);
+  border: 1px solid;
+}
+
+.spell-slot.evolved-1 .spell-circle { border-width: 4px; }
+.spell-slot.evolved-2 .spell-circle { border-width: 5px; }
+.spell-slot.evolved-3 .spell-circle { border-width: 6px; box-shadow: 0 0 25px currentColor !important; }
+
+/* ========== INFINITY PRESTIGE ========== */
+.infinity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #1a1a2e, #2d1f4e);
+  border: 2px solid #9c27b0;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-family: 'Cinzel', serif;
+  color: #ce93d8;
+  font-size: 0.8em;
+  animation: infinityPulse 3s ease-in-out infinite;
+}
+
+@keyframes infinityPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(156,39,176,0.3); }
+  50% { box-shadow: 0 0 25px rgba(156,39,176,0.6); }
+}
+
+/* ========== DAILY CHALLENGES ========== */
+.daily-challenge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(212,168,67,0.15);
+  border-radius: 10px;
+}
+
+.daily-challenge.completed {
+  background: linear-gradient(145deg, rgba(46,125,50,0.15), rgba(0,0,0,0.25));
+  border-color: var(--green);
+  opacity: 0.7;
+}
+
+.daily-icon {
+  font-size: 1.8em;
+}
+
+.daily-info {
+  flex: 1;
+}
+
+.daily-name {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+  font-size: 0.9em;
+}
+
+.daily-progress-bar {
+  margin-top: 4px;
+  height: 8px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.daily-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+  transition: width 0.3s;
+}
+
+.daily-reward {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 0.75em;
+  color: #888;
+}
+
+/* ========== PET SYNERGIES ========== */
+.synergy-active {
+  background: linear-gradient(145deg, rgba(255,152,0,0.15), rgba(0,0,0,0.25));
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.synergy-icon {
+  font-size: 1.5em;
+}
+
+.synergy-info {
+  flex: 1;
+}
+
+.synergy-name {
+  font-family: 'Cinzel', serif;
+  color: var(--accent);
+  font-size: 0.9em;
+}
+
+.synergy-desc {
+  font-size: 0.75em;
+  color: #aaa;
+}
+
+/* Multi-pet slots */
+.pet-slots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  justify-content: center;
+}
+
+.pet-slot {
+  width: 60px;
+  height: 60px;
+  border: 2px dashed rgba(212,168,67,0.3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8em;
+  background: rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pet-slot:hover {
+  border-color: var(--gold);
+  background: rgba(212,168,67,0.1);
+}
+
+.pet-slot.filled {
+  border-style: solid;
+  border-color: var(--purple);
+  background: rgba(106,27,154,0.15);
+}
+
+.pet-slot.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  flex-direction: column;
+}
+
+.pet-slot.empty {
+  flex-direction: column;
+  border-color: rgba(212,168,67,0.2);
+}
+
+.pet-slot.filled {
+  position: relative;
+}
+
+.slot-remove-hint {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  background: var(--red);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.7em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-weight: bold;
+}
+
+.pet-slot.filled:hover .slot-remove-hint {
+  opacity: 1;
+}
+
+.pet-slot.filled:hover {
+  border-color: var(--red);
+  background: rgba(198,40,40,0.15);
 }
 
 /* World Boss Styles */
@@ -842,45 +2116,58 @@ body {
     container.innerHTML = `
 
 <div class="top-bar">
-  <div class="game-logo">🪄 Wand Idle <button class="patch-note-btn" id="patchNoteBtn" onclick="togglePatchModal(true)" title="Patch Notes">📜</button></div>
+  <div class="game-logo">
+    <span class="logo-icon">🪄</span>
+    <span>Wand Idle</span>
+    <button class="patch-note-btn" id="patchNoteBtn" onclick="togglePatchModal(true)" title="Patch Notes">📜</button>
+  </div>
   <div class="currency-bar">
-    <div class="currency"><span class="c-icon">🪙</span><span class="c-val" id="goldVal">0</span><span class="c-ps" id="goldPs"></span></div>
-    <div class="currency"><span class="c-icon">💎</span><span class="c-val" id="gemsVal">0</span></div>
-    <div class="currency"><span class="c-icon">⭐</span><span class="c-val" id="tpVal">0</span></div>
-    <div class="currency" title="Niveau de Prestige"><span class="c-icon">🔮</span><span class="c-val" id="prestigeVal">Prestige 0</span></div>
-    <div id="userZone" style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-      <img id="userAvatar" src="" style="width:28px;height:28px;border-radius:50%;display:none;border:2px solid var(--gold);cursor:pointer;" onclick="promptChangeAvatar()" title="Cliquer pour changer l'avatar" />
-      <span id="userName" style="font-size:0.8em;color:#aaa;cursor:pointer;" onclick="promptChangeName()" title="Cliquer pour changer le pseudo"></span>
-      <button id="loginBtn" class="btn btn-sm" onclick="handleLogin()">🎮 Discord</button>
+    <div class="currency" title="Or"><span class="c-icon">🪙</span><span class="c-val" id="goldVal">0</span><span class="c-ps" id="goldPs"></span></div>
+    <div class="currency" title="Gemmes"><span class="c-icon">💎</span><span class="c-val" id="gemsVal">0</span></div>
+    <div class="currency" title="Points de Talent"><span class="c-icon">📖</span><span class="c-val" id="tpVal">0</span></div>
+    <div class="currency" title="Star Dust"><span class="c-icon">⭐</span><span class="c-val" id="starDustTopVal">0</span></div>
+    <div class="currency" title="Prestige"><span class="c-icon">🔮</span><span class="c-val" id="prestigeVal">0</span></div>
+  </div>
+  <div id="userZone" style="display:flex;align-items:center;gap:10px;">
+    <img id="userAvatar" src="" style="width:32px;height:32px;border-radius:50%;display:none;border:2px solid var(--green);cursor:pointer;" onclick="promptChangeAvatar()" title="Changer l'avatar" />
+    <span id="userName" style="font-size:0.85em;color:var(--text-dim);cursor:pointer;" onclick="promptChangeName()" title="Changer le pseudo"></span>
+    <button id="loginBtn" class="btn btn-sm" onclick="handleLogin()">🎮 Discord</button>
+  </div>
+</div>
+
+<div class="game-layout">
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar">
+    <button class="nav-btn active" onclick="switchPanel('zone',this)"><span class="nav-icon">⚔️</span><span class="nav-label">Combat</span></button>
+    <button class="nav-btn" onclick="switchPanel('gates',this)"><span class="nav-icon">🚪</span><span class="nav-label">Portes</span></button>
+    <button class="nav-btn" onclick="switchPanel('spells',this)"><span class="nav-icon">✨</span><span class="nav-label">Sorts</span></button>
+    <button class="nav-btn" onclick="switchPanel('talents',this)"><span class="nav-icon">📖</span><span class="nav-label">Talents</span></button>
+    <button class="nav-btn" onclick="switchPanel('shop',this)"><span class="nav-icon">🏪</span><span class="nav-label">Shop</span></button>
+    <div class="sidebar-divider"></div>
+    <button class="nav-btn" onclick="switchPanel('pets',this)"><span class="nav-icon">🐾</span><span class="nav-label">Pets</span><span id="petNotif" class="nav-notif" style="display:none;">!</span></button>
+    <button class="nav-btn" onclick="switchPanel('boss',this)"><span class="nav-icon" id="bossNavIcon">👹</span><span class="nav-label">Boss</span><span id="bossNotif" style="display:none;position:absolute;top:4px;right:4px;background:var(--red);color:#fff;font-size:0.5em;padding:2px 4px;border-radius:6px;animation:pulse-dot 1.5s infinite;">LIVE</span></button>
+    <div class="sidebar-divider"></div>
+    <button class="nav-btn" onclick="switchPanel('prestige',this)"><span class="nav-icon">🔮</span><span class="nav-label">Prestige</span></button>
+    <button class="nav-btn" onclick="switchPanel('eternals',this)"><span class="nav-icon">⭐</span><span class="nav-label">Eternals</span><span id="eternalsNotif" class="nav-notif" style="display:none;">!</span></button>
+    <button class="nav-btn" onclick="switchPanel('achievements',this)"><span class="nav-icon">🏆</span><span class="nav-label">Hauts Faits</span><span id="achieveNotif" class="nav-notif" style="display:none;">!</span></button>
+    <button class="nav-btn" onclick="switchPanel('stats',this)"><span class="nav-icon">📊</span><span class="nav-label">Stats</span></button>
+  </nav>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <div class="hero-recap" id="heroRecap"></div>
+
+    <!-- Battle Area - en dehors des panels pour pouvoir flotter -->
+    <div class="battle-area" id="battleArea">
+      <div id="battleSceneContainer"></div>
+      <div class="mob-info-bar">
+        <div class="mob-name" id="mobName">—</div>
+        <div class="mob-hp-bar"><div class="mob-hp-fill" id="mobHpFill" style="width:100%"></div></div>
+        <div class="mob-hp-text" id="mobHpText">0/0</div>
+      </div>
     </div>
-  </div>
-</div>
 
-<nav class="nav">
-  <button class="nav-btn active" onclick="switchPanel('zone',this)"><span class="nav-icon">⚔️</span><span class="nav-label">Combat</span></button>
-  <button class="nav-btn" onclick="switchPanel('gates',this)"><span class="nav-icon">🚪</span><span class="nav-label">Portes</span></button>
-  <button class="nav-btn" onclick="switchPanel('spells',this)"><span class="nav-icon">✨</span><span class="nav-label">Sorts</span></button>
-  <button class="nav-btn" onclick="switchPanel('talents',this)"><span class="nav-icon">📖</span><span class="nav-label">Talents</span></button>
-  <button class="nav-btn" onclick="switchPanel('shop',this)"><span class="nav-icon">🏪</span><span class="nav-label">Shop</span></button>
-  <button class="nav-btn" onclick="switchPanel('pets',this)"><span class="nav-icon">🐾</span><span class="nav-label">Pets</span><span id="petNotif" class="nav-notif" style="display:none;">!</span></button>
-  <button class="nav-btn" onclick="switchPanel('boss',this)"><span class="nav-icon" id="bossNavIcon">👹</span><span class="nav-label">Boss</span><span id="bossNavTimer" style="font-size:0.6em;color:#888;margin-left:2px;"></span><span id="bossNotif" style="display:none;position:absolute;top:2px;right:2px;background:var(--red);color:#fff;font-size:0.5em;padding:2px 4px;border-radius:6px;animation:pulse-dot 1.5s infinite;">LIVE</span></button>
-  <button class="nav-btn" onclick="switchPanel('prestige',this)"><span class="nav-icon">🔮</span><span class="nav-label">Prestige</span></button>
-  <button class="nav-btn" onclick="switchPanel('stats',this)"><span class="nav-icon">📊</span><span class="nav-label">Stats</span></button>
-</nav>
-
-<div class="hero-recap" id="heroRecap"></div>
-
-<!-- Battle Area - en dehors des panels pour pouvoir flotter -->
-<div class="battle-area" id="battleArea">
-  <div id="battleSceneContainer"></div>
-  <div class="mob-info-bar">
-    <div class="mob-name" id="mobName">—</div>
-    <div class="mob-hp-bar"><div class="mob-hp-fill" id="mobHpFill" style="width:100%"></div></div>
-    <div class="mob-hp-text" id="mobHpText">0/0</div>
-  </div>
-</div>
-
-<div class="main">
+    <div class="main">
   <div id="panel-zone" class="panel active">
     <div class="zone-header">
       <div class="zone-name" id="zoneName">Zone 1</div>
@@ -938,6 +2225,30 @@ body {
 
   <div id="panel-stats" class="panel">
     <div class="card"><div class="card-title">📊 Statistiques</div><div id="statsContent"></div></div>
+  </div>
+
+  <div id="panel-eternals" class="panel">
+    <div class="card">
+      <div class="card-title">⭐ Eternals — Progression Permanente</div>
+      <div style="font-size:0.8em;color:#888;margin-bottom:15px;">Le Star Dust et les reliques persistent à travers les prestiges !</div>
+      <div class="stardust-display">
+        <span class="stardust-icon">⭐</span>
+        <span style="font-family:'Cinzel',serif;color:#ce93d8;">Star Dust : <span id="starDustVal" style="color:var(--gold);">0</span></span>
+      </div>
+      <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:0.95em;margin-bottom:10px;">🏛️ Reliques</div>
+      <div id="relicsList"></div>
+      <div id="infinityPrestigeBox" style="margin-top:20px;"></div>
+      <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:0.95em;margin:20px 0 10px;">📅 Défis Quotidiens</div>
+      <div id="dailyChallengesList"></div>
+    </div>
+  </div>
+
+  <div id="panel-achievements" class="panel">
+    <div class="card">
+      <div class="card-title">🏆 Hauts Faits</div>
+      <div style="font-size:0.8em;color:#888;margin-bottom:15px;">Complète des achievements pour gagner des gemmes et du Star Dust !</div>
+      <div id="achievementCategories"></div>
+    </div>
   </div>
 
   <div id="panel-boss" class="panel">
@@ -1038,9 +2349,34 @@ body {
     </div>
   </div>
 </div>
+  </div><!-- /main-content -->
+</div><!-- /game-layout -->
 
 <!-- Active Buffs Bar -->
 <div id="activeBuffsBar" class="active-buffs-bar"></div>
+
+<!-- Bottom Progress Bar - Melvor Style -->
+<div class="bottom-progress-bar" id="bottomProgressBar">
+  <div class="bp-item">
+    <span class="bp-label">⚔️ Zone</span>
+    <span class="bp-value" id="bpZone">1</span>
+  </div>
+  <div class="bp-divider"></div>
+  <div class="bp-item">
+    <span class="bp-label">💀 Kills</span>
+    <span class="bp-value" id="bpKills">0</span>
+  </div>
+  <div class="bp-divider"></div>
+  <div class="bp-item">
+    <span class="bp-label">⚡ DPS</span>
+    <span class="bp-value" id="bpDps">0</span>
+  </div>
+  <div class="bp-divider"></div>
+  <div class="bp-item">
+    <span class="bp-label">🪙 Or/s</span>
+    <span class="bp-value" id="bpGoldPs">0</span>
+  </div>
+</div>
 
 <div id="toast" class="toast"></div>
 
@@ -1063,21 +2399,56 @@ body {
       <button class="patch-close" onclick="togglePatchModal(false)">&times;</button>
     </div>
     <div class="patch-body">
-      <div class="patch-version">Version 2.1.0 — 3 Février 2026</div>
+      <div class="patch-version">Version 3.2.0 — Interface Melvor</div>
       <div class="patch-section">
-        <h3>✨ Animations & Interface</h3>
+        <h3>🎨 Refonte UI Complète</h3>
         <ul>
-          <li>Nouvelles animations de sorts uniques (⚡🦌🔥💀)</li>
-          <li>Barre de sorts style MMO avec cooldown radial</li>
-          <li>Mini-aperçu du combat flottant</li>
-          <li>Barre des buffs actifs en bas de l'écran</li>
-          <li>Notification Pets quand nouveau familier</li>
-          <li>Navbar redesignée avec icônes</li>
-          <li>Affichage du niveau de Prestige</li>
+          <li>Nouveau design inspiré de <b>Melvor Idle 2</b></li>
+          <li><b>Sidebar latérale</b> sur desktop (barre en bas sur mobile)</li>
+          <li>Thème sombre modernisé avec accents verts</li>
+          <li>Panneaux semi-transparents style Melvor</li>
+          <li>Nouveaux boutons colorés (vert, or, violet, rouge)</li>
+        </ul>
+      </div>
+      <div class="patch-section">
+        <h3>📊 Barre de Progression</h3>
+        <ul>
+          <li>Nouvelle <b>bottom bar</b> avec stats en temps réel</li>
+          <li>Affichage Zone, Kills, DPS, Or/s</li>
+          <li>Visible sur tous les onglets</li>
+        </ul>
+      </div>
+      <div class="patch-section">
+        <h3>🏆 82 Hauts Faits</h3>
+        <ul>
+          <li>9 catégories : Combat, Progression, Collection, Sorts, Économie, Talents, Shop, Temps, Daily</li>
+          <li>Nouveaux trackings : crits, talents, consommables, temps de jeu</li>
+          <li>Icône talents changée (📖 au lieu de ⭐)</li>
+        </ul>
+      </div>
+      <div class="patch-section">
+        <h3>✨ Améliorations Visuelles</h3>
+        <ul>
+          <li>Barres HP/XP plus grandes et colorées</li>
+          <li>Cards avec header et bordure verte</li>
+          <li>Gates avec indicateur coloré à gauche</li>
+          <li>Achievements et Reliques redesignés</li>
         </ul>
       </div>
       <div class="patch-section" style="border-top:1px solid rgba(212,168,67,0.2);margin-top:15px;padding-top:15px;">
         <h3>📜 Historique</h3>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v3.1.0 — Collection Ultimate</summary>
+          <ul style="margin-top:5px;"><li>63 pets à collecter</li><li>5 raretés avec pets permanents</li><li>Pets Secrets & Légendaires</li><li>20+ synergies</li></ul>
+        </details>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v3.0.0 — Eternals</summary>
+          <ul style="margin-top:5px;"><li>Star Dust & Reliques permanentes</li><li>Pets Shiny & Multi-Pets</li><li>20+ Achievements</li><li>Évolutions de Sorts</li><li>Défis quotidiens</li></ul>
+        </details>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v2.1.0 — Interface</summary>
+          <ul style="margin-top:5px;"><li>Nouvelles animations de sorts uniques</li><li>Barre de sorts style MMO</li><li>Mini-aperçu du combat flottant</li><li>Barre des buffs actifs</li></ul>
+        </details>
         <details style="margin-bottom:8px;">
           <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v2.0.0 — World Boss</summary>
           <ul style="margin-top:5px;"><li>World Boss multijoueur toutes les 20 min</li><li>Connexion Discord</li><li>Leaderboard temps réel</li><li>Récompenses selon contribution</li></ul>
@@ -1121,7 +2492,7 @@ body {
     const script = document.createElement('script');
     script.textContent = `
 // ============ PATCH NOTES SYSTEM ============
-const PATCH_VERSION = '2.1.0';
+const PATCH_VERSION = '3.2.0';
 
 function togglePatchModal(show) {
   const modal = document.getElementById('patchModal');
@@ -1291,33 +2662,323 @@ const TALENTS = [
 
 // ============ PETS ============
 // One pet per zone, % drop on kill, passive bonus. Only one active at a time.
+// ============ PETS (Zone-based + Secrets + Legendaries) ============
+// Rarity: common (zones 0-9), rare (zones 10-17), epic (zones 18-24), secret, legendary
 const PETS = [
-  { id: 'fairy',     zone: 0,  icon: '🧚', name: 'Fée',            dropRate: 0.05,  desc: '+5% gold',        effect: { type: 'gold', val: 0.05 }},
-  { id: 'spider',    zone: 1,  icon: '🕷️', name: 'Araignée',       dropRate: 0.04,  desc: '+8% Stupefix dmg', effect: { type: 'spell_dmg', spell: 'stupefix', val: 0.08 }},
-  { id: 'wolf',      zone: 2,  icon: '🐺', name: 'Loup',           dropRate: 0.035, desc: '-5% tous CD',     effect: { type: 'all_cd', val: 0.05 }},
-  { id: 'troll',     zone: 3,  icon: '🧌', name: 'Troll',          dropRate: 0.03,  desc: '+10% tous dmg',   effect: { type: 'all_dmg', val: 0.10 }},
-  { id: 'kraken',    zone: 4,  icon: '🐙', name: 'Strangulot',     dropRate: 0.025, desc: '+8% Confringo dmg', effect: { type: 'spell_dmg', spell: 'confringo', val: 0.08 }},
-  { id: 'ghoul',     zone: 5,  icon: '🧟', name: 'Goule',          dropRate: 0.02,  desc: '+12% gold',       effect: { type: 'gold', val: 0.12 }},
-  { id: 'ghost',     zone: 6,  icon: '👻', name: 'Spectre',        dropRate: 0.018, desc: '+8% Patronus dmg', effect: { type: 'spell_dmg', spell: 'patronus', val: 0.08 }},
-  { id: 'skeleton',  zone: 7,  icon: '💀', name: 'Squelette',      dropRate: 0.015, desc: '+5% crit chance', effect: { type: 'crit', val: 0.05 }},
-  { id: 'vampire',   zone: 8,  icon: '🧛', name: 'Vampire',        dropRate: 0.012, desc: '+15% tous dmg',   effect: { type: 'all_dmg', val: 0.15 }},
-  { id: 'guardian',  zone: 9,  icon: '⚔️', name: 'Gardien',        dropRate: 0.01,  desc: '-8% tous CD',     effect: { type: 'all_cd', val: 0.08 }},
-  { id: 'golem',     zone: 10, icon: '🗿', name: 'Golem',          dropRate: 0.009, desc: '+20% gold',       effect: { type: 'gold', val: 0.20 }},
-  { id: 'salamander',zone: 11, icon: '🦎', name: 'Salamandre',     dropRate: 0.008, desc: '+12% Confringo',  effect: { type: 'spell_dmg', spell: 'confringo', val: 0.12 }},
-  { id: 'dragon',    zone: 12, icon: '🐉', name: 'Dragon',         dropRate: 0.007, desc: '+20% tous dmg',   effect: { type: 'all_dmg', val: 0.20 }},
-  { id: 'giant',     zone: 13, icon: '🏔️', name: 'Géant de Glace', dropRate: 0.006, desc: '+8% crit chance', effect: { type: 'crit', val: 0.08 }},
-  { id: 'djinn',     zone: 14, icon: '🌪️', name: 'Djinn',          dropRate: 0.005, desc: '-10% tous CD',    effect: { type: 'all_cd', val: 0.10 }},
-  { id: 'knight',    zone: 15, icon: '🖤', name: 'Chevalier Noir', dropRate: 0.005, desc: '+25% tous dmg',   effect: { type: 'all_dmg', val: 0.25 }},
-  { id: 'lich',      zone: 16, icon: '☠️', name: 'Liche',          dropRate: 0.004, desc: '+30% gold',       effect: { type: 'gold', val: 0.30 }},
-  { id: 'necro',     zone: 17, icon: '🧙', name: 'Nécromant',      dropRate: 0.004, desc: '+12% crit chance', effect: { type: 'crit', val: 0.12 }},
-  { id: 'demon',     zone: 18, icon: '😈', name: 'Démon',          dropRate: 0.003, desc: '+30% tous dmg',   effect: { type: 'all_dmg', val: 0.30 }},
-  { id: 'archangel', zone: 19, icon: '👁️', name: 'Archange',       dropRate: 0.003, desc: '-12% tous CD',    effect: { type: 'all_cd', val: 0.12 }},
-  { id: 'alpha',     zone: 20, icon: '🌀', name: 'Entité Alpha',   dropRate: 0.002, desc: '+40% tous dmg',   effect: { type: 'all_dmg', val: 0.40 }},
-  { id: 'chrono',    zone: 21, icon: '⏳', name: 'Chrono-Bête',    dropRate: 0.002, desc: '-15% tous CD',    effect: { type: 'all_cd', val: 0.15 }},
-  { id: 'void',      zone: 22, icon: '⚫', name: 'Vide Incarné',   dropRate: 0.0015,desc: '+50% gold',       effect: { type: 'gold', val: 0.50 }},
-  { id: 'titan',     zone: 23, icon: '💥', name: 'Titan du Chaos', dropRate: 0.001, desc: '+50% tous dmg',   effect: { type: 'all_dmg', val: 0.50 }},
-  { id: 'eternal',   zone: 24, icon: '✨', name: "L'Éternel",      dropRate: 0.0005,desc: '+100% tous dmg',  effect: { type: 'all_dmg', val: 1.00 }},
+  // === COMMON (Zones 0-9) ===
+  { id: 'fairy',     zone: 0,  icon: '🧚', name: 'Fée',            dropRate: 0.05,  rarity: 'common', desc: '+5% gold',        effect: { type: 'gold', val: 0.05 }},
+  { id: 'cat',       zone: 0,  icon: '🐱', name: 'Chat',           dropRate: 0.04,  rarity: 'common', desc: '+3% crit chance', effect: { type: 'crit', val: 0.03 }},
+  { id: 'spider',    zone: 1,  icon: '🕷️', name: 'Araignée',       dropRate: 0.04,  rarity: 'common', desc: '+8% Stupefix dmg', effect: { type: 'spell_dmg', spell: 'stupefix', val: 0.08 }},
+  { id: 'rat',       zone: 1,  icon: '🐀', name: 'Rat',            dropRate: 0.045, rarity: 'common', desc: '+6% gold',        effect: { type: 'gold', val: 0.06 }},
+  { id: 'wolf',      zone: 2,  icon: '🐺', name: 'Loup',           dropRate: 0.035, rarity: 'common', desc: '-5% tous CD',     effect: { type: 'all_cd', val: 0.05 }},
+  { id: 'owl',       zone: 2,  icon: '🦉', name: 'Hibou',          dropRate: 0.038, rarity: 'common', desc: '+5% XP',          effect: { type: 'xp', val: 0.05 }},
+  { id: 'troll',     zone: 3,  icon: '🧌', name: 'Troll',          dropRate: 0.03,  rarity: 'common', desc: '+10% tous dmg',   effect: { type: 'all_dmg', val: 0.10 }},
+  { id: 'bat',       zone: 3,  icon: '🦇', name: 'Chauve-souris',  dropRate: 0.032, rarity: 'common', desc: '-4% tous CD',     effect: { type: 'all_cd', val: 0.04 }},
+  { id: 'kraken',    zone: 4,  icon: '🐙', name: 'Strangulot',     dropRate: 0.025, rarity: 'common', desc: '+8% Confringo dmg', effect: { type: 'spell_dmg', spell: 'confringo', val: 0.08 }},
+  { id: 'snake',     zone: 4,  icon: '🐍', name: 'Serpent',        dropRate: 0.028, rarity: 'common', desc: '+7% tous dmg',    effect: { type: 'all_dmg', val: 0.07 }},
+  { id: 'ghoul',     zone: 5,  icon: '🧟', name: 'Goule',          dropRate: 0.02,  rarity: 'common', desc: '+12% gold',       effect: { type: 'gold', val: 0.12 }},
+  { id: 'frog',      zone: 5,  icon: '🐸', name: 'Crapaud',        dropRate: 0.022, rarity: 'common', desc: '+8% XP',          effect: { type: 'xp', val: 0.08 }},
+  { id: 'ghost',     zone: 6,  icon: '👻', name: 'Spectre',        dropRate: 0.018, rarity: 'common', desc: '+8% Patronus dmg', effect: { type: 'spell_dmg', spell: 'patronus', val: 0.08 }},
+  { id: 'raven',     zone: 6,  icon: '🐦‍⬛', name: 'Corbeau',        dropRate: 0.019, rarity: 'common', desc: '+6% crit chance', effect: { type: 'crit', val: 0.06 }},
+  { id: 'skeleton',  zone: 7,  icon: '💀', name: 'Squelette',      dropRate: 0.015, rarity: 'common', desc: '+5% crit chance', effect: { type: 'crit', val: 0.05 }},
+  { id: 'fox',       zone: 7,  icon: '🦊', name: 'Renard',         dropRate: 0.016, rarity: 'common', desc: '+10% gold',       effect: { type: 'gold', val: 0.10 }},
+  { id: 'vampire',   zone: 8,  icon: '🧛', name: 'Vampire',        dropRate: 0.012, rarity: 'common', desc: '+15% tous dmg',   effect: { type: 'all_dmg', val: 0.15 }},
+  { id: 'scorpion',  zone: 8,  icon: '🦂', name: 'Scorpion',       dropRate: 0.013, rarity: 'common', desc: '+10% Stupefix dmg', effect: { type: 'spell_dmg', spell: 'stupefix', val: 0.10 }},
+  { id: 'guardian',  zone: 9,  icon: '⚔️', name: 'Gardien',        dropRate: 0.01,  rarity: 'common', desc: '-8% tous CD',     effect: { type: 'all_cd', val: 0.08 }},
+  { id: 'boar',      zone: 9,  icon: '🐗', name: 'Sanglier',       dropRate: 0.011, rarity: 'common', desc: '+12% tous dmg',   effect: { type: 'all_dmg', val: 0.12 }},
+
+  // === RARE (Zones 10-17) ===
+  { id: 'golem',     zone: 10, icon: '🗿', name: 'Golem',          dropRate: 0.009, rarity: 'rare', desc: '+20% gold',       effect: { type: 'gold', val: 0.20 }},
+  { id: 'unicorn',   zone: 10, icon: '🦄', name: 'Licorne',        dropRate: 0.008, rarity: 'rare', desc: '+15% XP',         effect: { type: 'xp', val: 0.15 }},
+  { id: 'salamander',zone: 11, icon: '🦎', name: 'Salamandre',     dropRate: 0.008, rarity: 'rare', desc: '+12% Confringo',  effect: { type: 'spell_dmg', spell: 'confringo', val: 0.12 }},
+  { id: 'eagle',     zone: 11, icon: '🦅', name: 'Aigle',          dropRate: 0.007, rarity: 'rare', desc: '+10% crit chance', effect: { type: 'crit', val: 0.10 }},
+  { id: 'dragon',    zone: 12, icon: '🐉', name: 'Dragon',         dropRate: 0.007, rarity: 'rare', desc: '+20% tous dmg',   effect: { type: 'all_dmg', val: 0.20 }},
+  { id: 'tiger',     zone: 12, icon: '🐅', name: 'Tigre',          dropRate: 0.006, rarity: 'rare', desc: '-10% tous CD',    effect: { type: 'all_cd', val: 0.10 }},
+  { id: 'giant',     zone: 13, icon: '🏔️', name: 'Géant de Glace', dropRate: 0.006, rarity: 'rare', desc: '+8% crit chance', effect: { type: 'crit', val: 0.08 }},
+  { id: 'lion',      zone: 13, icon: '🦁', name: 'Lion',           dropRate: 0.0055,rarity: 'rare', desc: '+18% tous dmg',   effect: { type: 'all_dmg', val: 0.18 }},
+  { id: 'djinn',     zone: 14, icon: '🌪️', name: 'Djinn',          dropRate: 0.005, rarity: 'rare', desc: '-10% tous CD',    effect: { type: 'all_cd', val: 0.10 }},
+  { id: 'hippogriff',zone: 14, icon: '🪽', name: 'Hippogriffe',    dropRate: 0.0045,rarity: 'rare', desc: '+25% gold',       effect: { type: 'gold', val: 0.25 }},
+  { id: 'knight',    zone: 15, icon: '🖤', name: 'Chevalier Noir', dropRate: 0.005, rarity: 'rare', desc: '+25% tous dmg',   effect: { type: 'all_dmg', val: 0.25 }},
+  { id: 'griffin',   zone: 15, icon: '🦅', name: 'Griffon',        dropRate: 0.004, rarity: 'rare', desc: '+15% Patronus dmg', effect: { type: 'spell_dmg', spell: 'patronus', val: 0.15 }},
+  { id: 'lich',      zone: 16, icon: '☠️', name: 'Liche',          dropRate: 0.004, rarity: 'rare', desc: '+30% gold',       effect: { type: 'gold', val: 0.30 }},
+  { id: 'manticore', zone: 16, icon: '🦁', name: 'Manticore',      dropRate: 0.0035,rarity: 'rare', desc: '+22% tous dmg',   effect: { type: 'all_dmg', val: 0.22 }},
+  { id: 'necro',     zone: 17, icon: '🧙', name: 'Nécromant',      dropRate: 0.004, rarity: 'rare', desc: '+12% crit chance', effect: { type: 'crit', val: 0.12 }},
+  { id: 'cerberus',  zone: 17, icon: '🐕', name: 'Cerbère',        dropRate: 0.003, rarity: 'rare', desc: '-12% tous CD',    effect: { type: 'all_cd', val: 0.12 }},
+
+  // === EPIC (Zones 18-24) ===
+  { id: 'demon',     zone: 18, icon: '😈', name: 'Démon',          dropRate: 0.003, rarity: 'epic', desc: '+30% tous dmg',   effect: { type: 'all_dmg', val: 0.30 }},
+  { id: 'hydra',     zone: 18, icon: '🐲', name: 'Hydre',          dropRate: 0.0025,rarity: 'epic', desc: '+20% Confringo dmg', effect: { type: 'spell_dmg', spell: 'confringo', val: 0.20 }},
+  { id: 'archangel', zone: 19, icon: '👁️', name: 'Archange',       dropRate: 0.003, rarity: 'epic', desc: '-12% tous CD',    effect: { type: 'all_cd', val: 0.12 }},
+  { id: 'chimera',   zone: 19, icon: '🔥', name: 'Chimère',        dropRate: 0.0022,rarity: 'epic', desc: '+35% tous dmg',   effect: { type: 'all_dmg', val: 0.35 }},
+  { id: 'alpha',     zone: 20, icon: '🌀', name: 'Entité Alpha',   dropRate: 0.002, rarity: 'epic', desc: '+40% tous dmg',   effect: { type: 'all_dmg', val: 0.40 }},
+  { id: 'leviathan', zone: 20, icon: '🌊', name: 'Léviathan',      dropRate: 0.0018,rarity: 'epic', desc: '+50% gold',       effect: { type: 'gold', val: 0.50 }},
+  { id: 'chrono',    zone: 21, icon: '⏳', name: 'Chrono-Bête',    dropRate: 0.002, rarity: 'epic', desc: '-15% tous CD',    effect: { type: 'all_cd', val: 0.15 }},
+  { id: 'sphinx',    zone: 21, icon: '🦁', name: 'Sphinx',         dropRate: 0.0015,rarity: 'epic', desc: '+20% XP',         effect: { type: 'xp', val: 0.20 }},
+  { id: 'void',      zone: 22, icon: '⚫', name: 'Vide Incarné',   dropRate: 0.0015,rarity: 'epic', desc: '+50% gold',       effect: { type: 'gold', val: 0.50 }},
+  { id: 'behemoth',  zone: 22, icon: '🦣', name: 'Béhémoth',       dropRate: 0.0012,rarity: 'epic', desc: '+45% tous dmg',   effect: { type: 'all_dmg', val: 0.45 }},
+  { id: 'titan',     zone: 23, icon: '💥', name: 'Titan du Chaos', dropRate: 0.001, rarity: 'epic', desc: '+50% tous dmg',   effect: { type: 'all_dmg', val: 0.50 }},
+  { id: 'seraph',    zone: 23, icon: '👼', name: 'Séraphin',       dropRate: 0.0008,rarity: 'epic', desc: '-18% tous CD',    effect: { type: 'all_cd', val: 0.18 }},
+  { id: 'eternal',   zone: 24, icon: '✨', name: "L'Éternel",      dropRate: 0.0005,rarity: 'epic', desc: '+100% tous dmg',  effect: { type: 'all_dmg', val: 1.00 }},
+  { id: 'omega',     zone: 24, icon: '🔮', name: 'Omega',          dropRate: 0.0004,rarity: 'epic', desc: '+75% tous dmg +25% gold', effect: { type: 'all', val: 0.75, gold: 0.25 }},
+
+  // === SECRET PETS (Special unlock conditions, no zone drop) ===
+  // hidden: true = condition cachée jusqu'à obtention (comme trophées PSN cachés)
+  { id: 'phoenix',   zone: -1, icon: '🔥', name: 'Phoenix',        dropRate: 0, rarity: 'secret', desc: '+60% tous dmg, résurrection', effect: { type: 'all_dmg', val: 0.60 },
+    unlock: { type: 'rebirth', target: 50, desc: '50 Rebirths', hidden: true }},
+  { id: 'basilisk',  zone: -1, icon: '🐍', name: 'Basilic',        dropRate: 0, rarity: 'secret', desc: '+80% tous dmg', effect: { type: 'all_dmg', val: 0.80 },
+    unlock: { type: 'kills', target: 100000, desc: '100K kills', hidden: true }},
+  { id: 'thestral',  zone: -1, icon: '🦓', name: 'Sombral',        dropRate: 0, rarity: 'secret', desc: '+20% crit chance', effect: { type: 'crit', val: 0.20 },
+    unlock: { type: 'prestige', target: 1, desc: '1 Prestige', hidden: true }},
+  { id: 'niffler',   zone: -1, icon: '🦡', name: 'Niffleur',       dropRate: 0, rarity: 'secret', desc: '+100% gold', effect: { type: 'gold', val: 1.00 },
+    unlock: { type: 'gold_total', target: 1e12, desc: '1T or total', hidden: true }},
+  { id: 'acromantula',zone: -1,icon: '🕸️', name: 'Acromantule',    dropRate: 0, rarity: 'secret', desc: '-25% tous CD', effect: { type: 'all_cd', val: 0.25 },
+    unlock: { type: 'zone_clear', target: 24, desc: 'Clear Zone 25' }},  // VISIBLE
+  { id: 'dementor',  zone: -1, icon: '🖤', name: 'Détraqueur',     dropRate: 0, rarity: 'secret', desc: '+40% tous dmg, -10% CD', effect: { type: 'all', val: 0.40, cd: 0.10 },
+    unlock: { type: 'world_boss_dmg', target: 1e12, desc: '1T dmg World Boss', hidden: true }},
+  { id: 'boggart',   zone: -1, icon: '👤', name: 'Épouvantard',    dropRate: 0, rarity: 'secret', desc: '+30% XP', effect: { type: 'xp', val: 0.30 },
+    unlock: { type: 'spells_cast', target: 10000, desc: '10K sorts lancés', hidden: true }},
+  { id: 'house_elf', zone: -1, icon: '🧝', name: 'Elfe de Maison', dropRate: 0, rarity: 'secret', desc: '+50% gold, +20% XP', effect: { type: 'gold', val: 0.50, xp: 0.20 },
+    unlock: { type: 'all_common_pets', target: 1, desc: 'Tous pets communs' }},  // VISIBLE
+
+  // === LEGENDARY PETS (Ultra rare conditions) ===
+  { id: 'merlin',    zone: -1, icon: '🧙‍♂️', name: 'Merlin',         dropRate: 0, rarity: 'legendary', desc: '+150% tous dmg', effect: { type: 'all_dmg', val: 1.50 },
+    unlock: { type: 'all_rare_pets', target: 1, desc: 'Tous pets rares' }},  // VISIBLE
+  { id: 'death',     zone: -1, icon: '💀', name: 'La Mort',        dropRate: 0, rarity: 'legendary', desc: '+200% tous dmg', effect: { type: 'all_dmg', val: 2.00 },
+    unlock: { type: 'all_epic_pets', target: 1, desc: 'Tous pets épiques' }},  // VISIBLE
+  { id: 'godlike',   zone: -1, icon: '👑', name: 'Entité Divine',  dropRate: 0, rarity: 'legendary', desc: '+300% tous dmg, +100% gold', effect: { type: 'all', val: 3.00, gold: 1.00 },
+    unlock: { type: 'all_pets', target: 1, desc: 'TOUS les pets', hidden: true }},
+  { id: 'timekeeper',zone: -1, icon: '⌛', name: 'Gardien du Temps',dropRate: 0, rarity: 'legendary', desc: '-50% tous CD', effect: { type: 'all_cd', val: 0.50 },
+    unlock: { type: 'infinity_prestige', target: 1, desc: 'Infinity Prestige', hidden: true }},
+  { id: 'worldeater',zone: -1, icon: '🌍', name: 'Dévoreur de Mondes',dropRate: 0, rarity: 'legendary', desc: '+500% tous dmg en World Boss', effect: { type: 'boss_dmg', val: 5.00 },
+    unlock: { type: 'world_boss_kills', target: 10, desc: '10 World Boss tués', hidden: true }},
 ];
+
+// Pet rarity colors and multipliers
+const PET_RARITIES = {
+  common:    { color: '#9e9e9e', name: 'Commun',    mult: 1.0 },
+  rare:      { color: '#2196f3', name: 'Rare',      mult: 1.5 },
+  epic:      { color: '#9c27b0', name: 'Épique',    mult: 2.0 },
+  secret:    { color: '#ff9800', name: 'Secret',    mult: 2.5 },
+  legendary: { color: '#ffd700', name: 'Légendaire', mult: 3.0 },
+};
+
+// ============ SHINY PETS CONFIG ============
+const SHINY_RATE = 0.02;  // 2% chance on pet drop
+const SHINY_MULT = 2.5;   // x2.5 bonus for shiny pets
+// Special shiny conditions (guaranteed shiny if condition met)
+const SHINY_SPECIAL = {
+  dragon: { condition: 'all_zones_fast', desc: 'Toutes zones en -10s' },
+  guardian: { condition: 'world_boss', desc: 'Obtenu pendant World Boss' },
+  vampire: { condition: 'rebirths_1000', desc: 'Après 1000 rebirths totaux' },
+  phoenix: { condition: 'always', desc: 'Toujours shiny' },  // Secret pets are always shiny!
+  basilisk: { condition: 'always', desc: 'Toujours shiny' },
+  thestral: { condition: 'always', desc: 'Toujours shiny' },
+  niffler: { condition: 'always', desc: 'Toujours shiny' },
+  acromantula: { condition: 'always', desc: 'Toujours shiny' },
+  dementor: { condition: 'always', desc: 'Toujours shiny' },
+  boggart: { condition: 'always', desc: 'Toujours shiny' },
+  house_elf: { condition: 'always', desc: 'Toujours shiny' },
+  // Legendary pets are ALWAYS shiny
+  merlin: { condition: 'always', desc: 'Toujours shiny' },
+  death: { condition: 'always', desc: 'Toujours shiny' },
+  godlike: { condition: 'always', desc: 'Toujours shiny' },
+  timekeeper: { condition: 'always', desc: 'Toujours shiny' },
+  worldeater: { condition: 'always', desc: 'Toujours shiny' },
+};
+
+// ============ PET SYNERGIES ============
+const PET_SYNERGIES = [
+  // Fire synergies
+  { pets: ['dragon', 'salamander'], name: 'Feu Infernal', icon: '🔥', desc: '+25% dégâts de feu', effect: { type: 'spell_dmg', spell: 'confringo', val: 0.25 }},
+  { pets: ['phoenix', 'dragon'], name: 'Flamme Éternelle', icon: '🌋', desc: '+40% Confringo, résurrection', effect: { type: 'spell_dmg', spell: 'confringo', val: 0.40 }},
+  { pets: ['hydra', 'chimera'], name: 'Multi-Tête', icon: '🐲', desc: '+50% tous dégâts', effect: { type: 'all_dmg', val: 0.50 }},
+  // Dark synergies
+  { pets: ['vampire', 'spider'], name: 'Venin Mortel', icon: '☠️', desc: '+30% dégâts poison', effect: { type: 'all_dmg', val: 0.30 }},
+  { pets: ['lich', 'necro'], name: 'Maître des Morts', icon: '💀', desc: '+35% tous dmg, +25% gold', effect: { type: 'all_dmg', val: 0.35 }},
+  { pets: ['demon', 'dementor'], name: 'Ténèbres Absolues', icon: '🖤', desc: '+60% tous dégâts', effect: { type: 'all_dmg', val: 0.60 }},
+  // Light synergies
+  { pets: ['ghost', 'fairy'], name: 'Esprit Chanceux', icon: '🍀', desc: '+20% XP et or', effect: { type: 'gold', val: 0.20 }},
+  { pets: ['guardian', 'archangel'], name: 'Résurrection', icon: '💫', desc: 'Auto-résurrection 1x/zone', effect: { type: 'resurrection', val: 1 }},
+  { pets: ['unicorn', 'griffin'], name: 'Magie Pure', icon: '✨', desc: '+30% Patronus dmg', effect: { type: 'spell_dmg', spell: 'patronus', val: 0.30 }},
+  { pets: ['seraph', 'archangel'], name: 'Lumière Divine', icon: '👼', desc: '+45% tous dmg, -15% CD', effect: { type: 'all_dmg', val: 0.45 }},
+  // Power synergies
+  { pets: ['titan', 'eternal'], name: 'Puissance Absolue', icon: '⚡', desc: '+50% tous dégâts', effect: { type: 'all_dmg', val: 0.50 }},
+  { pets: ['alpha', 'omega'], name: 'Alpha & Omega', icon: '🌀', desc: '+80% tous dmg, +50% gold', effect: { type: 'all_dmg', val: 0.80 }},
+  { pets: ['behemoth', 'leviathan'], name: 'Colosses', icon: '🦣', desc: '+70% tous dégâts', effect: { type: 'all_dmg', val: 0.70 }},
+  // Time synergies
+  { pets: ['chrono', 'djinn'], name: 'Maître du Temps', icon: '⏰', desc: '-20% tous CD', effect: { type: 'all_cd', val: 0.20 }},
+  { pets: ['timekeeper', 'chrono'], name: 'Paradoxe Temporel', icon: '⌛', desc: '-40% tous CD', effect: { type: 'all_cd', val: 0.40 }},
+  // Beast synergies
+  { pets: ['wolf', 'lion'], name: 'Meute Alpha', icon: '🐺', desc: '+25% tous dmg', effect: { type: 'all_dmg', val: 0.25 }},
+  { pets: ['cat', 'owl'], name: 'Familiers', icon: '🐱', desc: '+15% XP, +15% gold', effect: { type: 'gold', val: 0.15 }},
+  { pets: ['tiger', 'cerberus'], name: 'Gardiens Féroces', icon: '🐅', desc: '-18% CD, +20% dmg', effect: { type: 'all_cd', val: 0.18 }},
+  // HP creatures synergies
+  { pets: ['basilisk', 'acromantula'], name: 'Chambre des Secrets', icon: '🕸️', desc: '+50% tous dmg', effect: { type: 'all_dmg', val: 0.50 }},
+  { pets: ['thestral', 'hippogriff'], name: 'Cavaliers Ailés', icon: '🪽', desc: '+35% tous dmg, +30% gold', effect: { type: 'all_dmg', val: 0.35 }},
+  { pets: ['niffler', 'house_elf'], name: 'Serviteurs Fidèles', icon: '🧝', desc: '+150% gold', effect: { type: 'gold', val: 1.50 }},
+  // Legendary synergies
+  { pets: ['merlin', 'death'], name: 'Maîtres de la Mort', icon: '💀', desc: '+300% tous dégâts', effect: { type: 'all_dmg', val: 3.00 }},
+  { pets: ['godlike', 'worldeater'], name: 'Divinité', icon: '👑', desc: '+500% tous dmg, +200% gold', effect: { type: 'all_dmg', val: 5.00 }},
+];
+
+// ============ RELICS (Eternals) ============
+const RELICS = [
+  { id: 'ancient_wand',   name: 'Baguette Ancienne',   icon: '🪄', desc: '+5% DPS permanent par niveau', maxLvl: 5, costs: [100, 250, 500, 1000, 2000], effect: { type: 'all_dmg', perLevel: 0.05 }},
+  { id: 'mana_crystal',   name: 'Cristal de Mana',     icon: '💎', desc: '+10% mana max par niveau',     maxLvl: 5, costs: [150, 350, 700, 1400, 2800], effect: { type: 'mana', perLevel: 0.10 }},
+  { id: 'broken_hourglass', name: 'Sablier Brisé',     icon: '⏳', desc: '-2% cooldown sorts par niveau', maxLvl: 5, costs: [200, 450, 900, 1800, 3600], effect: { type: 'all_cd', perLevel: 0.02 }},
+  { id: 'phoenix_amulet', name: 'Amulette du Phoenix', icon: '🔥', desc: '+1% chance critique par niveau', maxLvl: 5, costs: [250, 550, 1100, 2200, 4400], effect: { type: 'crit', perLevel: 0.01 }},
+  { id: 'lost_grimoire',  name: 'Grimoire Oublié',     icon: '📖', desc: '+3% XP par niveau',             maxLvl: 5, costs: [120, 300, 600, 1200, 2400], effect: { type: 'xp', perLevel: 0.03 }},
+  { id: 'eternity_orb',   name: "Orbe d'Éternité",     icon: '🌟', desc: '+5% Star Dust gagné par niveau', maxLvl: 5, costs: [500, 1000, 2000, 4000, 8000], effect: { type: 'stardust', perLevel: 0.05 }},
+];
+
+// ============ ACHIEVEMENTS (50+) ============
+const ACHIEVEMENTS = [
+  // ===== COMBAT (12) =====
+  { id: 'first_blood',    category: 'combat', name: 'Premier Sang',      icon: '🗡️', desc: 'Vaincre 100 monstres',          target: 100,      reward: { gems: 10 }},
+  { id: 'slayer',         category: 'combat', name: 'Tueur',             icon: '⚔️', desc: 'Vaincre 1,000 monstres',        target: 1000,     reward: { gems: 15 }},
+  { id: 'hunter',         category: 'combat', name: 'Chasseur',          icon: '🏹', desc: 'Vaincre 10,000 monstres',       target: 10000,    reward: { gems: 25 }},
+  { id: 'destroyer',      category: 'combat', name: 'Destructeur',       icon: '💣', desc: 'Vaincre 100,000 monstres',      target: 100000,   reward: { gems: 50 }},
+  { id: 'exterminator',   category: 'combat', name: 'Exterminateur',     icon: '💀', desc: 'Vaincre 1,000,000 monstres',    target: 1000000,  reward: { gems: 100, starDust: 100 }},
+  { id: 'genocide',       category: 'combat', name: 'Génocidaire',       icon: '☠️', desc: 'Vaincre 10,000,000 monstres',   target: 10000000, reward: { gems: 250, starDust: 500 }},
+  { id: 'boss_slayer',    category: 'combat', name: 'Tueur de Boss',     icon: '👹', desc: 'Vaincre 50 boss de zone',       target: 50,       reward: { gems: 50 }},
+  { id: 'boss_hunter',    category: 'combat', name: 'Chasseur de Boss',  icon: '🐲', desc: 'Vaincre 200 boss de zone',      target: 200,      reward: { gems: 100, starDust: 50 }},
+  { id: 'world_champion', category: 'combat', name: 'Champion du Monde', icon: '🏆', desc: 'Participer à 10 World Boss',    target: 10,       reward: { gems: 100, starDust: 50 }},
+  { id: 'world_legend',   category: 'combat', name: 'Légende Mondiale',  icon: '🌍', desc: 'Participer à 50 World Boss',    target: 50,       reward: { gems: 300, starDust: 200 }},
+  { id: 'crit_king',      category: 'combat', name: 'Roi des Crits',     icon: '💥', desc: 'Infliger 1000 coups critiques', target: 1000,     reward: { gems: 30 }},
+  { id: 'crit_god',       category: 'combat', name: 'Dieu des Crits',    icon: '⚡', desc: 'Infliger 100,000 coups critiques', target: 100000, reward: { gems: 150, starDust: 100 }},
+
+  // ===== PROGRESSION (15) =====
+  { id: 'beginner',       category: 'progression', name: 'Débutant',        icon: '🌱', desc: 'Atteindre la zone 2',     target: 2,   reward: { gems: 5 }},
+  { id: 'apprentice',     category: 'progression', name: 'Apprenti',        icon: '📚', desc: 'Atteindre la zone 5',     target: 5,   reward: { gems: 10 }},
+  { id: 'student',        category: 'progression', name: 'Étudiant',        icon: '🎒', desc: 'Atteindre la zone 10',    target: 10,  reward: { gems: 20 }},
+  { id: 'adventurer',     category: 'progression', name: 'Aventurier',      icon: '🗺️', desc: 'Atteindre la zone 15',    target: 15,  reward: { gems: 25 }},
+  { id: 'explorer',       category: 'progression', name: 'Explorateur',     icon: '🧭', desc: 'Atteindre la zone 20',    target: 20,  reward: { gems: 35 }},
+  { id: 'master',         category: 'progression', name: 'Maître',          icon: '🎓', desc: 'Atteindre la zone 25',    target: 25,  reward: { gems: 50, starDust: 100 }},
+  { id: 'rebirth_1',      category: 'progression', name: 'Première Renaissance', icon: '🔄', desc: 'Effectuer 1 rebirth',   target: 1,   reward: { gems: 20 }},
+  { id: 'rebirth_5',      category: 'progression', name: 'Cycle Infini',     icon: '🔁', desc: 'Effectuer 5 rebirths',   target: 5,   reward: { gems: 35 }},
+  { id: 'rebirthed',      category: 'progression', name: 'Renaissance',      icon: '♻️', desc: 'Effectuer 10 rebirths',  target: 10,  reward: { gems: 50 }},
+  { id: 'rebirth_25',     category: 'progression', name: 'Éternel Retour',   icon: '🌀', desc: 'Effectuer 25 rebirths',  target: 25,  reward: { gems: 75, starDust: 50 }},
+  { id: 'rebirth_50',     category: 'progression', name: 'Phénix',           icon: '🔥', desc: 'Effectuer 50 rebirths',  target: 50,  reward: { gems: 100, starDust: 100 }},
+  { id: 'rebirth_100',    category: 'progression', name: 'Immortel',         icon: '👼', desc: 'Effectuer 100 rebirths', target: 100, reward: { gems: 200, starDust: 300 }},
+  { id: 'transcended',    category: 'progression', name: 'Transcendance',    icon: '⏳', desc: 'Effectuer 1 prestige',   target: 1,   reward: { gems: 100, starDust: 200 }},
+  { id: 'prestige_5',     category: 'progression', name: 'Ascension',        icon: '🚀', desc: 'Effectuer 5 prestiges',  target: 5,   reward: { gems: 250, starDust: 500 }},
+  { id: 'prestige_10',    category: 'progression', name: 'Divinité',         icon: '👑', desc: 'Effectuer 10 prestiges', target: 10,  reward: { gems: 500, starDust: 1000 }},
+
+  // ===== COLLECTION (12) =====
+  { id: 'pet_friend',     category: 'collection', name: 'Ami des Bêtes',         icon: '🐾', desc: 'Débloquer 10 pets',            target: 10, reward: { gems: 25 }},
+  { id: 'pet_collector',  category: 'collection', name: 'Collectionneur',        icon: '📦', desc: 'Débloquer 25 pets',            target: 25, reward: { gems: 50 }},
+  { id: 'pet_hoarder',    category: 'collection', name: 'Accumulateur',          icon: '🏛️', desc: 'Débloquer 40 pets',            target: 40, reward: { gems: 100 }},
+  { id: 'common_master',  category: 'collection', name: 'Maître des Communs',    icon: '⚪', desc: 'Tous pets communs (20)',       target: 20, reward: { gems: 75, starDust: 50 }},
+  { id: 'rare_hunter',    category: 'collection', name: 'Chasseur de Rares',     icon: '🔵', desc: 'Tous pets rares (16)',         target: 16, reward: { gems: 100, starDust: 100 }},
+  { id: 'epic_seeker',    category: 'collection', name: 'Chercheur Épique',      icon: '🟣', desc: 'Tous pets épiques (14)',       target: 14, reward: { gems: 150, starDust: 200 }},
+  { id: 'secret_finder',  category: 'collection', name: 'Découvreur de Secrets', icon: '🟠', desc: 'Tous pets secrets (8)',        target: 8,  reward: { gems: 200, starDust: 300 }},
+  { id: 'legendary_one',  category: 'collection', name: 'Le Légendaire',         icon: '🟡', desc: 'Tous pets légendaires (5)',    target: 5,  reward: { gems: 500, starDust: 1000 }},
+  { id: 'menagerie',      category: 'collection', name: 'Ménagerie Complète',    icon: '🏠', desc: 'Débloquer TOUS les pets (63)', target: 63, reward: { gems: 1000, starDust: 2000 }},
+  { id: 'shiny_hunter',   category: 'collection', name: 'Chasseur de Brillants', icon: '✨', desc: 'Obtenir un pet shiny',         target: 1,  reward: { gems: 50, starDust: 50 }},
+  { id: 'shiny_collector',category: 'collection', name: 'Brillant Amateur',      icon: '💫', desc: 'Obtenir 10 pets shiny',        target: 10, reward: { gems: 150, starDust: 200 }},
+  { id: 'shiny_master',   category: 'collection', name: 'Maître Brillant',       icon: '🌟', desc: 'Obtenir 25 pets shiny',        target: 25, reward: { gems: 500, starDust: 1000 }},
+
+  // ===== SPELLS (10) =====
+  { id: 'first_spell',    category: 'spells', name: 'Premier Sort',      icon: '🪄', desc: 'Lancer 100 sorts',              target: 100,    reward: { gems: 10 }},
+  { id: 'spellcaster',    category: 'spells', name: 'Lanceur de Sorts',  icon: '✨', desc: 'Lancer 1,000 sorts',            target: 1000,   reward: { gems: 25 }},
+  { id: 'wizard',         category: 'spells', name: 'Sorcier',           icon: '🧙', desc: 'Lancer 10,000 sorts',           target: 10000,  reward: { gems: 50, starDust: 25 }},
+  { id: 'archmage',       category: 'spells', name: 'Archimage',         icon: '🔮', desc: 'Lancer 100,000 sorts',          target: 100000, reward: { gems: 150, starDust: 150 }},
+  { id: 'pyromancer',     category: 'spells', name: 'Pyromane',          icon: '🔥', desc: 'Lancer 1,000 Confringo',        target: 1000,   reward: { gems: 25 }},
+  { id: 'electromancer',  category: 'spells', name: 'Électromancien',    icon: '⚡', desc: 'Lancer 1,000 Stupefix',         target: 1000,   reward: { gems: 25 }},
+  { id: 'lightbringer',   category: 'spells', name: 'Porteur de Lumière', icon: '☀️', desc: 'Lancer 1,000 Patronus',        target: 1000,   reward: { gems: 25 }},
+  { id: 'deathdealer',    category: 'spells', name: 'Marchand de Mort',  icon: '💀', desc: 'Lancer 1,000 Avada Kedavra',    target: 1000,   reward: { gems: 50, starDust: 50 }},
+  { id: 'spell_master',   category: 'spells', name: 'Maître des Sorts',  icon: '📖', desc: 'Un sort au niveau 50',          target: 50,     reward: { gems: 50, starDust: 50 }},
+  { id: 'spell_legend',   category: 'spells', name: 'Légende des Sorts', icon: '📚', desc: 'Tous les sorts au niveau 100',  target: 100,    reward: { gems: 200, starDust: 300 }},
+
+  // ===== ECONOMY (10) =====
+  { id: 'first_gold',     category: 'economy', name: 'Première Pièce',    icon: '🪙', desc: 'Gagner 1,000 or',               target: 1000,   reward: { gems: 5 }},
+  { id: 'saver',          category: 'economy', name: 'Économe',           icon: '💵', desc: 'Accumuler 100K or total',       target: 1e5,    reward: { gems: 15 }},
+  { id: 'wealthy',        category: 'economy', name: 'Riche',             icon: '💰', desc: 'Accumuler 1M or total',         target: 1e6,    reward: { gems: 25 }},
+  { id: 'millionaire',    category: 'economy', name: 'Millionnaire',      icon: '💎', desc: 'Accumuler 1B or total',         target: 1e9,    reward: { gems: 50, starDust: 100 }},
+  { id: 'billionaire',    category: 'economy', name: 'Milliardaire',      icon: '💳', desc: 'Accumuler 1T or total',         target: 1e12,   reward: { gems: 100, starDust: 250 }},
+  { id: 'tycoon',         category: 'economy', name: 'Magnat',            icon: '🏦', desc: 'Accumuler 1Qa or total',        target: 1e15,   reward: { gems: 200, starDust: 500 }},
+  { id: 'gem_collector',  category: 'economy', name: 'Collectionneur Gemmes', icon: '💎', desc: 'Posséder 1,000 gemmes',     target: 1000,   reward: { starDust: 100 }},
+  { id: 'gem_hoarder',    category: 'economy', name: 'Accumulateur Gemmes', icon: '👑', desc: 'Posséder 10,000 gemmes',      target: 10000,  reward: { starDust: 500 }},
+  { id: 'stardust_1',     category: 'economy', name: 'Poussière Cosmique', icon: '⭐', desc: 'Collecter 100 Star Dust',      target: 100,    reward: { gems: 25 }},
+  { id: 'eternal_one',    category: 'economy', name: 'Éternel',            icon: '🌟', desc: 'Collecter 1,000 Star Dust',    target: 1000,   reward: { gems: 100, starDust: 500 }},
+
+  // ===== TALENTS (8) =====
+  { id: 'talent_1',       category: 'talents', name: 'Premier Talent',     icon: '📖', desc: 'Acheter 1 talent',              target: 1,    reward: { gems: 10 }},
+  { id: 'talent_10',      category: 'talents', name: 'Apprenti Talentueux', icon: '📚', desc: 'Acheter 10 talents',           target: 10,   reward: { gems: 25 }},
+  { id: 'talent_25',      category: 'talents', name: 'Talentueux',          icon: '🎯', desc: 'Acheter 25 talents',           target: 25,   reward: { gems: 50 }},
+  { id: 'talent_50',      category: 'talents', name: 'Expert',              icon: '🏅', desc: 'Acheter 50 talents',           target: 50,   reward: { gems: 75, starDust: 50 }},
+  { id: 'talent_100',     category: 'talents', name: 'Maître Talentueux',   icon: '🎖️', desc: 'Acheter 100 talents',          target: 100,  reward: { gems: 100, starDust: 100 }},
+  { id: 'talent_max_1',   category: 'talents', name: 'Perfection',          icon: '✅', desc: 'Maxer 1 talent',               target: 1,    reward: { gems: 30 }},
+  { id: 'talent_max_5',   category: 'talents', name: 'Excellence',          icon: '🌟', desc: 'Maxer 5 talents',              target: 5,    reward: { gems: 75, starDust: 50 }},
+  { id: 'talent_max_all', category: 'talents', name: 'Omniscient',          icon: '👁️', desc: 'Maxer tous les talents',       target: 20,   reward: { gems: 300, starDust: 500 }},
+
+  // ===== SHOP (6) =====
+  { id: 'first_purchase', category: 'shop', name: 'Premier Achat',       icon: '🛒', desc: 'Acheter quelque chose',           target: 1,   reward: { gems: 10 }},
+  { id: 'shopper',        category: 'shop', name: 'Acheteur',            icon: '🛍️', desc: 'Acheter 5 articles boutique',     target: 5,   reward: { gems: 25 }},
+  { id: 'shopaholic',     category: 'shop', name: 'Accro du Shopping',   icon: '🏪', desc: 'Tout débloquer dans la boutique', target: 5,   reward: { gems: 100, starDust: 100 }},
+  { id: 'buff_user',      category: 'shop', name: 'Utilisateur de Buffs', icon: '⚡', desc: 'Utiliser 10 consommables',       target: 10,  reward: { gems: 25 }},
+  { id: 'buff_addict',    category: 'shop', name: 'Accro aux Buffs',      icon: '💊', desc: 'Utiliser 100 consommables',      target: 100, reward: { gems: 75, starDust: 50 }},
+  { id: 'avada_unlock',   category: 'shop', name: 'Magie Interdite',      icon: '💀', desc: 'Débloquer Avada Kedavra',        target: 1,   reward: { gems: 50, starDust: 50 }},
+
+  // ===== TIME (5) =====
+  { id: 'play_1h',        category: 'time', name: 'Première Heure',      icon: '⏰', desc: 'Jouer 1 heure',                   target: 3600,    reward: { gems: 15 }},
+  { id: 'play_10h',       category: 'time', name: 'Dévoué',              icon: '⏱️', desc: 'Jouer 10 heures',                 target: 36000,   reward: { gems: 50 }},
+  { id: 'play_24h',       category: 'time', name: 'Un Jour Complet',     icon: '📅', desc: 'Jouer 24 heures',                 target: 86400,   reward: { gems: 100, starDust: 50 }},
+  { id: 'play_100h',      category: 'time', name: 'Centurion',           icon: '🎮', desc: 'Jouer 100 heures',                target: 360000,  reward: { gems: 200, starDust: 200 }},
+  { id: 'play_1000h',     category: 'time', name: 'Légende Vivante',     icon: '🏆', desc: 'Jouer 1000 heures',               target: 3600000, reward: { gems: 500, starDust: 1000 }},
+
+  // ===== DAILY (4) =====
+  { id: 'daily_1',        category: 'daily', name: 'Premier Défi',        icon: '📋', desc: 'Compléter 1 défi quotidien',     target: 1,   reward: { gems: 10 }},
+  { id: 'daily_10',       category: 'daily', name: 'Habitué',             icon: '📝', desc: 'Compléter 10 défis quotidiens',  target: 10,  reward: { gems: 30 }},
+  { id: 'daily_50',       category: 'daily', name: 'Régulier',            icon: '📊', desc: 'Compléter 50 défis quotidiens',  target: 50,  reward: { gems: 75, starDust: 50 }},
+  { id: 'daily_100',      category: 'daily', name: 'Dévotion Quotidienne', icon: '🗓️', desc: 'Compléter 100 défis quotidiens', target: 100, reward: { gems: 150, starDust: 150 }},
+];
+
+const ACHIEVEMENT_CATEGORIES = {
+  combat:      { name: 'Combat',      icon: '⚔️', bonus: { type: 'all_dmg', val: 0.02 }},
+  progression: { name: 'Progression', icon: '📈', bonus: { type: 'all_dmg', val: 0.02 }},
+  collection:  { name: 'Collection',  icon: '🎒', bonus: { type: 'gold', val: 0.02 }},
+  spells:      { name: 'Sorts',       icon: '🪄', bonus: { type: 'all_dmg', val: 0.02 }},
+  economy:     { name: 'Économie',    icon: '💰', bonus: { type: 'gold', val: 0.02 }},
+  talents:     { name: 'Talents',     icon: '📖', bonus: { type: 'all_dmg', val: 0.02 }},
+  shop:        { name: 'Boutique',    icon: '🛒', bonus: { type: 'gold', val: 0.02 }},
+  time:        { name: 'Temps',       icon: '⏰', bonus: { type: 'all_dmg', val: 0.01 }},
+  daily:       { name: 'Quotidien',   icon: '📅', bonus: { type: 'gold', val: 0.01 }},
+};
+
+// ============ SPELL EVOLUTIONS ============
+const SPELL_EVOLUTIONS = {
+  confringo: [
+    { level: 25,  name: 'Flamme Bleue',   color: '#4fc3f7', bonusDmg: 0.20, icon: '🔵', desc: '+20% dégâts' },
+    { level: 50,  name: 'Inferno',        color: '#ff5722', bonusDmg: 0.50, icon: '🌋', desc: '+50% dégâts, AoE' },
+    { level: 100, name: 'Feu Maudit',     color: '#9c27b0', bonusDmg: 1.00, icon: '💜', desc: '+100% dégâts, DoT' },
+  ],
+  stupefix: [
+    { level: 25,  name: 'Éclair Amélioré', color: '#64b5f6', bonusDmg: 0.15, icon: '⚡', desc: 'Stun 0.5s' },
+    { level: 50,  name: 'Foudre',          color: '#1976d2', bonusDmg: 0.35, icon: '🌩️', desc: 'Stun 1s + slow' },
+    { level: 100, name: 'Paralysie',       color: '#0d47a1', bonusDmg: 0.60, icon: '💎', desc: 'Paralysie 2s' },
+  ],
+  patronus: [
+    { level: 25,  name: 'Lumière Vive',   color: '#fff59d', bonusDmg: 0.20, icon: '☀️', desc: '-10% def ennemi' },
+    { level: 50,  name: 'Éclat Divin',    color: '#ffd54f', bonusDmg: 0.45, icon: '🌟', desc: '-25% def + désarme' },
+    { level: 100, name: 'Nova Sacrée',    color: '#ffab00', bonusDmg: 0.80, icon: '💫', desc: '-50% def + réflexion' },
+  ],
+  avada: [
+    { level: 25,  name: 'Mort Subite',    color: '#66bb6a', bonusDmg: 0.25, icon: '💚', desc: 'x2 crit dmg' },
+    { level: 50,  name: 'Malédiction',    color: '#43a047', bonusDmg: 0.50, icon: '🐍', desc: 'x3 crit dmg' },
+    { level: 100, name: 'Néant Absolu',   color: '#1b5e20', bonusDmg: 1.00, icon: '⚫', desc: 'x5 crit dmg + reset CD si kill' },
+  ],
+};
+
+// ============ DAILY CHALLENGES ============
+const DAILY_CHALLENGE_TYPES = [
+  { id: 'kill_monsters', name: 'Tueur', icon: '⚔️', desc: 'Vaincre {target} monstres', targets: [100, 250, 500, 1000] },
+  { id: 'cast_spells',   name: 'Lanceur', icon: '✨', desc: 'Lancer {target} sorts', targets: [50, 100, 200, 500] },
+  { id: 'earn_gold',     name: 'Prospecteur', icon: '🪙', desc: 'Gagner {target} or', targets: [10000, 50000, 100000, 500000] },
+  { id: 'boss_damage',   name: 'Champion', icon: '👹', desc: 'Infliger {target} dégâts au boss', targets: [1e6, 5e6, 10e6, 50e6] },
+  { id: 'upgrade_spell', name: 'Améliorer', icon: '⬆️', desc: 'Améliorer un sort {target} fois', targets: [5, 10, 20, 50] },
+];
+const DAILY_REWARD = { gems: 25, starDust: 10 };
 
 // ============ SHOP (gold sink) ============
 // Unique unlocks (one-time purchase)
@@ -1335,10 +2996,14 @@ const SHOP_CONSUMABLES = [
   { id: 'lucky',      name: 'Chance Pure',     icon: '🍀', desc: 'x3 drop rate pets pendant 2 min.', baseCost: 1200, costMult: 1.05, duration: 120 },
 ];
 
-// Pet upgrade cost: scales with pet zone and level
+// Pet upgrade cost: scales with pet zone, rarity, and level (VERY HARD scaling)
 function petUpgradeCost(pet, level) {
-  const base = Math.max(50, pet.zone * 500 + 50);
-  return Math.floor(base * Math.pow(1.2, level));
+  const rarityMult = PET_RARITIES[pet.rarity]?.mult || 1;
+  const zoneBase = pet.zone >= 0 ? pet.zone * 2000 : 20000;  // Secret/Legendary have VERY high base
+  const base = Math.max(500, zoneBase + 500) * rarityMult;
+  // Exponential scaling: x2.2 per level = EXTREMELY hard to level high
+  // Level 1->2: base, Level 2->3: base*2.2, Level 3->4: base*4.84, Level 10: base*1207
+  return Math.floor(base * Math.pow(2.2, level - 1));
 }
 
 // ============ WORLD BOSS CONFIG ============
@@ -1439,6 +3104,38 @@ function defaultState() {
     lastTick: Date.now(),
     _saveTimer: 0,
     startTime: Date.now(),
+    // === NEW SYSTEMS ===
+    // Star Dust & Eternals
+    starDust: 0,
+    totalStarDust: 0,
+    relics: {},  // relicId → level (0-5)
+    infinityPrestige: 0,  // number of infinity prestiges
+    infinityMult: 1,  // permanent multiplier from infinity prestige
+    // Shiny Pets
+    shinyPets: [],  // array of pet ids that are shiny
+    // Multi-Pets
+    activePets: [],  // array of equipped pet ids (replaces activePet for multi-pet)
+    petSlots: 1,  // number of pet slots (1 base, 2 after zone 15, 3 after prestige)
+    // Achievements
+    achievements: [],  // array of completed achievement ids
+    achievementProgress: {},  // achievementId → progress value
+    // Daily Challenges
+    dailyChallenges: [],  // [{id, type, target, progress, completed}]
+    lastDailyReset: 0,  // timestamp of last daily reset
+    // Spell tracking for achievements
+    spellsCast: {},  // spellId → total times cast
+    // Zone completion times for speed records
+    zoneCompletionTimes: {},  // zoneId → best time in seconds
+    zone25FirstClear: 0,  // timestamp of first zone 25 clear
+    // World Boss tracking for secret pets
+    worldBossKills: 0,  // total world bosses killed (participated in victory)
+    totalWorldBossDmg: 0,  // total damage dealt to world bosses (lifetime)
+    // Achievement tracking
+    totalCrits: 0,  // total critical hits
+    totalTalentsBought: 0,  // total talents purchased
+    totalConsumablesUsed: 0,  // total consumables used
+    totalDailiesCompleted: 0,  // total daily challenges completed
+    bossKills: 0,  // zone boss kills
   };
 }
 
@@ -1459,11 +3156,12 @@ function getPetBonus(type, spell) {
   if (!G.activePet) return 0;
   const pet = PETS.find(p => p.id === G.activePet);
   if (!pet) return 0;
-  if (pet.effect.type === type) {
+  if (pet.effect.type === type || pet.effect.type === 'all') {
     if (spell && pet.effect.spell && pet.effect.spell !== spell) return 0;
     const lvl = G.petLevels[pet.id] || 1;
-    // Diminishing returns: base + 20% of base per extra level
-    return pet.effect.val * (1 + (lvl - 1) * 0.2);
+    const rarityMult = (PET_RARITIES[pet.rarity] || PET_RARITIES.common).mult;
+    // Diminishing returns: base + 20% of base per extra level, multiplied by rarity
+    return pet.effect.val * (1 + (lvl - 1) * 0.2) * rarityMult;
   }
   return 0;
 }
@@ -1479,8 +3177,16 @@ function getSpellDmg(spellId) {
   if (t) dmg *= (1 + getTalent(t.id) * t.effect.perLevel);
   const allDmg = TALENTS.find(t => t.effect.type === 'all_dmg');
   if (allDmg) dmg *= (1 + getTalent(allDmg.id) * allDmg.effect.perLevel);
-  dmg *= (1 + getPetBonus('spell_dmg', spellId) + getPetBonus('all_dmg'));
-  dmg *= G.rebirthMult * G.prestigeMult;
+  // Multi-pet system bonus (replaces old single pet)
+  dmg *= (1 + getMultiPetBonus('spell_dmg', spellId) + getMultiPetBonus('all_dmg'));
+  // Spell evolution bonus
+  dmg *= (1 + getSpellEvolutionBonus(spellId));
+  // Relic bonus
+  dmg *= (1 + getRelicBonus('all_dmg'));
+  // Achievement category bonus
+  dmg *= (1 + getCategoryBonus('all_dmg'));
+  // Multipliers
+  dmg *= G.rebirthMult * G.prestigeMult * (G.infinityMult || 1);
   return dmg;
 }
 
@@ -1491,14 +3197,20 @@ function getSpellCD(spellId) {
   if (t) cd *= (1 - getTalent(t.id) * t.effect.perLevel);
   const allCd = TALENTS.find(t => t.effect.type === 'all_cd');
   if (allCd) cd *= (1 - getTalent(allCd.id) * allCd.effect.perLevel);
-  cd *= (1 - getPetBonus('all_cd'));
+  // Multi-pet system bonus
+  cd *= (1 - getMultiPetBonus('all_cd'));
+  // Relic bonus
+  cd *= (1 - getRelicBonus('all_cd'));
   if (hasBuff('frenzy')) cd *= 0.5;
   return Math.max(0.15, cd);
 }
 
 function getCritChance() {
   const t = TALENTS.find(t => t.effect.type === 'crit_chance');
-  return Math.min((t ? getTalent(t.id) * t.effect.perLevel : 0) + getPetBonus('crit'), 0.8);
+  let crit = (t ? getTalent(t.id) * t.effect.perLevel : 0);
+  crit += getMultiPetBonus('crit');
+  crit += getRelicBonus('crit');
+  return Math.min(crit, 0.8);
 }
 
 function getCritMult() {
@@ -1508,7 +3220,10 @@ function getCritMult() {
 
 function getGoldMult() {
   const t = TALENTS.find(t => t.effect.type === 'gold_bonus');
-  let m = (1 + (t ? getTalent(t.id) * t.effect.perLevel : 0) + getPetBonus('gold')) * G.rebirthMult * G.prestigeMult;
+  let m = 1 + (t ? getTalent(t.id) * t.effect.perLevel : 0);
+  m += getMultiPetBonus('gold');
+  m += getCategoryBonus('gold');
+  m *= G.rebirthMult * G.prestigeMult * (G.infinityMult || 1);
   if (hasBuff('gold_rush')) m *= 2;
   return m;
 }
@@ -1542,7 +3257,12 @@ function damageMob(amount, spellType) {
   if (G.mobHp <= 0) return;
   let isCrit = Math.random() < getCritChance();
   let dmg = amount;
-  if (isCrit) dmg *= getCritMult();
+  if (isCrit) {
+    dmg *= getCritMult();
+    G.totalCrits = (G.totalCrits || 0) + 1;
+    checkAchievement('crit_king', G.totalCrits);
+    checkAchievement('crit_god', G.totalCrits);
+  }
   dmg = Math.floor(Math.max(1, dmg));
   let hits = 1;
   if (Math.random() < getMultiHitChance()) {
@@ -1574,6 +3294,18 @@ function onMobKill(wasCrit) {
   G.totalKills++;
   if (G.kills % 5 === 0) G.talentPoints++;
   spawnGoldNumber(goldDrop);
+
+  // Update daily challenges
+  updateDailyChallenge('kill_monsters', 1);
+  updateDailyChallenge('earn_gold', goldDrop);
+
+  // Check achievements
+  checkAchievement('first_blood', G.totalKills);
+  checkAchievement('hunter', G.totalKills);
+  checkAchievement('exterminator', G.totalKills);
+  checkAchievement('wealthy', G.totalGoldEarned);
+  checkAchievement('millionaire', G.totalGoldEarned);
+
   // Pet drop check
   const zonePets = PETS.filter(p => p.zone === G.currentZone);
   zonePets.forEach(p => {
@@ -1583,13 +3315,145 @@ function onMobKill(wasCrit) {
     if (!G.ownedPets.includes(p.id) && Math.random() < dr) {
       G.ownedPets.push(p.id);
       G.petLevels[p.id] = 1;
+
+      // Check for shiny!
+      if (tryMakeShiny(p.id)) {
+        if (!G.shinyPets) G.shinyPets = [];
+        G.shinyPets.push(p.id);
+        toast('✨ PET SHINY obtenu : ' + p.icon + ' ' + p.name + ' ✨');
+        checkAchievement('shiny_hunter', 1);
+        checkAchievement('shiny_master', G.shinyPets.length);
+      } else {
+        toast('🎉 Pet obtenu : ' + p.icon + ' ' + p.name + ' !');
+      }
+
+      // Auto-equip if slot available (multi-pet system)
+      if (!G.activePets) G.activePets = [];
+      if (G.activePets.length < getPetSlots()) {
+        G.activePets.push(p.id);
+      }
+      // Sync with old system
       if (!G.activePet) G.activePet = p.id;
-      toast('🎉 Pet obtenu : ' + p.icon + ' ' + p.name + ' !');
+
+      // Check pet achievements (all tiers)
+      checkPetCollectionAchievements();
+
       rebuildHeroRecap();
       showPetNotif();
     }
   });
+
+  // Check secret/legendary pet unlocks
+  checkSecretPetUnlocks();
+
+  // Check zone 25 clear for Star Dust
+  if (G.currentZone === 24 && !G.zone25FirstClear) {
+    G.zone25FirstClear = Date.now();
+    awardStarDust(100 * (G.prestigeMult || 1), 'Zone 25 terminée');
+  }
+
   spawnMob();
+}
+
+// ============ SECRET/LEGENDARY PET UNLOCK CHECKS ============
+function checkSecretPetUnlocks() {
+  const secretPets = PETS.filter(p => p.rarity === 'secret' || p.rarity === 'legendary');
+
+  secretPets.forEach(pet => {
+    if (G.ownedPets.includes(pet.id)) return;  // Already owned
+    if (!pet.unlock) return;
+
+    let unlocked = false;
+    const unlock = pet.unlock;
+
+    switch (unlock.type) {
+      case 'rebirth':
+        unlocked = G.rebirth >= unlock.target;
+        break;
+      case 'kills':
+        unlocked = G.totalKills >= unlock.target;
+        break;
+      case 'prestige':
+        unlocked = G.prestige >= unlock.target;
+        break;
+      case 'gold_total':
+        unlocked = G.totalGoldEarned >= unlock.target;
+        break;
+      case 'zone_clear':
+        unlocked = G.highestZone >= unlock.target;
+        break;
+      case 'world_boss_dmg':
+        unlocked = (G.totalWorldBossDmg || 0) >= unlock.target;
+        break;
+      case 'spells_cast':
+        const totalSpells = Object.values(G.spellsCast || {}).reduce((a, b) => a + b, 0);
+        unlocked = totalSpells >= unlock.target;
+        break;
+      case 'all_common_pets':
+        const commonPets = PETS.filter(p => p.rarity === 'common');
+        unlocked = commonPets.every(p => G.ownedPets.includes(p.id));
+        break;
+      case 'all_rare_pets':
+        const rarePets = PETS.filter(p => p.rarity === 'rare');
+        unlocked = rarePets.every(p => G.ownedPets.includes(p.id));
+        break;
+      case 'all_epic_pets':
+        const epicPets = PETS.filter(p => p.rarity === 'epic');
+        unlocked = epicPets.every(p => G.ownedPets.includes(p.id));
+        break;
+      case 'all_pets':
+        // Needs all non-legendary pets
+        const nonLegendary = PETS.filter(p => p.rarity !== 'legendary');
+        unlocked = nonLegendary.every(p => G.ownedPets.includes(p.id));
+        break;
+      case 'infinity_prestige':
+        unlocked = (G.infinityPrestige || 0) >= unlock.target;
+        break;
+      case 'world_boss_kills':
+        unlocked = (G.worldBossKills || 0) >= unlock.target;
+        break;
+    }
+
+    if (unlocked) {
+      // Unlock the secret/legendary pet!
+      G.ownedPets.push(pet.id);
+      G.petLevels[pet.id] = 1;
+
+      // Secret/Legendary pets are ALWAYS shiny
+      if (!G.shinyPets) G.shinyPets = [];
+      G.shinyPets.push(pet.id);
+
+      const rarityInfo = PET_RARITIES[pet.rarity];
+      toast(rarityInfo.color === '#ffd700'
+        ? '👑 PET LÉGENDAIRE : ' + pet.icon + ' ' + pet.name + ' 👑'
+        : '🔶 PET SECRET : ' + pet.icon + ' ' + pet.name + ' 🔶');
+
+      checkPetCollectionAchievements();
+      rebuildPets();
+    }
+  });
+}
+
+function checkPetCollectionAchievements() {
+  const owned = G.ownedPets || [];
+
+  // Count by rarity
+  const commonOwned = PETS.filter(p => p.rarity === 'common' && owned.includes(p.id)).length;
+  const rareOwned = PETS.filter(p => p.rarity === 'rare' && owned.includes(p.id)).length;
+  const epicOwned = PETS.filter(p => p.rarity === 'epic' && owned.includes(p.id)).length;
+  const secretOwned = PETS.filter(p => p.rarity === 'secret' && owned.includes(p.id)).length;
+  const legendaryOwned = PETS.filter(p => p.rarity === 'legendary' && owned.includes(p.id)).length;
+
+  checkAchievement('pet_friend', owned.length);
+  checkAchievement('pet_collector', owned.length);
+  checkAchievement('common_master', commonOwned);
+  checkAchievement('rare_hunter', rareOwned);
+  checkAchievement('epic_seeker', epicOwned);
+  checkAchievement('secret_finder', secretOwned);
+  checkAchievement('legendary_one', legendaryOwned);
+  checkAchievement('menagerie', owned.length);
+  checkAchievement('shiny_hunter', (G.shinyPets || []).length > 0 ? 1 : 0);
+  checkAchievement('shiny_master', (G.shinyPets || []).length);
 }
 
 // ============ VFX ============
@@ -1636,6 +3500,22 @@ function tickSpells(dt) {
       // Cast spell
       damageMob(getSpellDmg(spell.id), spell.id);
       G.spellCDs[spell.id] = maxCd;
+
+      // Track spell cast for achievements/challenges
+      if (!G.spellsCast) G.spellsCast = {};
+      G.spellsCast[spell.id] = (G.spellsCast[spell.id] || 0) + 1;
+      updateDailyChallenge('cast_spells', 1);
+      // Spell achievements
+      const totalSpells = Object.values(G.spellsCast).reduce((a, b) => a + b, 0);
+      checkAchievement('first_spell', totalSpells);
+      checkAchievement('spellcaster', totalSpells);
+      checkAchievement('wizard', totalSpells);
+      checkAchievement('archmage', totalSpells);
+      if (spell.id === 'confringo') checkAchievement('pyromancer', G.spellsCast[spell.id]);
+      if (spell.id === 'stupefix') checkAchievement('electromancer', G.spellsCast[spell.id]);
+      if (spell.id === 'patronus') checkAchievement('lightbringer', G.spellsCast[spell.id]);
+      if (spell.id === 'avada') checkAchievement('deathdealer', G.spellsCast[spell.id]);
+
       if (slotEl) {
         slotEl.classList.remove('on-cd');
         slotEl.classList.add('casting');
@@ -1656,6 +3536,8 @@ function upgradeSpell(spellId) {
   if (G.gold < cost) { toast('Pas assez de gold !'); return; }
   G.gold -= cost;
   G.spellLevels[spellId]++;
+  updateDailyChallenge('upgrade_spell', 1);
+  checkSpellAchievements();
   if (activePanel === 'spells') rebuildSpellUpgrades();
 }
 
@@ -1670,7 +3552,19 @@ function upgradeSpellMax(spellId) {
   }
   if (bought === 0) { toast('Pas assez de gold !'); return; }
   toast('+' + bought + ' niveaux !');
+  updateDailyChallenge('upgrade_spell', bought);
+  checkSpellAchievements();
   if (activePanel === 'spells') rebuildSpellUpgrades();
+}
+
+function checkSpellAchievements() {
+  // Check spell_master (any spell at level 50)
+  const maxSpellLevel = Math.max(...getSpells().map(s => G.spellLevels[s.id] || 1));
+  checkAchievement('spell_master', maxSpellLevel);
+
+  // Check archmage (all spells at level 100)
+  const allAt100 = getSpells().every(s => (G.spellLevels[s.id] || 1) >= 100);
+  if (allAt100) checkAchievement('archmage', 100);
 }
 
 // ============ GATES ============
@@ -1701,6 +3595,12 @@ function unlockGate(zoneId) {
   } else {
     toast('🚪 Zone ' + (zoneId + 1) + ' débloquée !');
   }
+
+  // Check zone achievements
+  checkAchievement('apprentice', zoneId + 1);
+  checkAchievement('adventurer', zoneId + 1);
+  checkAchievement('master', zoneId + 1);
+
   rebuildGates();
 }
 
@@ -1721,6 +3621,8 @@ function buyTalent(talentId) {
   if (G.talentPoints < cost) { toast('Pas assez de points !'); return; }
   G.talentPoints -= cost;
   G.talents[talentId]++;
+  G.totalTalentsBought = (G.totalTalentsBought || 0) + 1;
+  checkTalentAchievements();
   updateTalentNode(talentId);
   updateUI();
 }
@@ -1744,9 +3646,25 @@ function buyTalentMax(talentId) {
   }
 
   G.talents[talentId] = lvl;
+  G.totalTalentsBought = (G.totalTalentsBought || 0) + bought;
+  checkTalentAchievements();
   toast('+' + bought + ' niveaux !');
   updateTalentNode(talentId);
   updateUI();
+}
+
+function checkTalentAchievements() {
+  checkAchievement('talent_1', G.totalTalentsBought);
+  checkAchievement('talent_10', G.totalTalentsBought);
+  checkAchievement('talent_25', G.totalTalentsBought);
+  checkAchievement('talent_50', G.totalTalentsBought);
+  checkAchievement('talent_100', G.totalTalentsBought);
+  // Check maxed talents
+  let maxedCount = 0;
+  TALENTS.forEach(t => { if ((G.talents[t.id] || 0) >= t.maxLvl) maxedCount++; });
+  checkAchievement('talent_max_1', maxedCount);
+  checkAchievement('talent_max_5', maxedCount);
+  checkAchievement('talent_max_all', maxedCount);
 }
 
 function updateTalentNode(talentId) {
@@ -1762,7 +3680,7 @@ function updateTalentNode(talentId) {
   const nodeEl = document.getElementById('talent-node-' + talentId);
 
   if (levelEl) levelEl.textContent = lvl + '/' + t.maxLvl;
-  if (costEl) costEl.textContent = isMax ? '✅ MAX' : cost + ' ⭐';
+  if (costEl) costEl.textContent = isMax ? '✅ MAX' : cost + ' 📖';
   if (btn1El) {
     btn1El.disabled = isMax || G.talentPoints < cost;
     btn1El.style.display = isMax ? 'none' : '';
@@ -1786,13 +3704,15 @@ function doRebirth() {
     return;
   }
 
-  // Soft reset: keep talents, TP, gems, prestige, pets
+  // Soft reset: keep talents, TP, gems, prestige, pets, eternals, achievements
   const keepTalents = JSON.parse(JSON.stringify(G.talents));
   const keepTP = G.talentPoints;
   const keepGems = G.gems;
   const keepPets = [...G.ownedPets];
   const keepActivePet = G.activePet;
+  const keepActivePets = [...(G.activePets || [])];
   const keepPetLevels = JSON.parse(JSON.stringify(G.petLevels));
+  const keepShinyPets = [...(G.shinyPets || [])];
   const keepShopUnlocks = [...(G.shopUnlocks || [])];
   const keepShopBuys = JSON.parse(JSON.stringify(G.shopBuys || {}));
   const keepPrestige = G.prestige;
@@ -1800,6 +3720,16 @@ function doRebirth() {
   const keepTotalKills = G.totalKills;
   const keepTotalGold = G.totalGoldEarned;
   const keepStartTime = G.startTime;
+  // Eternals persist through rebirth
+  const keepStarDust = G.starDust || 0;
+  const keepTotalStarDust = G.totalStarDust || 0;
+  const keepRelics = JSON.parse(JSON.stringify(G.relics || {}));
+  const keepInfinityPrestige = G.infinityPrestige || 0;
+  const keepInfinityMult = G.infinityMult || 1;
+  // Achievements persist
+  const keepAchievements = [...(G.achievements || [])];
+  const keepAchievementProgress = JSON.parse(JSON.stringify(G.achievementProgress || {}));
+  const keepSpellsCast = JSON.parse(JSON.stringify(G.spellsCast || {}));
 
   const newRebirth = nextTier.id;
   const newRebirthMult = nextTier.mult;
@@ -1814,7 +3744,9 @@ function doRebirth() {
   G.gems = isNaN(keepGems) ? 0 : keepGems;
   G.ownedPets = keepPets;
   G.activePet = keepActivePet;
+  G.activePets = keepActivePets;
   G.petLevels = keepPetLevels;
+  G.shinyPets = keepShinyPets;
   G.shopUnlocks = keepShopUnlocks;
   G.shopBuys = keepShopBuys;
   // Fix: initialiser avada si spell4 est débloqué
@@ -1825,6 +3757,19 @@ function doRebirth() {
   G.totalKills = isNaN(keepTotalKills) ? 0 : keepTotalKills;
   G.totalGoldEarned = isNaN(keepTotalGold) ? 0 : keepTotalGold;
   G.startTime = keepStartTime || Date.now();
+  // Restore eternals
+  G.starDust = keepStarDust;
+  G.totalStarDust = keepTotalStarDust;
+  G.relics = keepRelics;
+  G.infinityPrestige = keepInfinityPrestige;
+  G.infinityMult = keepInfinityMult;
+  // Restore achievements
+  G.achievements = keepAchievements;
+  G.achievementProgress = keepAchievementProgress;
+  G.spellsCast = keepSpellsCast;
+
+  // Check rebirth achievement
+  checkAchievementIncrement('rebirthed', 1);
 
   spawnMob();
   save();
@@ -1847,6 +3792,21 @@ function doPrestige() {
   const keepTotalKills = G.totalKills;
   const keepTotalGold = G.totalGoldEarned;
   const keepStartTime = G.startTime;
+  // Eternals persist through prestige
+  const keepStarDust = G.starDust || 0;
+  const keepTotalStarDust = G.totalStarDust || 0;
+  const keepRelics = JSON.parse(JSON.stringify(G.relics || {}));
+  const keepInfinityPrestige = G.infinityPrestige || 0;
+  const keepInfinityMult = G.infinityMult || 1;
+  // Achievements persist
+  const keepAchievements = [...(G.achievements || [])];
+  const keepAchievementProgress = JSON.parse(JSON.stringify(G.achievementProgress || {}));
+  const keepSpellsCast = JSON.parse(JSON.stringify(G.spellsCast || {}));
+  // PETS PERSIST THROUGH ALL RESETS (collection focus)
+  const keepPets = [...(G.ownedPets || [])];
+  const keepPetLevels = JSON.parse(JSON.stringify(G.petLevels || {}));
+  const keepActivePets = [...(G.activePets || [])];
+  const keepShinyPets = [...(G.shinyPets || [])];
 
   G = defaultState();
   G.prestige = newPrestige;
@@ -1855,6 +3815,27 @@ function doPrestige() {
   G.totalKills = keepTotalKills;
   G.totalGoldEarned = keepTotalGold;
   G.startTime = keepStartTime;
+  // Restore eternals
+  G.starDust = keepStarDust;
+  G.totalStarDust = keepTotalStarDust;
+  G.relics = keepRelics;
+  G.infinityPrestige = keepInfinityPrestige;
+  G.infinityMult = keepInfinityMult;
+  // Restore achievements
+  G.achievements = keepAchievements;
+  G.achievementProgress = keepAchievementProgress;
+  G.spellsCast = keepSpellsCast;
+  // Restore PETS (permanent collection!)
+  G.ownedPets = keepPets;
+  G.petLevels = keepPetLevels;
+  G.activePets = keepActivePets;
+  G.shinyPets = keepShinyPets;
+
+  // Award Star Dust on prestige
+  awardStarDust(100 + (newPrestige * 50), 'Prestige ' + newPrestige);
+
+  // Check prestige achievement
+  checkAchievement('transcended', newPrestige);
 
   spawnMob();
   save();
@@ -1898,6 +3879,17 @@ function tick(now) {
   }
   G._saveTimer = (G._saveTimer || 0) + dt;
   if (G._saveTimer >= 5) { G._saveTimer = 0; save(); }
+  // Time achievements check every 60 seconds
+  G._timeAchievTimer = (G._timeAchievTimer || 0) + dt;
+  if (G._timeAchievTimer >= 60) {
+    G._timeAchievTimer = 0;
+    const playTime = Math.floor((Date.now() - G.startTime) / 1000);
+    checkAchievement('play_1h', playTime);
+    checkAchievement('play_10h', playTime);
+    checkAchievement('play_24h', playTime);
+    checkAchievement('play_100h', playTime);
+    checkAchievement('play_1000h', playTime);
+  }
   updateUI();
 }
 
@@ -1906,8 +3898,14 @@ function updateUI() {
   document.getElementById('goldVal').textContent = fmt(G.gold);
   document.getElementById('goldPs').textContent = '(' + fmt(getGoldPerSec()) + '/s)';
   document.getElementById('gemsVal').textContent = fmt(G.gems);
+  // Check gem achievements
+  checkAchievement('gem_collector', G.gems);
+  checkAchievement('gem_hoarder', G.gems);
   document.getElementById('tpVal').textContent = G.talentPoints;
-  document.getElementById('prestigeVal').textContent = 'Prestige ' + G.prestige;
+  document.getElementById('prestigeVal').textContent = G.prestige;
+  // Update Star Dust
+  const sdTop = document.getElementById('starDustTopVal');
+  if (sdTop) sdTop.textContent = fmt(G.starDust || 0);
 
   const zone = ZONES[G.currentZone] || ZONES[ZONES.length - 1];
   document.getElementById('zoneName').textContent = 'Zone ' + (G.currentZone + 1) + ' — ' + zone.name;
@@ -1965,6 +3963,16 @@ function updateUI() {
 
   // Update active buffs bar
   updateActiveBuffsBar();
+
+  // Update bottom progress bar
+  const bpZone = document.getElementById('bpZone');
+  const bpKills = document.getElementById('bpKills');
+  const bpDps = document.getElementById('bpDps');
+  const bpGoldPs = document.getElementById('bpGoldPs');
+  if (bpZone) bpZone.textContent = G.currentZone + 1;
+  if (bpKills) bpKills.textContent = fmt(G.kills);
+  if (bpDps) bpDps.textContent = fmt(getDPS());
+  if (bpGoldPs) bpGoldPs.textContent = fmt(getGoldPerSec());
 }
 
 function updateActiveBuffsBar() {
@@ -2061,6 +4069,8 @@ function switchPanel(id, btnEl) {
   if (id === 'pets') { rebuildPets(); clearPetNotif(); }
   if (id === 'boss') rebuildBoss();
   if (id === 'prestige') rebuildPrestige();
+  if (id === 'eternals') { rebuildEternals(); clearEternalsNotif(); }
+  if (id === 'achievements') { rebuildAchievements(); clearAchieveNotif(); }
   if (id === 'stats') rebuildStats();
 
   // Afficher/masquer le mini combat popup
@@ -2116,6 +4126,8 @@ function rebuildAll() {
   rebuildPets();
   rebuildBoss();
   rebuildPrestige();
+  rebuildEternals();
+  rebuildAchievements();
   rebuildStats();
 }
 
@@ -2279,7 +4291,7 @@ function rebuildTalents() {
         <div class="t-name">\${t.name}</div>
         <div class="t-level" id="talent-level-\${t.id}">\${lvl}/\${t.maxLvl}</div>
         <div class="t-desc">\${t.desc}</div>
-        <div class="t-cost" id="talent-cost-\${t.id}">\${isMax?'✅ MAX':cost+' ⭐'}</div>
+        <div class="t-cost" id="talent-cost-\${t.id}">\${isMax?'✅ MAX':cost+' 📖'}</div>
         <div style="display:flex;gap:4px;margin-top:4px;justify-content:center;">
           <button class="btn btn-sm" id="talent-btn-\${t.id}" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalent('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="\${isMax?'display:none':''}">+1</button>
           <button class="btn btn-sm" id="talent-btnmax-\${t.id}" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalentMax('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="\${isMax?'display:none':''}">MAX</button>
@@ -2297,7 +4309,7 @@ function rebuildTalents() {
       <div class="t-name">\${t.name}</div>
       <div class="t-level" id="talent-level-\${t.id}">\${lvl}/\${t.maxLvl}</div>
       <div class="t-desc">\${t.desc}</div>
-      <div class="t-cost" id="talent-cost-\${t.id}">\${isMax?'✅ MAX':cost+' ⭐'}</div>
+      <div class="t-cost" id="talent-cost-\${t.id}">\${isMax?'✅ MAX':cost+' 📖'}</div>
       <div style="display:flex;gap:4px;margin-top:4px;justify-content:center;">
         <button class="btn btn-sm" id="talent-btn-\${t.id}" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalent('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="\${isMax?'display:none':''}">+1</button>
         <button class="btn btn-sm" id="talent-btnmax-\${t.id}" data-cost-tp="\${isMax?9999:cost}" onclick="buyTalentMax('\${t.id}')" \${isMax||G.talentPoints<cost?'disabled':''} style="\${isMax?'display:none':''}">MAX</button>
@@ -2318,7 +4330,12 @@ function buyShopUnlock(id) {
   if (id === 'spell4') {
     if (!G.spellLevels['avada']) G.spellLevels['avada'] = 1;
     if (G.spellCDs['avada'] === undefined) G.spellCDs['avada'] = 0;
+    checkAchievement('avada_unlock', 1);
   }
+  // Shop achievements
+  checkAchievement('first_purchase', G.shopUnlocks.length);
+  checkAchievement('shopper', G.shopUnlocks.length);
+  checkAchievement('shopaholic', G.shopUnlocks.length);
   toast('✅ ' + item.name + ' débloqué !');
   rebuildShop();
   rebuildHeroRecap();
@@ -2341,6 +4358,9 @@ function buyConsumable(id) {
   G.gold -= cost;
   G.shopBuys[id] = bought + 1;
   G.buffs[id] = Date.now() + item.duration * 1000;
+  G.totalConsumablesUsed = (G.totalConsumablesUsed || 0) + 1;
+  checkAchievement('buff_user', G.totalConsumablesUsed);
+  checkAchievement('buff_addict', G.totalConsumablesUsed);
   toast('🧪 ' + item.name + ' activé !');
   rebuildShop();
   rebuildHeroRecap();
@@ -2444,51 +4464,207 @@ function maxPet(petId) {
   }
 }
 
-function equipPet(petId) {
+// ============ SHINY PETS SYSTEM (moved before rebuildPets) ============
+function isShiny(petId) {
+  return G.shinyPets && G.shinyPets.includes(petId);
+}
+
+function getShinyMultiplier(petId) {
+  return isShiny(petId) ? SHINY_MULT : 1;
+}
+
+// ============ MULTI-PETS SYSTEM (moved before rebuildPets) ============
+function getPetSlots() {
+  let slots = 1;
+  if (G.highestZone >= 14) slots = 2;  // After zone 15
+  if (G.prestige >= 1) slots = 3;       // After prestige
+  return slots;
+}
+
+function getActivePets() {
+  // Migration: if old system (single activePet), migrate to new
+  if (G.activePet && (!G.activePets || G.activePets.length === 0)) {
+    G.activePets = [G.activePet];
+  }
+  return G.activePets || [];
+}
+
+function equipPetMulti(petId) {
   if (!G.ownedPets.includes(petId)) return;
-  G.activePet = G.activePet === petId ? null : petId;
+  if (!G.activePets) G.activePets = [];
+
+  const idx = G.activePets.indexOf(petId);
+  if (idx >= 0) {
+    // Unequip
+    G.activePets.splice(idx, 1);
+  } else {
+    // Equip if slot available
+    const maxSlots = getPetSlots();
+    if (G.activePets.length < maxSlots) {
+      G.activePets.push(petId);
+    } else {
+      toast('Tous les slots sont occupés !');
+      return;
+    }
+  }
+  // Sync with old system for compatibility
+  G.activePet = G.activePets[0] || null;
   rebuildPets();
   rebuildHeroRecap();
 }
 
-function showPetNotif() {
-  const notif = document.getElementById('petNotif');
-  if (notif) notif.style.display = 'flex';
+// ============ PET SYNERGIES (moved before rebuildPets) ============
+function getActiveSynergies() {
+  const activePets = getActivePets();
+  const synergies = [];
+
+  PET_SYNERGIES.forEach(syn => {
+    if (syn.pets.every(p => activePets.includes(p))) {
+      synergies.push(syn);
+    }
+  });
+
+  return synergies;
 }
 
-function clearPetNotif() {
-  const notif = document.getElementById('petNotif');
-  if (notif) notif.style.display = 'none';
+function equipPet(petId) {
+  // Redirect to new multi-pet system
+  equipPetMulti(petId);
 }
 
 function rebuildPets() {
   const el = document.getElementById('petsList');
   if (!el) return;
   let html = '';
+
+  // Pet Slots Display
+  const maxSlots = getPetSlots();
+  const activePets = getActivePets();
+  html += '<div style="text-align:center;margin-bottom:20px;padding:15px;background:rgba(0,0,0,0.2);border-radius:12px;border:1px solid rgba(212,168,67,0.15);">';
+  html += '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:1em;margin-bottom:12px;">🐾 Pets Équipés (' + activePets.length + '/' + maxSlots + ')</div>';
+  html += '<div class="pet-slots">';
+  for (let i = 0; i < 3; i++) {
+    const pet = activePets[i] ? PETS.find(p => p.id === activePets[i]) : null;
+    const locked = i >= maxSlots;
+    const shiny = pet && isShiny(pet.id);
+
+    if (locked) {
+      // Slot verrouillé
+      html += '<div class="pet-slot locked" title="' + (i === 1 ? 'Débloqué à Zone 15' : 'Débloqué après Prestige') + '">';
+      html += '<div style="font-size:1.2em;">🔒</div>';
+      html += '<div style="font-size:0.5em;color:#666;margin-top:2px;">' + (i === 1 ? 'Zone 15' : 'Prestige') + '</div>';
+      html += '</div>';
+    } else if (pet) {
+      // Slot avec pet
+      html += '<div class="pet-slot filled" onclick="equipPetMulti(' + "'" + pet.id + "'" + ')" title="Cliquer pour retirer ' + pet.name + '">';
+      html += (shiny ? '<div class="shiny-sparkle"></div>' : '');
+      html += '<div style="font-size:1.8em;">' + pet.icon + '</div>';
+      html += '<div class="slot-remove-hint">✕</div>';
+      html += '</div>';
+    } else {
+      // Slot vide disponible
+      html += '<div class="pet-slot empty" title="Équipe un pet ci-dessous">';
+      html += '<div style="font-size:1.5em;color:rgba(212,168,67,0.4);">+</div>';
+      html += '<div style="font-size:0.5em;color:#666;margin-top:2px;">Vide</div>';
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  html += '<div style="font-size:0.7em;color:#888;margin-top:8px;">Clique sur "Équiper" ci-dessous pour ajouter un pet</div>';
+  html += '</div>';
+
+  // Active Synergies
+  const synergies = getActiveSynergies();
+  if (synergies.length > 0) {
+    html += '<div style="margin-bottom:15px;">';
+    synergies.forEach(syn => {
+      html += '<div class="synergy-active">' +
+        '<div class="synergy-icon">' + syn.icon + '</div>' +
+        '<div class="synergy-info">' +
+          '<div class="synergy-name">' + syn.name + '</div>' +
+          '<div class="synergy-desc">' + syn.desc + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  // === COLLECTION PROGRESS ===
+  const totalPets = PETS.length;
+  const ownedCount = (G.ownedPets || []).length;
+  const shinyCount = (G.shinyPets || []).length;
+
+  // Count by rarity
+  const rarityStats = {};
+  Object.keys(PET_RARITIES).forEach(r => {
+    const total = PETS.filter(p => p.rarity === r).length;
+    const owned = PETS.filter(p => p.rarity === r && G.ownedPets.includes(p.id)).length;
+    rarityStats[r] = { total, owned };
+  });
+
+  html += '<div style="background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;margin-bottom:15px;border:1px solid rgba(212,168,67,0.2);">';
+  html += '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:1.1em;text-align:center;margin-bottom:10px;">📚 Collection : ' + ownedCount + '/' + totalPets + ' (' + Math.floor(ownedCount/totalPets*100) + '%)</div>';
+
+  // Progress bar for total
+  html += '<div style="background:#1a1a1a;height:8px;border-radius:4px;margin-bottom:12px;overflow:hidden;">';
+  html += '<div style="height:100%;width:' + (ownedCount/totalPets*100) + '%;background:linear-gradient(90deg,#4caf50,#8bc34a);"></div>';
+  html += '</div>';
+
+  // Rarity breakdown
+  html += '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">';
+  Object.entries(PET_RARITIES).forEach(([key, info]) => {
+    const stat = rarityStats[key];
+    const complete = stat.owned === stat.total;
+    html += '<div style="background:rgba(0,0,0,0.3);padding:6px 12px;border-radius:6px;border:1px solid ' + info.color + ';font-size:0.75em;' + (complete ? 'box-shadow:0 0 8px ' + info.color + ';' : '') + '">';
+    html += '<span style="color:' + info.color + ';">' + info.name + '</span> ';
+    html += '<span style="color:' + (complete ? '#4caf50' : '#aaa') + ';">' + stat.owned + '/' + stat.total + '</span>';
+    if (complete) html += ' ✓';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Shiny count
+  if (shinyCount > 0) {
+    html += '<div style="text-align:center;margin-top:8px;font-size:0.8em;color:#ffd700;">✨ Shiny : ' + shinyCount + '</div>';
+  }
+  html += '</div>';
+
   // Show owned pets first, then undiscovered for current/nearby zones
   const owned = PETS.filter(p => G.ownedPets.includes(p.id));
-  const unowned = PETS.filter(p => !G.ownedPets.includes(p.id) && p.zone <= G.highestZone + 1);
+  const unowned = PETS.filter(p => !G.ownedPets.includes(p.id) && p.zone >= 0 && p.zone <= G.highestZone + 1);
+  const secretPets = PETS.filter(p => (p.rarity === 'secret' || p.rarity === 'legendary') && !G.ownedPets.includes(p.id));
 
   if (owned.length === 0 && unowned.length === 0) {
-    html = '<div style="text-align:center;color:#555;padding:20px;">Tue des mobs pour trouver des pets !</div>';
+    html += '<div style="text-align:center;color:#555;padding:20px;">Tue des mobs pour trouver des pets !</div>';
   }
 
   owned.forEach(p => {
-    const isActive = G.activePet === p.id;
+    const isActive = activePets.includes(p.id);
+    const shiny = isShiny(p.id);
     const lvl = G.petLevels[p.id] || 1;
     const cost = petUpgradeCost(p, lvl);
-    const curVal = (p.effect.val * (1 + (lvl - 1) * 0.2) * 100).toFixed(1);
-    const nextVal = (p.effect.val * (1 + lvl * 0.2) * 100).toFixed(1);
+    const shinyMult = shiny ? SHINY_MULT : 1;
+    const rarityInfo = PET_RARITIES[p.rarity] || PET_RARITIES.common;
+    const rarityMult = rarityInfo.mult;
+    const curVal = (p.effect.val * (1 + (lvl - 1) * 0.2) * shinyMult * rarityMult * 100).toFixed(1);
+    const nextVal = (p.effect.val * (1 + lvl * 0.2) * shinyMult * rarityMult * 100).toFixed(1);
+    const isSecret = p.rarity === 'secret' || p.rarity === 'legendary';
+
     html += \`
-      <div style="display:flex;align-items:center;gap:12px;padding:10px;margin-bottom:6px;background:\${isActive ? 'rgba(106,27,154,0.2)' : 'rgba(0,0,0,0.25)'};border:1px solid \${isActive ? 'var(--purple)' : 'rgba(212,168,67,0.12)'};border-radius:8px;">
+      <div class="pet-card \${shiny ? 'shiny' : ''} \${p.rarity}" style="position:relative;display:flex;align-items:center;gap:12px;padding:10px;margin-bottom:6px;background:\${isActive ? 'rgba(106,27,154,0.2)' : 'rgba(0,0,0,0.25)'};border:2px solid \${isActive ? 'var(--purple)' : rarityInfo.color};border-radius:8px;">
+        \${shiny ? '<div class="shiny-badge">✨ SHINY</div><div class="shiny-sparkle"></div>' : ''}
         <div style="font-size:2em;">\${p.icon}</div>
         <div style="flex:1;">
-          <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:0.9em;">\${p.name} <span style="font-size:0.8em;color:#aaa;">Niv.\${lvl}</span> \${isActive ? '<span style="color:var(--green);font-size:0.8em;">— Équipé</span>' : ''}</div>
-          <div style="font-size:0.8em;color:#ce93d8;">\${p.desc} → <span style="color:var(--gold);">\${curVal}%</span></div>
-          <div style="font-size:0.7em;color:#555;">Zone \${p.zone + 1} — \${(p.dropRate * 100).toFixed(2)}% drop</div>
+          <div style="font-family:'Cinzel',serif;color:\${rarityInfo.color};font-size:0.9em;">
+            \${p.name} <span style="font-size:0.8em;color:#aaa;">Niv.\${lvl}</span>
+            <span style="font-size:0.65em;background:\${rarityInfo.color};color:#000;padding:1px 5px;border-radius:3px;margin-left:4px;">\${rarityInfo.name}</span>
+            \${isActive ? '<span style="color:var(--green);font-size:0.8em;"> — Équipé</span>' : ''}
+          </div>
+          <div style="font-size:0.8em;color:#ce93d8;">\${p.desc} → <span style="color:var(--gold);">\${curVal}%</span>\${shiny ? ' <span style="color:#ffd700;">(x' + SHINY_MULT + ' shiny)</span>' : ''}</div>
+          <div style="font-size:0.7em;color:#555;">\${isSecret ? '✓ Obtenu : ' + p.unlock.desc : 'Zone ' + (p.zone + 1) + ' — ' + (p.dropRate * 100).toFixed(2) + '% drop'}</div>
         </div>
         <div style="text-align:right;display:flex;flex-direction:column;gap:4px;">
-          <button class="btn btn-sm \${isActive ? 'btn-purple' : ''}" onclick="equipPet('\${p.id}')">\${isActive ? 'Retirer' : 'Équiper'}</button>
+          <button class="btn btn-sm \${isActive ? 'btn-purple' : ''}" onclick="equipPetMulti('\${p.id}')">\${isActive ? 'Retirer' : 'Équiper'}</button>
           <div style="display:flex;gap:4px;">
             <button class="btn btn-sm" data-cost-gold="\${cost}" onclick="upgradePet('\${p.id}')" \${G.gold < cost ? 'disabled' : ''}>⬆ \${fmt(cost)} 🪙</button>
             <button class="btn btn-sm" data-cost-gold="\${cost}" onclick="maxPet('\${p.id}')" \${G.gold < cost ? 'disabled' : ''}>MAX</button>
@@ -2499,15 +4675,17 @@ function rebuildPets() {
     \`;
   });
 
+  // Zone pets not yet discovered
   if (unowned.length > 0) {
-    html += '<div style="font-family:\\'Cinzel\\',serif;color:#555;font-size:0.8em;margin:12px 0 6px;">Pas encore découverts :</div>';
+    html += '<div style="font-family:\\'Cinzel\\',serif;color:#555;font-size:0.8em;margin:12px 0 6px;">🔍 Pas encore découverts (zones) :</div>';
     unowned.forEach(p => {
       const canGo = p.zone < G.unlockedZones;
+      const rarityInfo = PET_RARITIES[p.rarity] || PET_RARITIES.common;
       html += \`
-        <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;margin-bottom:4px;background:rgba(0,0,0,0.15);border:1px solid rgba(255,255,255,0.04);border-radius:8px;opacity:0.6;">
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;margin-bottom:4px;background:rgba(0,0,0,0.15);border:1px solid \${rarityInfo.color}40;border-radius:8px;opacity:0.7;">
           <div style="font-size:1.8em;">❓</div>
           <div style="flex:1;">
-            <div style="font-family:'Cinzel',serif;color:#555;font-size:0.85em;">???</div>
+            <div style="font-family:'Cinzel',serif;color:#555;font-size:0.85em;">??? <span style="font-size:0.7em;background:\${rarityInfo.color}50;color:\${rarityInfo.color};padding:1px 5px;border-radius:3px;">\${rarityInfo.name}</span></div>
             <div style="font-size:0.7em;color:#444;">Zone \${p.zone + 1} — \${(p.dropRate * 100).toFixed(2)}% drop</div>
           </div>
           <div>
@@ -2515,6 +4693,73 @@ function rebuildPets() {
               ? \`<button class="btn btn-sm" onclick="goToZone(\${p.zone});switchPanel('zone',document.querySelector('.nav-btn'));">Aller</button>\`
               : '<span style="font-size:0.7em;color:#555;">🔒</span>'
             }
+          </div>
+        </div>
+      \`;
+    });
+  }
+
+  // Secret and Legendary pets with unlock conditions
+  if (secretPets.length > 0) {
+    html += '<div style="font-family:\\'Cinzel\\',serif;color:#ff9800;font-size:0.9em;margin:20px 0 10px;padding:8px;background:rgba(255,152,0,0.1);border-radius:8px;border:1px solid rgba(255,152,0,0.3);">🔶 Pets Secrets & Légendaires</div>';
+    secretPets.forEach(p => {
+      const rarityInfo = PET_RARITIES[p.rarity];
+      const isLegendary = p.rarity === 'legendary';
+      const unlock = p.unlock;
+      const isHidden = unlock.hidden === true;
+
+      // For hidden pets, show "???" instead of real info
+      if (isHidden) {
+        html += \`
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;margin-bottom:6px;background:rgba(0,0,0,0.4);border:2px solid \${rarityInfo.color}50;border-radius:8px;opacity:0.7;">
+            <div style="font-size:2em;filter:grayscale(1);opacity:0.4;">❓</div>
+            <div style="flex:1;">
+              <div style="font-family:'Cinzel',serif;color:\${rarityInfo.color};font-size:0.9em;opacity:0.7;">
+                ???
+                <span style="font-size:0.65em;background:\${rarityInfo.color}50;color:\${rarityInfo.color};padding:1px 5px;border-radius:3px;margin-left:4px;">\${rarityInfo.name}</span>
+              </div>
+              <div style="font-size:0.8em;color:#555;font-style:italic;">Effet inconnu</div>
+              <div style="font-size:0.7em;color:#444;margin-top:4px;">🔒 Condition secrète...</div>
+            </div>
+          </div>
+        \`;
+        return;
+      }
+
+      // For visible unlocks, show progress
+      let progress = 0;
+      let progressText = '';
+      switch (unlock.type) {
+        case 'rebirth': progress = Math.min(100, G.rebirth / unlock.target * 100); progressText = G.rebirth + '/' + unlock.target + ' rebirths'; break;
+        case 'kills': progress = Math.min(100, G.totalKills / unlock.target * 100); progressText = fmt(G.totalKills) + '/' + fmt(unlock.target) + ' kills'; break;
+        case 'prestige': progress = Math.min(100, G.prestige / unlock.target * 100); progressText = G.prestige + '/' + unlock.target + ' prestige'; break;
+        case 'gold_total': progress = Math.min(100, G.totalGoldEarned / unlock.target * 100); progressText = fmt(G.totalGoldEarned) + '/' + fmt(unlock.target) + ' or'; break;
+        case 'zone_clear': progress = Math.min(100, (G.highestZone + 1) / (unlock.target + 1) * 100); progressText = 'Zone ' + (G.highestZone + 1) + '/' + (unlock.target + 1); break;
+        case 'world_boss_dmg': const wbDmg = G.totalWorldBossDmg || 0; progress = Math.min(100, wbDmg / unlock.target * 100); progressText = fmt(wbDmg) + '/' + fmt(unlock.target) + ' dmg'; break;
+        case 'spells_cast': const totalSpells = Object.values(G.spellsCast || {}).reduce((a, b) => a + b, 0); progress = Math.min(100, totalSpells / unlock.target * 100); progressText = totalSpells + '/' + unlock.target + ' sorts'; break;
+        case 'all_common_pets': const commonCount = PETS.filter(q => q.rarity === 'common' && G.ownedPets.includes(q.id)).length; const commonTotal = PETS.filter(q => q.rarity === 'common').length; progress = commonCount / commonTotal * 100; progressText = commonCount + '/' + commonTotal + ' communs'; break;
+        case 'all_rare_pets': const rareCount = PETS.filter(q => q.rarity === 'rare' && G.ownedPets.includes(q.id)).length; const rareTotal = PETS.filter(q => q.rarity === 'rare').length; progress = rareCount / rareTotal * 100; progressText = rareCount + '/' + rareTotal + ' rares'; break;
+        case 'all_epic_pets': const epicCount = PETS.filter(q => q.rarity === 'epic' && G.ownedPets.includes(q.id)).length; const epicTotal = PETS.filter(q => q.rarity === 'epic').length; progress = epicCount / epicTotal * 100; progressText = epicCount + '/' + epicTotal + ' épiques'; break;
+        case 'all_pets': const allCount = PETS.filter(q => q.rarity !== 'legendary' && G.ownedPets.includes(q.id)).length; const allTotal = PETS.filter(q => q.rarity !== 'legendary').length; progress = allCount / allTotal * 100; progressText = allCount + '/' + allTotal + ' pets'; break;
+        case 'infinity_prestige': progress = Math.min(100, (G.infinityPrestige || 0) / unlock.target * 100); progressText = (G.infinityPrestige || 0) + '/' + unlock.target + ' infinity'; break;
+        case 'world_boss_kills': progress = Math.min(100, (G.worldBossKills || 0) / unlock.target * 100); progressText = (G.worldBossKills || 0) + '/' + unlock.target + ' boss kills'; break;
+        default: progressText = unlock.desc;
+      }
+
+      html += \`
+        <div style="display:flex;align-items:center;gap:12px;padding:10px;margin-bottom:6px;background:rgba(0,0,0,0.3);border:2px solid \${rarityInfo.color};border-radius:8px;box-shadow:\${isLegendary ? '0 0 15px ' + rarityInfo.color + '40' : 'none'};">
+          <div style="font-size:2em;filter:grayscale(0.8);opacity:0.6;">\${p.icon}</div>
+          <div style="flex:1;">
+            <div style="font-family:'Cinzel',serif;color:\${rarityInfo.color};font-size:0.9em;">
+              \${p.name}
+              <span style="font-size:0.65em;background:\${rarityInfo.color};color:#000;padding:1px 5px;border-radius:3px;margin-left:4px;">\${rarityInfo.name}</span>
+            </div>
+            <div style="font-size:0.8em;color:#888;">\${p.desc}</div>
+            <div style="font-size:0.7em;color:\${rarityInfo.color};margin-top:4px;">🔒 \${unlock.desc}</div>
+            <div style="background:#1a1a1a;height:6px;border-radius:3px;margin-top:4px;overflow:hidden;">
+              <div style="height:100%;width:\${progress}%;background:\${rarityInfo.color};transition:width 0.3s;"></div>
+            </div>
+            <div style="font-size:0.6em;color:#666;margin-top:2px;">\${progressText} (\${Math.floor(progress)}%)</div>
           </div>
         </div>
       \`;
@@ -2598,6 +4843,532 @@ function rebuildStats() {
       <div class="stat-row"><span class="stat-label">\${s.icon} \${s.name}</span><span class="stat-value">Niv.\${G.spellLevels[s.id]} — \${fmt(getSpellDmg(s.id))} dmg — \${getSpellCD(s.id).toFixed(2)}s</span></div>
     \`).join('')}
   \`;
+}
+
+// ============ SHINY PETS (tryMakeShiny) ============
+function tryMakeShiny(petId) {
+  // Check special conditions first
+  const special = SHINY_SPECIAL[petId];
+  if (special) {
+    if (special.condition === 'world_boss' && worldBossState.active) {
+      return true;  // Guaranteed shiny during world boss
+    }
+    if (special.condition === 'rebirths_1000' && G.totalKills >= 1000000) {
+      return true;  // Approximation: high total kills
+    }
+    if (special.condition === 'all_zones_fast') {
+      // Check if all zones completed quickly (simplified)
+      const allFast = Object.values(G.zoneCompletionTimes || {}).length >= 24;
+      if (allFast) return true;
+    }
+  }
+  // Standard 2% chance
+  return Math.random() < SHINY_RATE;
+}
+
+// ============ MULTI-PET BONUS ============
+function getMultiPetBonus(type, spell) {
+  let totalBonus = 0;
+  const activePets = getActivePets();
+
+  activePets.forEach(petId => {
+    const pet = PETS.find(p => p.id === petId);
+    if (!pet) return;
+
+    // Check for type match or 'all' type (for legendary pets with multiple effects)
+    if (pet.effect.type === type || pet.effect.type === 'all') {
+      if (spell && pet.effect.spell && pet.effect.spell !== spell) return;
+      const lvl = G.petLevels[petId] || 1;
+      const rarityMult = (PET_RARITIES[pet.rarity] || PET_RARITIES.common).mult;
+      let bonus = pet.effect.val * (1 + (lvl - 1) * 0.2);
+      // Apply shiny multiplier AND rarity multiplier
+      bonus *= getShinyMultiplier(petId) * rarityMult;
+      totalBonus += bonus;
+    }
+  });
+
+  // Add synergy bonuses
+  totalBonus += getSynergyBonus(type, spell);
+
+  return totalBonus;
+}
+
+// ============ SYNERGY BONUS ============
+function getSynergyBonus(type, spell) {
+  let bonus = 0;
+  const synergies = getActiveSynergies();
+
+  synergies.forEach(syn => {
+    if (syn.effect.type === type) {
+      if (spell && syn.effect.spell && syn.effect.spell !== spell) return;
+      bonus += syn.effect.val;
+    }
+  });
+
+  return bonus;
+}
+
+// ============ SPELL EVOLUTIONS ============
+function getSpellEvolution(spellId) {
+  const evolutions = SPELL_EVOLUTIONS[spellId];
+  if (!evolutions) return null;
+
+  const level = G.spellLevels[spellId] || 1;
+  let currentEvo = null;
+
+  for (const evo of evolutions) {
+    if (level >= evo.level) {
+      currentEvo = evo;
+    }
+  }
+
+  return currentEvo;
+}
+
+function getSpellEvolutionBonus(spellId) {
+  const evo = getSpellEvolution(spellId);
+  return evo ? evo.bonusDmg : 0;
+}
+
+// ============ RELICS (Eternals) ============
+function getRelicLevel(relicId) {
+  return G.relics && G.relics[relicId] ? G.relics[relicId] : 0;
+}
+
+function getRelicCost(relicId) {
+  const relic = RELICS.find(r => r.id === relicId);
+  if (!relic) return Infinity;
+  const lvl = getRelicLevel(relicId);
+  if (lvl >= relic.maxLvl) return Infinity;
+  return relic.costs[lvl];
+}
+
+function buyRelic(relicId) {
+  const cost = getRelicCost(relicId);
+  if (G.starDust < cost) { toast('Pas assez de Star Dust !'); return; }
+
+  G.starDust -= cost;
+  if (!G.relics) G.relics = {};
+  G.relics[relicId] = (G.relics[relicId] || 0) + 1;
+
+  const relic = RELICS.find(r => r.id === relicId);
+  toast('✨ ' + relic.name + ' amélioré niveau ' + G.relics[relicId] + ' !');
+  rebuildEternals();
+}
+
+function getRelicBonus(type) {
+  let bonus = 0;
+  RELICS.forEach(relic => {
+    if (relic.effect.type === type) {
+      const lvl = getRelicLevel(relic.id);
+      bonus += lvl * relic.effect.perLevel;
+    }
+  });
+  return bonus;
+}
+
+function awardStarDust(amount, reason) {
+  // Apply orb bonus
+  const orbBonus = getRelicBonus('stardust');
+  const finalAmount = Math.floor(amount * (1 + orbBonus));
+
+  G.starDust = (G.starDust || 0) + finalAmount;
+  G.totalStarDust = (G.totalStarDust || 0) + finalAmount;
+
+  if (reason) {
+    toast('⭐ +' + finalAmount + ' Star Dust (' + reason + ')');
+  }
+
+  // Check achievement
+  checkAchievement('eternal_one', G.totalStarDust);
+  showEternalsNotif();
+}
+
+// ============ ACHIEVEMENTS SYSTEM ============
+function hasAchievement(id) {
+  return G.achievements && G.achievements.includes(id);
+}
+
+function checkAchievement(id, value) {
+  if (hasAchievement(id)) return;
+
+  const ach = ACHIEVEMENTS.find(a => a.id === id);
+  if (!ach) return;
+
+  // Update progress
+  if (!G.achievementProgress) G.achievementProgress = {};
+  G.achievementProgress[id] = Math.max(G.achievementProgress[id] || 0, value);
+
+  // Check if completed
+  if (value >= ach.target) {
+    unlockAchievement(id);
+  }
+}
+
+function checkAchievementIncrement(id, amount) {
+  if (hasAchievement(id)) return;
+
+  const ach = ACHIEVEMENTS.find(a => a.id === id);
+  if (!ach) return;
+
+  if (!G.achievementProgress) G.achievementProgress = {};
+  G.achievementProgress[id] = (G.achievementProgress[id] || 0) + amount;
+
+  if (G.achievementProgress[id] >= ach.target) {
+    unlockAchievement(id);
+  }
+}
+
+function unlockAchievement(id) {
+  if (hasAchievement(id)) return;
+
+  const ach = ACHIEVEMENTS.find(a => a.id === id);
+  if (!ach) return;
+
+  if (!G.achievements) G.achievements = [];
+  G.achievements.push(id);
+
+  // Give rewards
+  if (ach.reward.gems) {
+    G.gems = (G.gems || 0) + ach.reward.gems;
+  }
+  if (ach.reward.starDust) {
+    G.starDust = (G.starDust || 0) + ach.reward.starDust;
+    G.totalStarDust = (G.totalStarDust || 0) + ach.reward.starDust;
+  }
+
+  toast('🏆 Achievement : ' + ach.name + ' !');
+  showAchieveNotif();
+
+  // Check category completion bonus
+  checkCategoryBonus(ach.category);
+}
+
+function checkCategoryBonus(category) {
+  const categoryAchs = ACHIEVEMENTS.filter(a => a.category === category);
+  const allComplete = categoryAchs.every(a => hasAchievement(a.id));
+
+  if (allComplete) {
+    const catInfo = ACHIEVEMENT_CATEGORIES[category];
+    toast('🎊 Catégorie ' + catInfo.name + ' complète ! +2% ' + catInfo.bonus.type);
+  }
+}
+
+function getCategoryBonus(type) {
+  let bonus = 0;
+  Object.entries(ACHIEVEMENT_CATEGORIES).forEach(([cat, info]) => {
+    if (info.bonus.type === type) {
+      const categoryAchs = ACHIEVEMENTS.filter(a => a.category === cat);
+      const allComplete = categoryAchs.every(a => hasAchievement(a.id));
+      if (allComplete) {
+        bonus += info.bonus.val;
+      }
+    }
+  });
+  return bonus;
+}
+
+function getAchievementProgress(id) {
+  return G.achievementProgress && G.achievementProgress[id] ? G.achievementProgress[id] : 0;
+}
+
+// ============ DAILY CHALLENGES ============
+function generateDailyChallenges() {
+  const now = Date.now();
+  const midnight = new Date();
+  midnight.setUTCHours(0, 0, 0, 0);
+
+  if (G.lastDailyReset && G.lastDailyReset >= midnight.getTime()) {
+    return; // Already generated today
+  }
+
+  G.dailyChallenges = [];
+  G.lastDailyReset = now;
+
+  // Pick 3 random challenge types
+  const shuffled = [...DAILY_CHALLENGE_TYPES].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, 3);
+
+  selected.forEach((type, i) => {
+    const target = type.targets[Math.floor(Math.random() * type.targets.length)];
+    G.dailyChallenges.push({
+      id: type.id + '_' + i,
+      type: type.id,
+      name: type.name,
+      icon: type.icon,
+      desc: type.desc.replace('{target}', fmt(target)),
+      target: target,
+      progress: 0,
+      completed: false
+    });
+  });
+
+  toast('📅 Nouveaux défis quotidiens !');
+}
+
+function updateDailyChallenge(type, amount) {
+  if (!G.dailyChallenges) return;
+
+  G.dailyChallenges.forEach(challenge => {
+    if (challenge.type === type && !challenge.completed) {
+      challenge.progress += amount;
+
+      if (challenge.progress >= challenge.target) {
+        challenge.completed = true;
+        G.gems = (G.gems || 0) + DAILY_REWARD.gems;
+        awardStarDust(DAILY_REWARD.starDust, 'Défi quotidien');
+        G.totalDailiesCompleted = (G.totalDailiesCompleted || 0) + 1;
+        checkAchievement('daily_1', G.totalDailiesCompleted);
+        checkAchievement('daily_10', G.totalDailiesCompleted);
+        checkAchievement('daily_50', G.totalDailiesCompleted);
+        checkAchievement('daily_100', G.totalDailiesCompleted);
+        toast('✅ Défi complété : ' + challenge.name + ' !');
+      }
+    }
+  });
+}
+
+// ============ INFINITY PRESTIGE ============
+function canInfinityPrestige() {
+  return G.prestige >= 10;
+}
+
+function doInfinityPrestige() {
+  if (!canInfinityPrestige()) {
+    toast('Atteins Prestige 10 d\\'abord !');
+    return;
+  }
+
+  // Store permanent values
+  const newInfinity = (G.infinityPrestige || 0) + 1;
+  const newInfinityMult = Math.pow(1.5, newInfinity);
+  const keepAchievements = [...(G.achievements || [])];
+  const keepAchievementProgress = JSON.parse(JSON.stringify(G.achievementProgress || {}));
+  const keepTotalStarDust = G.totalStarDust || 0;
+  const keepTotalKills = G.totalKills || 0;
+  const keepTotalGold = G.totalGoldEarned || 0;
+  const keepStartTime = G.startTime;
+  const keepShinyPets = [...(G.shinyPets || [])];  // Shiny pets persist!
+
+  // Hard reset everything
+  G = defaultState();
+
+  // Restore permanent values
+  G.infinityPrestige = newInfinity;
+  G.infinityMult = newInfinityMult;
+  G.achievements = keepAchievements;
+  G.achievementProgress = keepAchievementProgress;
+  G.totalStarDust = keepTotalStarDust;
+  G.totalKills = keepTotalKills;
+  G.totalGoldEarned = keepTotalGold;
+  G.startTime = keepStartTime;
+  G.shinyPets = keepShinyPets;
+
+  spawnMob();
+  save();
+  toast('♾️ Infinity Prestige ' + newInfinity + ' ! x' + newInfinityMult.toFixed(1) + ' permanent !');
+  rebuildAll();
+}
+
+// ============ NOTIFICATIONS ============
+function showPetNotif() {
+  const notif = document.getElementById('petNotif');
+  if (notif) notif.style.display = 'flex';
+}
+
+function clearPetNotif() {
+  const notif = document.getElementById('petNotif');
+  if (notif) notif.style.display = 'none';
+}
+
+function showEternalsNotif() {
+  const notif = document.getElementById('eternalsNotif');
+  if (notif) notif.style.display = 'flex';
+}
+
+function clearEternalsNotif() {
+  const notif = document.getElementById('eternalsNotif');
+  if (notif) notif.style.display = 'none';
+}
+
+function showAchieveNotif() {
+  const notif = document.getElementById('achieveNotif');
+  if (notif) notif.style.display = 'flex';
+}
+
+function clearAchieveNotif() {
+  const notif = document.getElementById('achieveNotif');
+  if (notif) notif.style.display = 'none';
+}
+
+// ============ REBUILD ETERNALS UI ============
+function rebuildEternals() {
+  const el = document.getElementById('relicsList');
+  const dailyEl = document.getElementById('dailyChallengesList');
+  const infinityEl = document.getElementById('infinityPrestigeBox');
+  const sdVal = document.getElementById('starDustVal');
+
+  if (sdVal) sdVal.textContent = fmt(G.starDust || 0);
+
+  // Update top bar star dust
+  const sdTop = document.getElementById('starDustTopVal');
+  if (sdTop) sdTop.textContent = fmt(G.starDust || 0);
+
+  if (el) {
+    let html = '';
+    RELICS.forEach(relic => {
+      const lvl = getRelicLevel(relic.id);
+      const cost = getRelicCost(relic.id);
+      const isMax = lvl >= relic.maxLvl;
+      const currentBonus = lvl * relic.effect.perLevel * 100;
+
+      html += \`
+        <div class="relic-card \${isMax ? 'maxed' : ''}">
+          <div class="relic-icon">\${relic.icon}</div>
+          <div class="relic-info">
+            <div class="relic-name">\${relic.name}</div>
+            <div class="relic-desc">\${relic.desc}</div>
+            <div class="relic-level">
+              \${Array.from({length: relic.maxLvl}, (_, i) =>
+                '<div class="relic-pip ' + (i < lvl ? 'filled' : '') + '"></div>'
+              ).join('')}
+            </div>
+            <div style="font-size:0.75em;color:#888;margin-top:4px;">
+              Bonus actuel : <span style="color:var(--gold);">+\${currentBonus.toFixed(0)}%</span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            \${isMax
+              ? '<div style="color:var(--green);font-family:\\'Cinzel\\',serif;">✅ MAX</div>'
+              : \`<button class="btn btn-sm" onclick="buyRelic('\${relic.id}')" \${G.starDust < cost ? 'disabled' : ''}>
+                  ⭐ \${fmt(cost)}
+                </button>\`
+            }
+          </div>
+        </div>
+      \`;
+    });
+    el.innerHTML = html;
+  }
+
+  // Daily Challenges
+  if (dailyEl) {
+    generateDailyChallenges();  // Generate if needed
+
+    let html = '';
+    if (G.dailyChallenges && G.dailyChallenges.length > 0) {
+      G.dailyChallenges.forEach(challenge => {
+        const pct = Math.min(100, (challenge.progress / challenge.target) * 100);
+        html += \`
+          <div class="daily-challenge \${challenge.completed ? 'completed' : ''}">
+            <div class="daily-icon">\${challenge.icon}</div>
+            <div class="daily-info">
+              <div class="daily-name">\${challenge.name}</div>
+              <div style="font-size:0.8em;color:#aaa;">\${challenge.desc}</div>
+              <div class="daily-progress-bar">
+                <div class="daily-progress-fill" style="width:\${pct}%"></div>
+              </div>
+              <div style="font-size:0.7em;color:#888;margin-top:2px;">
+                \${fmt(challenge.progress)} / \${fmt(challenge.target)} \${challenge.completed ? '✅' : ''}
+              </div>
+            </div>
+            <div class="daily-reward">
+              <span>💎 \${DAILY_REWARD.gems}</span>
+              <span>⭐ \${DAILY_REWARD.starDust}</span>
+            </div>
+          </div>
+        \`;
+      });
+    } else {
+      html = '<div style="text-align:center;color:#555;padding:15px;">Les défis apparaîtront à minuit UTC !</div>';
+    }
+    dailyEl.innerHTML = html;
+  }
+
+  // Infinity Prestige
+  if (infinityEl) {
+    const canDo = canInfinityPrestige();
+    const currentInfinity = G.infinityPrestige || 0;
+    const currentMult = G.infinityMult || 1;
+    const nextMult = Math.pow(1.5, currentInfinity + 1);
+
+    infinityEl.innerHTML = \`
+      <div style="font-family:'Cinzel',serif;color:#9c27b0;font-size:1em;margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid rgba(156,39,176,0.3);">
+        ♾️ Infinity Prestige
+      </div>
+      <div style="font-size:0.8em;color:#aaa;margin-bottom:10px;">
+        Reset TOTAL (incluant reliques). Multiplicateur permanent x1.5 par infinity. Garde achievements & shiny pets.
+      </div>
+      \${currentInfinity > 0 ? \`
+        <div class="infinity-badge" style="margin-bottom:10px;">
+          ♾️ Infinity x\${currentInfinity} — Mult. x\${currentMult.toFixed(1)}
+        </div>
+      \` : ''}
+      <div class="prestige-tier \${canDo ? 'available' : ''}">
+        <div class="pt-name">Infinity Prestige \${currentInfinity + 1}</div>
+        <div class="pt-req">Requiert : Prestige 10 (actuel : \${G.prestige || 0})</div>
+        <div class="pt-reward">Multiplicateur : x\${currentMult.toFixed(1)} → x\${nextMult.toFixed(1)}</div>
+        \${canDo
+          ? '<button class="btn btn-purple" onclick="doInfinityPrestige()" style="margin-top:8px;">♾️ Activer Infinity Prestige</button>'
+          : '<div style="font-size:0.8em;color:#555;margin-top:5px;">🔒 Atteins Prestige 10</div>'}
+      </div>
+    \`;
+  }
+}
+
+// ============ REBUILD ACHIEVEMENTS UI ============
+function rebuildAchievements() {
+  const el = document.getElementById('achievementCategories');
+  if (!el) return;
+
+  let html = '';
+
+  Object.entries(ACHIEVEMENT_CATEGORIES).forEach(([catId, catInfo]) => {
+    const categoryAchs = ACHIEVEMENTS.filter(a => a.category === catId);
+    const completedCount = categoryAchs.filter(a => hasAchievement(a.id)).length;
+    const allComplete = completedCount === categoryAchs.length;
+
+    html += \`
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:1em;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+          <span>\${catInfo.icon}</span>
+          <span>\${catInfo.name}</span>
+          <span style="font-size:0.8em;color:#888;">(\${completedCount}/\${categoryAchs.length})</span>
+          \${allComplete ? '<span style="color:var(--green);">✅ +2% bonus</span>' : ''}
+        </div>
+    \`;
+
+    categoryAchs.forEach(ach => {
+      const done = hasAchievement(ach.id);
+      const progress = getAchievementProgress(ach.id);
+      const pct = Math.min(100, (progress / ach.target) * 100);
+
+      html += \`
+        <div class="achievement-card \${done ? 'unlocked' : progress > 0 ? '' : 'locked'}">
+          <div class="achievement-icon">\${ach.icon}</div>
+          <div class="achievement-info">
+            <div class="achievement-name">\${ach.name}</div>
+            <div class="achievement-desc">\${ach.desc}</div>
+            \${!done ? \`
+              <div class="achievement-progress">
+                <div class="achievement-progress-fill" style="width:\${pct}%"></div>
+              </div>
+              <div style="font-size:0.7em;color:#888;margin-top:2px;">\${fmt(progress)} / \${fmt(ach.target)}</div>
+            \` : ''}
+            <div class="achievement-reward">
+              \${ach.reward.gems ? '<span>💎 ' + ach.reward.gems + '</span>' : ''}
+              \${ach.reward.starDust ? '<span>⭐ ' + ach.reward.starDust + '</span>' : ''}
+            </div>
+          </div>
+          \${done ? '<div style="color:var(--green);font-size:1.5em;">✅</div>' : ''}
+        </div>
+      \`;
+    });
+
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
 }
 
 // ============ TOAST ============
@@ -3269,6 +6040,15 @@ async function claimBossReward() {
   // Appliquer les récompenses
   G.gems += totalGems;
   G.gold += totalGold;
+
+  // Track world boss stats for secret pet unlocks
+  G.totalWorldBossDmg = (G.totalWorldBossDmg || 0) + myDamage;
+  if (worldBossState.status === 'victory') {
+    G.worldBossKills = (G.worldBossKills || 0) + 1;
+  }
+
+  // Check if any secret pets can now be unlocked
+  checkSecretPetUnlocks();
 
   toast('🎁 +' + totalGems + ' 💎 +' + fmt(totalGold) + ' 🪙' + bonusText);
   save();
@@ -4107,6 +6887,33 @@ if (load()) {
   G.ownedPets.forEach(id => { if (!G.petLevels[id]) G.petLevels[id] = 1; });
   // Init missing talents (for new talents added in updates)
   TALENTS.forEach(t => { if (G.talents[t.id] === undefined) G.talents[t.id] = 0; });
+
+  // ===== MIGRATION: Initialize new systems for old saves =====
+  // Eternals
+  if (G.starDust === undefined) G.starDust = 0;
+  if (G.totalStarDust === undefined) G.totalStarDust = 0;
+  if (!G.relics) G.relics = {};
+  if (G.infinityPrestige === undefined) G.infinityPrestige = 0;
+  if (G.infinityMult === undefined) G.infinityMult = 1;
+  // Shiny Pets
+  if (!G.shinyPets) G.shinyPets = [];
+  // Multi-pets: migrate old activePet to new activePets array
+  if (!G.activePets) {
+    G.activePets = G.activePet ? [G.activePet] : [];
+  }
+  if (G.petSlots === undefined) G.petSlots = 1;
+  // Achievements
+  if (!G.achievements) G.achievements = [];
+  if (!G.achievementProgress) G.achievementProgress = {};
+  // Daily challenges
+  if (!G.dailyChallenges) G.dailyChallenges = [];
+  if (!G.lastDailyReset) G.lastDailyReset = 0;
+  // Spell tracking
+  if (!G.spellsCast) G.spellsCast = {};
+  // Zone completion times
+  if (!G.zoneCompletionTimes) G.zoneCompletionTimes = {};
+  if (!G.zone25FirstClear) G.zone25FirstClear = 0;
+
   calcOffline();
   spawnMob();
 } else {
