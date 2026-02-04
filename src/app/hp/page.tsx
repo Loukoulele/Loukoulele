@@ -57,6 +57,12 @@ export default function WandIdle() {
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
+/* GPU acceleration for animated elements */
+.mob-hp-fill, .spell-cd-radial, .buff-item, .shiny-sparkle {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation;
@@ -3846,6 +3852,17 @@ function doPrestige() {
 // ============ TICK ============
 let lastTime = performance.now();
 
+// DOM element cache for performance
+let _domCache = {};
+function getEl(id) {
+  if (!_domCache[id]) _domCache[id] = document.getElementById(id);
+  return _domCache[id];
+}
+
+// Cached calculations (updated every 0.3s)
+let _cachedDPS = 0;
+let _cachedGoldPS = 0;
+
 function tick(now) {
   requestAnimationFrame(tick);
   if (!G) return;
@@ -3853,6 +3870,7 @@ function tick(now) {
   lastTime = now;
   tickSpells(dt);
   tickWorldBoss(dt);
+
   // Auto-advance
   if (hasShop('auto_advance') && G.autoAdvanceEnabled) {
     const next = G.unlockedZones;
@@ -3870,15 +3888,25 @@ function tick(now) {
       }
     }
   }
-  // Light refresh: update disabled states without rebuilding DOM
+
+  // Slow refresh (0.3s): buttons, achievements, cached calcs
   G._refreshTimer = (G._refreshTimer || 0) + dt;
   if (G._refreshTimer >= 0.3) {
     G._refreshTimer = 0;
+    // Update cached calculations
+    _cachedDPS = getDPS();
+    _cachedGoldPS = getGoldPerSec();
     refreshButtons();
     updateMiniBattleInfo();
+    // Check gem achievements here instead of every frame
+    checkAchievement('gem_collector', G.gems);
+    checkAchievement('gem_hoarder', G.gems);
   }
+
+  // Save every 5s
   G._saveTimer = (G._saveTimer || 0) + dt;
   if (G._saveTimer >= 5) { G._saveTimer = 0; save(); }
+
   // Time achievements check every 60 seconds
   G._timeAchievTimer = (G._timeAchievTimer || 0) + dt;
   if (G._timeAchievTimer >= 60) {
@@ -3890,51 +3918,67 @@ function tick(now) {
     checkAchievement('play_100h', playTime);
     checkAchievement('play_1000h', playTime);
   }
-  updateUI();
+
+  // UI update throttled to ~20fps for smoother visuals
+  G._uiTimer = (G._uiTimer || 0) + dt;
+  if (G._uiTimer >= 0.05) {
+    G._uiTimer = 0;
+    updateUI();
+  }
 }
 
 // ============ UI LIGHT ============
 function updateUI() {
-  document.getElementById('goldVal').textContent = fmt(G.gold);
-  document.getElementById('goldPs').textContent = '(' + fmt(getGoldPerSec()) + '/s)';
-  document.getElementById('gemsVal').textContent = fmt(G.gems);
-  // Check gem achievements
-  checkAchievement('gem_collector', G.gems);
-  checkAchievement('gem_hoarder', G.gems);
-  document.getElementById('tpVal').textContent = G.talentPoints;
-  document.getElementById('prestigeVal').textContent = G.prestige;
-  // Update Star Dust
-  const sdTop = document.getElementById('starDustTopVal');
+  // Use cached DOM elements and calculations for performance
+  const el = getEl;
+
+  // Top bar currencies
+  el('goldVal').textContent = fmt(G.gold);
+  el('goldPs').textContent = '(' + fmt(_cachedGoldPS) + '/s)';
+  el('gemsVal').textContent = fmt(G.gems);
+  el('tpVal').textContent = G.talentPoints;
+  el('prestigeVal').textContent = G.prestige;
+
+  const sdTop = el('starDustTopVal');
   if (sdTop) sdTop.textContent = fmt(G.starDust || 0);
 
+  // Zone info (only update if zone changed)
   const zone = ZONES[G.currentZone] || ZONES[ZONES.length - 1];
-  document.getElementById('zoneName').textContent = 'Zone ' + (G.currentZone + 1) + ' — ' + zone.name;
-  document.getElementById('zoneDesc').textContent = zone.mob.icon + ' ' + zone.mob.name;
+  const zoneNameEl = el('zoneName');
+  const newZoneName = 'Zone ' + (G.currentZone + 1) + ' — ' + zone.name;
+  if (zoneNameEl.textContent !== newZoneName) {
+    zoneNameEl.textContent = newZoneName;
+    el('zoneDesc').textContent = zone.mob.icon + ' ' + zone.mob.name;
+    el('mobName').textContent = zone.mob.name;
+  }
 
-  // Next gate cost progress
+  // Gate progress
   const nextGate = G.currentZone + 1;
+  const zoneProgressEl = el('zoneProgress');
   if (nextGate < ZONES.length) {
     const nc = getGateCost(nextGate);
     const pct = Math.min(100, G.gold / nc * 100).toFixed(0);
-    document.getElementById('zoneProgress').textContent = 'Prochaine porte : ' + fmt(G.gold) + ' / ' + fmt(nc) + ' 🪙 (' + pct + '%)';
-  } else {
-    document.getElementById('zoneProgress').textContent = 'Zone finale atteinte !';
+    zoneProgressEl.textContent = 'Prochaine porte : ' + fmt(G.gold) + ' / ' + fmt(nc) + ' 🪙 (' + pct + '%)';
+  } else if (zoneProgressEl.textContent !== 'Zone finale atteinte !') {
+    zoneProgressEl.textContent = 'Zone finale atteinte !';
   }
 
-  document.getElementById('mobName').textContent = zone.mob.name;
+  // Mob HP (always update - combat is real-time)
   const hpPct = Math.max(0, G.mobHp / G.mobMaxHp * 100);
-  document.getElementById('mobHpFill').style.width = hpPct + '%';
-  document.getElementById('mobHpText').textContent = fmt(Math.max(0, G.mobHp)) + ' / ' + fmt(G.mobMaxHp);
-  document.getElementById('killCounter').textContent = 'Kills : ' + fmt(G.kills);
+  el('mobHpFill').style.width = hpPct + '%';
+  el('mobHpText').textContent = fmt(Math.max(0, G.mobHp)) + ' / ' + fmt(G.mobMaxHp);
+  el('killCounter').textContent = 'Kills : ' + fmt(G.kills);
 
-  getSpells().forEach(spell => {
-    const cdOverlay = document.getElementById('spell-cd-' + spell.id);
-    const cdText = document.getElementById('spell-cdtext-' + spell.id);
-    const dmgText = document.getElementById('spell-dmg-' + spell.id);
-    if (!cdOverlay) return;
-    const maxCd = getSpellCD(spell.id);
+  // Spell cooldowns (use cached spell list)
+  const spells = getSpells();
+  for (let i = 0; i < spells.length; i++) {
+    const spell = spells[i];
+    const cdOverlay = el('spell-cd-' + spell.id);
+    if (!cdOverlay) continue;
+    const cdText = el('spell-cdtext-' + spell.id);
     const curCd = G.spellCDs[spell.id];
     if (curCd > 0) {
+      const maxCd = getSpellCD(spell.id);
       cdOverlay.style.height = (curCd / maxCd * 100) + '%';
       cdText.textContent = curCd.toFixed(1) + 's';
       cdText.style.display = '';
@@ -3942,74 +3986,110 @@ function updateUI() {
       cdOverlay.style.height = '0%';
       cdText.style.display = 'none';
     }
-    if (dmgText) dmgText.textContent = '⚔️' + fmt(getSpellDmg(spell.id));
-  });
+  }
 
-  const tpEl = document.getElementById('tpAvailable');
+  // Talent points
+  const tpEl = el('tpAvailable');
   if (tpEl) tpEl.textContent = G.talentPoints;
 
-  const dpsEl = document.getElementById('recapDps');
-  if (dpsEl) dpsEl.textContent = fmt(getDPS());
+  // DPS recap
+  const dpsEl = el('recapDps');
+  if (dpsEl) dpsEl.textContent = fmt(_cachedDPS);
 
-  // Update buff timers in recap
-  SHOP_CONSUMABLES.forEach(c => {
-    const el = document.getElementById('buff-' + c.id);
+  // Bottom progress bar (use cached values)
+  const bpZone = el('bpZone');
+  if (bpZone) {
+    bpZone.textContent = G.currentZone + 1;
+    el('bpKills').textContent = fmt(G.kills);
+    el('bpDps').textContent = fmt(_cachedDPS);
+    el('bpGoldPs').textContent = fmt(_cachedGoldPS);
+  }
+}
+
+// Separate slower updates (called every 0.3s from refreshButtons)
+function updateSlowUI() {
+  // Buff timers in recap
+  for (let i = 0; i < SHOP_CONSUMABLES.length; i++) {
+    const c = SHOP_CONSUMABLES[i];
+    const el = getEl('buff-' + c.id);
     if (el) {
       const rem = buffRemaining(c.id);
       if (rem > 0) { el.style.display = ''; el.textContent = c.icon + ' ' + rem + 's'; }
       else { el.style.display = 'none'; }
     }
-  });
-
-  // Update active buffs bar
+  }
+  // Active buffs bar
   updateActiveBuffsBar();
-
-  // Update bottom progress bar
-  const bpZone = document.getElementById('bpZone');
-  const bpKills = document.getElementById('bpKills');
-  const bpDps = document.getElementById('bpDps');
-  const bpGoldPs = document.getElementById('bpGoldPs');
-  if (bpZone) bpZone.textContent = G.currentZone + 1;
-  if (bpKills) bpKills.textContent = fmt(G.kills);
-  if (bpDps) bpDps.textContent = fmt(getDPS());
-  if (bpGoldPs) bpGoldPs.textContent = fmt(getGoldPerSec());
 }
 
+let _lastBuffKey = '';
 function updateActiveBuffsBar() {
-  const bar = document.getElementById('activeBuffsBar');
+  const bar = getEl('activeBuffsBar');
   if (!bar) return;
 
-  let html = '';
-  SHOP_CONSUMABLES.forEach(c => {
-    if (hasBuff(c.id)) {
-      const rem = buffRemaining(c.id);
-      const mins = Math.floor(rem / 60);
-      const secs = rem % 60;
-      const timeStr = mins > 0 ? mins + ':' + secs.toString().padStart(2, '0') : secs + 's';
-      const expiring = rem <= 10;
+  // Check if buff composition changed (not just timers)
+  const activeBuffIds = SHOP_CONSUMABLES.filter(c => hasBuff(c.id)).map(c => c.id).join(',');
+  const needsRebuild = activeBuffIds !== _lastBuffKey;
 
-      html += '<div class="buff-item ' + (expiring ? 'expiring' : '') + '">';
-      html += '<span class="buff-icon">' + c.icon + '</span>';
-      html += '<div class="buff-info">';
-      html += '<span class="buff-name">' + c.name + '</span>';
-      html += '<span class="buff-timer">' + timeStr + '</span>';
-      html += '</div>';
-      html += '</div>';
+  if (needsRebuild) {
+    _lastBuffKey = activeBuffIds;
+    let html = '';
+    for (let i = 0; i < SHOP_CONSUMABLES.length; i++) {
+      const c = SHOP_CONSUMABLES[i];
+      if (hasBuff(c.id)) {
+        html += '<div class="buff-item" data-buff="' + c.id + '">';
+        html += '<span class="buff-icon">' + c.icon + '</span>';
+        html += '<div class="buff-info">';
+        html += '<span class="buff-name">' + c.name + '</span>';
+        html += '<span class="buff-timer" id="bufftimer-' + c.id + '"></span>';
+        html += '</div></div>';
+      }
     }
-  });
+    bar.innerHTML = html;
+    // Clear timer cache
+    _domCache = {};
+  }
 
-  bar.innerHTML = html;
+  // Update only timers (fast)
+  for (let i = 0; i < SHOP_CONSUMABLES.length; i++) {
+    const c = SHOP_CONSUMABLES[i];
+    if (hasBuff(c.id)) {
+      const timerEl = getEl('bufftimer-' + c.id);
+      if (timerEl) {
+        const rem = buffRemaining(c.id);
+        const mins = Math.floor(rem / 60);
+        const secs = rem % 60;
+        timerEl.textContent = mins > 0 ? mins + ':' + secs.toString().padStart(2, '0') : secs + 's';
+        // Toggle expiring class
+        const buffItem = timerEl.closest('.buff-item');
+        if (buffItem) {
+          if (rem <= 10) buffItem.classList.add('expiring');
+          else buffItem.classList.remove('expiring');
+        }
+      }
+    }
+  }
 }
 
 // ============ UI LIGHT REFRESH (no DOM rebuild) ============
+// Cache button collections for performance
+let _goldButtons = null;
+let _tpButtons = null;
+
 function refreshButtons() {
-  // Update all buttons' disabled state based on current gold/TP
-  document.querySelectorAll('button[data-cost-gold]').forEach(btn => {
-    btn.disabled = G.gold < Number(btn.dataset.costGold);
-  });
-  document.querySelectorAll('button[data-cost-tp]').forEach(btn => {
-    btn.disabled = G.talentPoints < Number(btn.dataset.costTp);
-  });
+  // Cache button queries (only query once)
+  if (!_goldButtons) _goldButtons = document.querySelectorAll('button[data-cost-gold]');
+  if (!_tpButtons) _tpButtons = document.querySelectorAll('button[data-cost-tp]');
+
+  // Update disabled states
+  const gold = G.gold;
+  const tp = G.talentPoints;
+  for (let i = 0; i < _goldButtons.length; i++) {
+    _goldButtons[i].disabled = gold < Number(_goldButtons[i].dataset.costGold);
+  }
+  for (let i = 0; i < _tpButtons.length; i++) {
+    _tpButtons[i].disabled = tp < Number(_tpButtons[i].dataset.costTp);
+  }
   // Update cost text for spells (cost changes after upgrade)
   getSpells().forEach(s => {
     const costEl = document.getElementById('spell-cost-' + s.id);
@@ -4050,6 +4130,8 @@ function refreshButtons() {
       rebuildShop();
     }
   }
+  // Update slow UI elements (buffs bar, etc.)
+  updateSlowUI();
 }
 
 // ============ UI HEAVY ============
@@ -4061,6 +4143,9 @@ function switchPanel(id, btnEl) {
   document.getElementById('panel-' + id).classList.add('active');
   if (btnEl) btnEl.classList.add('active');
   activePanel = id;
+  // Invalidate button cache when switching panels
+  _goldButtons = null;
+  _tpButtons = null;
   if (id === 'zone') { rebuildSpellBar(); rebuildHeroRecap(); }
   if (id === 'gates') rebuildGates();
   if (id === 'spells') rebuildSpellUpgrades();
