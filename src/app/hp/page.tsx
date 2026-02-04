@@ -2717,19 +2717,19 @@ const PETS = [
   // === SECRET PETS (Special unlock conditions, no zone drop) ===
   // hidden: true = condition cachée jusqu'à obtention (comme trophées PSN cachés)
   { id: 'phoenix',   zone: -1, icon: '🔥', name: 'Phoenix',        dropRate: 0, rarity: 'secret', desc: '+60% tous dmg, résurrection', effect: { type: 'all_dmg', val: 0.60 },
-    unlock: { type: 'rebirth', target: 50, desc: '50 Rebirths', hidden: true }},
+    unlock: { type: 'rebirth', target: 500, desc: '500 Rebirths', hidden: true }},
   { id: 'basilisk',  zone: -1, icon: '🐍', name: 'Basilic',        dropRate: 0, rarity: 'secret', desc: '+80% tous dmg', effect: { type: 'all_dmg', val: 0.80 },
-    unlock: { type: 'kills', target: 100000, desc: '100K kills', hidden: true }},
+    unlock: { type: 'kills', target: 10000000, desc: '10M kills', hidden: true }},
   { id: 'thestral',  zone: -1, icon: '🦓', name: 'Sombral',        dropRate: 0, rarity: 'secret', desc: '+20% crit chance', effect: { type: 'crit', val: 0.20 },
-    unlock: { type: 'prestige', target: 1, desc: '1 Prestige', hidden: true }},
+    unlock: { type: 'prestige', target: 5, desc: '5 Prestige', hidden: true }},
   { id: 'niffler',   zone: -1, icon: '🦡', name: 'Niffleur',       dropRate: 0, rarity: 'secret', desc: '+100% gold', effect: { type: 'gold', val: 1.00 },
-    unlock: { type: 'gold_total', target: 1e12, desc: '1T or total', hidden: true }},
+    unlock: { type: 'gold_total', target: 1e15, desc: '1Q or total', hidden: true }},
   { id: 'acromantula',zone: -1,icon: '🕸️', name: 'Acromantule',    dropRate: 0, rarity: 'secret', desc: '-25% tous CD', effect: { type: 'all_cd', val: 0.25 },
     unlock: { type: 'zone_clear', target: 24, desc: 'Clear Zone 25' }},  // VISIBLE
   { id: 'dementor',  zone: -1, icon: '🖤', name: 'Détraqueur',     dropRate: 0, rarity: 'secret', desc: '+40% tous dmg, -10% CD', effect: { type: 'all', val: 0.40, cd: 0.10 },
-    unlock: { type: 'world_boss_dmg', target: 1e12, desc: '1T dmg World Boss', hidden: true }},
+    unlock: { type: 'world_boss_dmg', target: 1e15, desc: '1Q dmg World Boss', hidden: true }},
   { id: 'boggart',   zone: -1, icon: '👤', name: 'Épouvantard',    dropRate: 0, rarity: 'secret', desc: '+30% TP', effect: { type: 'tp', val: 0.30 },
-    unlock: { type: 'spells_cast', target: 10000, desc: '10K sorts lancés', hidden: true }},
+    unlock: { type: 'spells_cast', target: 1000000, desc: '1M sorts lancés', hidden: true }},
   { id: 'house_elf', zone: -1, icon: '🧝', name: 'Elfe de Maison', dropRate: 0, rarity: 'secret', desc: '+50% gold, +20% TP', effect: { type: 'gold', val: 0.50, tp: 0.20 },
     unlock: { type: 'all_common_pets', target: 1, desc: 'Tous pets communs' }},  // VISIBLE
 
@@ -2741,9 +2741,9 @@ const PETS = [
   { id: 'godlike',   zone: -1, icon: '👑', name: 'Entité Divine',  dropRate: 0, rarity: 'legendary', desc: '+300% tous dmg, +100% gold', effect: { type: 'all', val: 3.00, gold: 1.00 },
     unlock: { type: 'all_pets', target: 1, desc: 'TOUS les pets', hidden: true }},
   { id: 'timekeeper',zone: -1, icon: '⌛', name: 'Gardien du Temps',dropRate: 0, rarity: 'legendary', desc: '-50% tous CD', effect: { type: 'all_cd', val: 0.50 },
-    unlock: { type: 'infinity_prestige', target: 1, desc: 'Infinity Prestige', hidden: true }},
+    unlock: { type: 'infinity_prestige', target: 3, desc: '3 Infinity Prestige', hidden: true }},
   { id: 'worldeater',zone: -1, icon: '🌍', name: 'Dévoreur de Mondes',dropRate: 0, rarity: 'legendary', desc: '+500% tous dmg en World Boss', effect: { type: 'boss_dmg', val: 5.00 },
-    unlock: { type: 'world_boss_kills', target: 10, desc: '10 World Boss tués', hidden: true }},
+    unlock: { type: 'world_boss_kills', target: 50, desc: '50 World Boss tués', hidden: true }},
 ];
 
 // Pet rarity colors and multipliers
