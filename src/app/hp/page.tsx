@@ -3001,29 +3001,29 @@ function petUpgradeCost(pet, level) {
 
 // ============ WORLD BOSS CONFIG ============
 const WORLD_BOSS_CONFIG = {
-  spawnInterval: 20 * 60 * 1000,  // 20 minutes
+  spawnInterval: 30 * 60 * 1000,  // 30 minutes entre chaque boss
   duration: 5 * 60 * 1000,         // 5 minutes pour tuer
-  baseHp: 50_000_000_000,          // 50 MILLIARDS HP de base (très difficile)
+  baseHp: 500_000_000_000_000,     // 500 TRILLIONS HP (x10000 plus dur)
   attackCooldown: 0.5,             // 0.5s entre chaque attaque
 
   // Scaling dynamique (style MMO)
   // HP effectif = baseHp * bossMultiplier * (1 + scalingFactor * sqrt(nombreJoueurs - 1))
-  // Donc 1 joueur = x1, 10 joueurs = x1.9, 25 joueurs = x2.4, 50 joueurs = x3, 100 joueurs = x4
-  scalingFactor: 0.3,
+  // Donc 1 joueur = x1, 10 joueurs = x2.35, 25 joueurs = x3.4, 50 joueurs = x4.6, 100 joueurs = x6.5
+  scalingFactor: 0.55,
 
   // Récompenses basées sur les dégâts (toujours données)
   damageRewards: {
-    perPercent: { gems: 10, gold: 10000000000 },  // Par % de dégâts = 10 gems + 10B gold
-    maxPercent: 100,                               // Cap à 100% = max 1000 gems + 1T gold
+    perPercent: { gems: 100, gold: 100000000000000 },  // Par % de dégâts = 100 gems + 100T gold
+    maxPercent: 100,                                    // Cap à 100% = max 10K gems + 10Q gold
   },
 
   // Bonus si le boss est tué (en plus des récompenses de dégâts)
   victoryBonus: {
-    participation: { gems: 100, gold: 100000000000 },      // Participation = 100 gems + 100B
-    top50Percent: { gems: 250, gold: 500000000000 },       // Top 50% = 250 gems + 500B
-    top10Percent: { gems: 500, gold: 2000000000000 },      // Top 10% = 500 gems + 2T
-    top3: { gems: 1000, gold: 10000000000000 },            // Top 3 = 1000 gems + 10T
-    top1: { gems: 2500, gold: 50000000000000 },            // #1 = 2500 gems + 50T
+    participation: { gems: 500, gold: 1000000000000000 },      // Participation = 500 gems + 1Q
+    top50Percent: { gems: 1500, gold: 5000000000000000 },      // Top 50% = 1500 gems + 5Q
+    top10Percent: { gems: 3000, gold: 20000000000000000 },     // Top 10% = 3000 gems + 20Q
+    top3: { gems: 7500, gold: 100000000000000000 },            // Top 3 = 7500 gems + 100Q
+    top1: { gems: 15000, gold: 500000000000000000 },           // #1 = 15000 gems + 500Q
   }
 };
 
