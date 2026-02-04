@@ -2644,6 +2644,7 @@ async function loadFromCloud() {
 }
 
 async function checkCloudSave() {
+  alert('checkCloudSave called! User: ' + (firebaseUser ? 'YES' : 'NO'));
   if (!firebaseUser) {
     console.log('No firebase user, skipping cloud check');
     return;
@@ -2790,9 +2791,11 @@ async function initFirebase() {
         subscribeToBoss();
         // Check for cloud save when user logs in
         console.log('User logged in, will check cloud save in 1s...');
+        alert('Login detected! Checking cloud in 1s...');
         setTimeout(() => {
           console.log('Timeout fired, firebaseUser:', !!firebaseUser, 'firebaseDb:', !!firebaseDb);
-          checkCloudSave().catch(e => console.error('checkCloudSave error:', e));
+          alert('Timeout fired! Calling checkCloudSave...');
+          checkCloudSave().catch(e => { console.error('checkCloudSave error:', e); alert('Error: ' + e.message); });
         }, 1000);
       } else {
         unsubscribeFromBoss();
