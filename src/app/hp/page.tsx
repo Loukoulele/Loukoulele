@@ -2412,7 +2412,16 @@ body {
           <li>Le temps de jeu compte maintenant le <b>temps réellement joué</b></li>
           <li>Avant : affichait le temps depuis la première session (bug)</li>
           <li>Les compteurs de temps sont <b>remis à zéro</b> pour tous les joueurs</li>
-          <li>Les achievements de temps de jeu sont recalibrés</li>
+        </ul>
+      </div>
+      <div class="patch-section">
+        <h3>⚡ Bonus XP → Bonus Talent Points</h3>
+        <ul>
+          <li>Les bonus "+% XP" sont remplacés par <b>"+% TP"</b> (Talent Points)</li>
+          <li>Pets concernés : Hibou, Crapaud, Licorne, Sphinx, Épouvantard, Elfe de Maison</li>
+          <li>Synergies : Esprit Chanceux, Familiers</li>
+          <li>Relique : Grimoire Oublié</li>
+          <li>Le bonus s'applique aux TP gagnés en combat et hors-ligne</li>
         </ul>
       </div>
       <div class="patch-section" style="border-top:1px solid rgba(212,168,67,0.2);margin-top:15px;padding-top:15px;">
@@ -2655,13 +2664,13 @@ const PETS = [
   { id: 'spider',    zone: 1,  icon: '🕷️', name: 'Araignée',       dropRate: 0.04,  rarity: 'common', desc: '+8% Stupefix dmg', effect: { type: 'spell_dmg', spell: 'stupefix', val: 0.08 }},
   { id: 'rat',       zone: 1,  icon: '🐀', name: 'Rat',            dropRate: 0.045, rarity: 'common', desc: '+6% gold',        effect: { type: 'gold', val: 0.06 }},
   { id: 'wolf',      zone: 2,  icon: '🐺', name: 'Loup',           dropRate: 0.035, rarity: 'common', desc: '-5% tous CD',     effect: { type: 'all_cd', val: 0.05 }},
-  { id: 'owl',       zone: 2,  icon: '🦉', name: 'Hibou',          dropRate: 0.038, rarity: 'common', desc: '+5% XP',          effect: { type: 'xp', val: 0.05 }},
+  { id: 'owl',       zone: 2,  icon: '🦉', name: 'Hibou',          dropRate: 0.038, rarity: 'common', desc: '+5% TP',          effect: { type: 'tp', val: 0.05 }},
   { id: 'troll',     zone: 3,  icon: '🧌', name: 'Troll',          dropRate: 0.03,  rarity: 'common', desc: '+10% tous dmg',   effect: { type: 'all_dmg', val: 0.10 }},
   { id: 'bat',       zone: 3,  icon: '🦇', name: 'Chauve-souris',  dropRate: 0.032, rarity: 'common', desc: '-4% tous CD',     effect: { type: 'all_cd', val: 0.04 }},
   { id: 'kraken',    zone: 4,  icon: '🐙', name: 'Strangulot',     dropRate: 0.025, rarity: 'common', desc: '+8% Confringo dmg', effect: { type: 'spell_dmg', spell: 'confringo', val: 0.08 }},
   { id: 'snake',     zone: 4,  icon: '🐍', name: 'Serpent',        dropRate: 0.028, rarity: 'common', desc: '+7% tous dmg',    effect: { type: 'all_dmg', val: 0.07 }},
   { id: 'ghoul',     zone: 5,  icon: '🧟', name: 'Goule',          dropRate: 0.02,  rarity: 'common', desc: '+12% gold',       effect: { type: 'gold', val: 0.12 }},
-  { id: 'frog',      zone: 5,  icon: '🐸', name: 'Crapaud',        dropRate: 0.022, rarity: 'common', desc: '+8% XP',          effect: { type: 'xp', val: 0.08 }},
+  { id: 'frog',      zone: 5,  icon: '🐸', name: 'Crapaud',        dropRate: 0.022, rarity: 'common', desc: '+8% TP',          effect: { type: 'tp', val: 0.08 }},
   { id: 'ghost',     zone: 6,  icon: '👻', name: 'Spectre',        dropRate: 0.018, rarity: 'common', desc: '+8% Patronus dmg', effect: { type: 'spell_dmg', spell: 'patronus', val: 0.08 }},
   { id: 'raven',     zone: 6,  icon: '🐦‍⬛', name: 'Corbeau',        dropRate: 0.019, rarity: 'common', desc: '+6% crit chance', effect: { type: 'crit', val: 0.06 }},
   { id: 'skeleton',  zone: 7,  icon: '💀', name: 'Squelette',      dropRate: 0.015, rarity: 'common', desc: '+5% crit chance', effect: { type: 'crit', val: 0.05 }},
@@ -2673,7 +2682,7 @@ const PETS = [
 
   // === RARE (Zones 10-17) ===
   { id: 'golem',     zone: 10, icon: '🗿', name: 'Golem',          dropRate: 0.009, rarity: 'rare', desc: '+20% gold',       effect: { type: 'gold', val: 0.20 }},
-  { id: 'unicorn',   zone: 10, icon: '🦄', name: 'Licorne',        dropRate: 0.008, rarity: 'rare', desc: '+15% XP',         effect: { type: 'xp', val: 0.15 }},
+  { id: 'unicorn',   zone: 10, icon: '🦄', name: 'Licorne',        dropRate: 0.008, rarity: 'rare', desc: '+15% TP',         effect: { type: 'tp', val: 0.15 }},
   { id: 'salamander',zone: 11, icon: '🦎', name: 'Salamandre',     dropRate: 0.008, rarity: 'rare', desc: '+12% Confringo',  effect: { type: 'spell_dmg', spell: 'confringo', val: 0.12 }},
   { id: 'eagle',     zone: 11, icon: '🦅', name: 'Aigle',          dropRate: 0.007, rarity: 'rare', desc: '+10% crit chance', effect: { type: 'crit', val: 0.10 }},
   { id: 'dragon',    zone: 12, icon: '🐉', name: 'Dragon',         dropRate: 0.007, rarity: 'rare', desc: '+20% tous dmg',   effect: { type: 'all_dmg', val: 0.20 }},
@@ -2697,7 +2706,7 @@ const PETS = [
   { id: 'alpha',     zone: 20, icon: '🌀', name: 'Entité Alpha',   dropRate: 0.002, rarity: 'epic', desc: '+40% tous dmg',   effect: { type: 'all_dmg', val: 0.40 }},
   { id: 'leviathan', zone: 20, icon: '🌊', name: 'Léviathan',      dropRate: 0.0018,rarity: 'epic', desc: '+50% gold',       effect: { type: 'gold', val: 0.50 }},
   { id: 'chrono',    zone: 21, icon: '⏳', name: 'Chrono-Bête',    dropRate: 0.002, rarity: 'epic', desc: '-15% tous CD',    effect: { type: 'all_cd', val: 0.15 }},
-  { id: 'sphinx',    zone: 21, icon: '🦁', name: 'Sphinx',         dropRate: 0.0015,rarity: 'epic', desc: '+20% XP',         effect: { type: 'xp', val: 0.20 }},
+  { id: 'sphinx',    zone: 21, icon: '🦁', name: 'Sphinx',         dropRate: 0.0015,rarity: 'epic', desc: '+20% TP',         effect: { type: 'tp', val: 0.20 }},
   { id: 'void',      zone: 22, icon: '⚫', name: 'Vide Incarné',   dropRate: 0.0015,rarity: 'epic', desc: '+50% gold',       effect: { type: 'gold', val: 0.50 }},
   { id: 'behemoth',  zone: 22, icon: '🦣', name: 'Béhémoth',       dropRate: 0.0012,rarity: 'epic', desc: '+45% tous dmg',   effect: { type: 'all_dmg', val: 0.45 }},
   { id: 'titan',     zone: 23, icon: '💥', name: 'Titan du Chaos', dropRate: 0.001, rarity: 'epic', desc: '+50% tous dmg',   effect: { type: 'all_dmg', val: 0.50 }},
@@ -2719,9 +2728,9 @@ const PETS = [
     unlock: { type: 'zone_clear', target: 24, desc: 'Clear Zone 25' }},  // VISIBLE
   { id: 'dementor',  zone: -1, icon: '🖤', name: 'Détraqueur',     dropRate: 0, rarity: 'secret', desc: '+40% tous dmg, -10% CD', effect: { type: 'all', val: 0.40, cd: 0.10 },
     unlock: { type: 'world_boss_dmg', target: 1e12, desc: '1T dmg World Boss', hidden: true }},
-  { id: 'boggart',   zone: -1, icon: '👤', name: 'Épouvantard',    dropRate: 0, rarity: 'secret', desc: '+30% XP', effect: { type: 'xp', val: 0.30 },
+  { id: 'boggart',   zone: -1, icon: '👤', name: 'Épouvantard',    dropRate: 0, rarity: 'secret', desc: '+30% TP', effect: { type: 'tp', val: 0.30 },
     unlock: { type: 'spells_cast', target: 10000, desc: '10K sorts lancés', hidden: true }},
-  { id: 'house_elf', zone: -1, icon: '🧝', name: 'Elfe de Maison', dropRate: 0, rarity: 'secret', desc: '+50% gold, +20% XP', effect: { type: 'gold', val: 0.50, xp: 0.20 },
+  { id: 'house_elf', zone: -1, icon: '🧝', name: 'Elfe de Maison', dropRate: 0, rarity: 'secret', desc: '+50% gold, +20% TP', effect: { type: 'gold', val: 0.50, tp: 0.20 },
     unlock: { type: 'all_common_pets', target: 1, desc: 'Tous pets communs' }},  // VISIBLE
 
   // === LEGENDARY PETS (Ultra rare conditions) ===
@@ -2781,7 +2790,7 @@ const PET_SYNERGIES = [
   { pets: ['lich', 'necro'], name: 'Maître des Morts', icon: '💀', desc: '+35% tous dmg, +25% gold', effect: { type: 'all_dmg', val: 0.35 }},
   { pets: ['demon', 'dementor'], name: 'Ténèbres Absolues', icon: '🖤', desc: '+60% tous dégâts', effect: { type: 'all_dmg', val: 0.60 }},
   // Light synergies
-  { pets: ['ghost', 'fairy'], name: 'Esprit Chanceux', icon: '🍀', desc: '+20% XP et or', effect: { type: 'gold', val: 0.20 }},
+  { pets: ['ghost', 'fairy'], name: 'Esprit Chanceux', icon: '🍀', desc: '+20% TP et or', effect: { type: 'gold', val: 0.20, tp: 0.20 }},
   { pets: ['guardian', 'archangel'], name: 'Résurrection', icon: '💫', desc: 'Auto-résurrection 1x/zone', effect: { type: 'resurrection', val: 1 }},
   { pets: ['unicorn', 'griffin'], name: 'Magie Pure', icon: '✨', desc: '+30% Patronus dmg', effect: { type: 'spell_dmg', spell: 'patronus', val: 0.30 }},
   { pets: ['seraph', 'archangel'], name: 'Lumière Divine', icon: '👼', desc: '+45% tous dmg, -15% CD', effect: { type: 'all_dmg', val: 0.45 }},
@@ -2794,7 +2803,7 @@ const PET_SYNERGIES = [
   { pets: ['timekeeper', 'chrono'], name: 'Paradoxe Temporel', icon: '⌛', desc: '-40% tous CD', effect: { type: 'all_cd', val: 0.40 }},
   // Beast synergies
   { pets: ['wolf', 'lion'], name: 'Meute Alpha', icon: '🐺', desc: '+25% tous dmg', effect: { type: 'all_dmg', val: 0.25 }},
-  { pets: ['cat', 'owl'], name: 'Familiers', icon: '🐱', desc: '+15% XP, +15% gold', effect: { type: 'gold', val: 0.15 }},
+  { pets: ['cat', 'owl'], name: 'Familiers', icon: '🐱', desc: '+15% TP, +15% gold', effect: { type: 'gold', val: 0.15, tp: 0.15 }},
   { pets: ['tiger', 'cerberus'], name: 'Gardiens Féroces', icon: '🐅', desc: '-18% CD, +20% dmg', effect: { type: 'all_cd', val: 0.18 }},
   // HP creatures synergies
   { pets: ['basilisk', 'acromantula'], name: 'Chambre des Secrets', icon: '🕸️', desc: '+50% tous dmg', effect: { type: 'all_dmg', val: 0.50 }},
@@ -2811,7 +2820,7 @@ const RELICS = [
   { id: 'mana_crystal',   name: 'Cristal de Mana',     icon: '💎', desc: '+10% mana max par niveau',     maxLvl: 5, costs: [150, 350, 700, 1400, 2800], effect: { type: 'mana', perLevel: 0.10 }},
   { id: 'broken_hourglass', name: 'Sablier Brisé',     icon: '⏳', desc: '-2% cooldown sorts par niveau', maxLvl: 5, costs: [200, 450, 900, 1800, 3600], effect: { type: 'all_cd', perLevel: 0.02 }},
   { id: 'phoenix_amulet', name: 'Amulette du Phoenix', icon: '🔥', desc: '+1% chance critique par niveau', maxLvl: 5, costs: [250, 550, 1100, 2200, 4400], effect: { type: 'crit', perLevel: 0.01 }},
-  { id: 'lost_grimoire',  name: 'Grimoire Oublié',     icon: '📖', desc: '+3% XP par niveau',             maxLvl: 5, costs: [120, 300, 600, 1200, 2400], effect: { type: 'xp', perLevel: 0.03 }},
+  { id: 'lost_grimoire',  name: 'Grimoire Oublié',     icon: '📖', desc: '+3% TP par niveau',             maxLvl: 5, costs: [120, 300, 600, 1200, 2400], effect: { type: 'tp', perLevel: 0.03 }},
   { id: 'eternity_orb',   name: "Orbe d'Éternité",     icon: '🌟', desc: '+5% Star Dust gagné par niveau', maxLvl: 5, costs: [500, 1000, 2000, 4000, 8000], effect: { type: 'stardust', perLevel: 0.05 }},
 ];
 
@@ -3213,6 +3222,32 @@ function getGoldMult() {
   return m;
 }
 
+function getTPMult() {
+  let m = 1;
+  // Pets with type: 'tp'
+  m += getMultiPetBonus('tp');
+  // Pets with secondary tp bonus (like house_elf)
+  const activePets = getActivePets();
+  activePets.forEach(petId => {
+    const pet = PETS.find(p => p.id === petId);
+    if (pet && pet.effect.tp) {
+      const lvl = G.petLevels[petId] || 1;
+      const rarityMult = (PET_RARITIES[pet.rarity] || PET_RARITIES.common).mult;
+      let bonus = pet.effect.tp * (1 + (lvl - 1) * 0.2);
+      bonus *= getShinyMultiplier(petId) * rarityMult;
+      m += bonus;
+    }
+  });
+  // Synergies with tp bonus
+  const synergies = getActiveSynergies();
+  synergies.forEach(syn => {
+    if (syn.effect.tp) m += syn.effect.tp;
+  });
+  // Relic bonus
+  m += getRelicBonus('tp');
+  return m;
+}
+
 function getMultiHitChance() {
   const t = TALENTS.find(t => t.effect.type === 'multi_hit');
   return Math.min((t ? getTalent(t.id) * t.effect.perLevel : 0), 0.8);
@@ -3277,7 +3312,12 @@ function onMobKill(wasCrit) {
   G.totalGoldEarned += goldDrop;
   G.kills++;
   G.totalKills++;
-  if (G.kills % 5 === 0) G.talentPoints++;
+  if (G.kills % 5 === 0) {
+    const tpMult = getTPMult();
+    const baseTP = Math.floor(tpMult);
+    const extraChance = tpMult - baseTP;
+    G.talentPoints += baseTP + (Math.random() < extraChance ? 1 : 0);
+  }
   spawnGoldNumber(goldDrop);
 
   // Update daily challenges
@@ -6902,9 +6942,11 @@ function calcOffline() {
   const estKills = Math.floor(dps * capped / zone.mob.hp);
   G.kills += estKills;
   G.totalKills += estKills;
-  G.talentPoints += Math.floor(estKills / 5);
+  const baseTP = Math.floor(estKills / 5);
+  const tpGain = Math.floor(baseTP * getTPMult());
+  G.talentPoints += tpGain;
   const mins = Math.floor(capped / 60);
-  if (mins > 0) toast('⏳ +' + fmt(goldGain) + ' 🪙 en ' + mins + ' min hors-ligne');
+  if (mins > 0) toast('⏳ +' + fmt(goldGain) + ' 🪙 +' + tpGain + ' TP en ' + mins + ' min hors-ligne');
 }
 
 // ============ INIT ============
