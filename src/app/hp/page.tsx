@@ -7010,6 +7010,17 @@ if (load()) {
   if (G.infinityMult === undefined) G.infinityMult = 1;
   // Shiny Pets
   if (!G.shinyPets) G.shinyPets = [];
+
+  // MIGRATION v2: Reset all pets (new hardcore drop rates)
+  if (!G.petResetV2) {
+    G.ownedPets = [];
+    G.petLevels = {};
+    G.shinyPets = [];
+    G.activePets = [];
+    G.activePet = null;
+    G.petResetV2 = true;
+  }
+
   // Multi-pets: migrate old activePet to new activePets array
   if (!G.activePets) {
     G.activePets = G.activePet ? [G.activePet] : [];
