@@ -2644,10 +2644,22 @@ async function loadFromCloud() {
 }
 
 async function checkCloudSave() {
-  if (!firebaseUser) return;
+  if (!firebaseUser) {
+    console.log('No firebase user, skipping cloud check');
+    return;
+  }
   console.log('Checking cloud save...');
+  toast('🔄 Vérification cloud...');
 
-  const cloudData = await loadFromCloud();
+  let cloudData;
+  try {
+    cloudData = await loadFromCloud();
+  } catch (e) {
+    console.error('Error loading cloud save:', e);
+    toast('❌ Erreur cloud: ' + e.message);
+    return;
+  }
+
   if (!cloudData) {
     console.log('No cloud save found, uploading local save...');
     lastCloudSave = 0;
@@ -2655,6 +2667,8 @@ async function checkCloudSave() {
     toast('☁️ Sauvegarde synchronisée !');
     return;
   }
+
+  toast('☁️ Cloud trouvé! Zone ' + (cloudData.highestZone || 0));
 
   const localTime = G.lastTick || 0;
   const cloudTime = cloudData.cloudSaveTime || cloudData.lastTick || 0;
@@ -2671,11 +2685,15 @@ async function checkCloudSave() {
   const localIsEmpty = localKills < 10 && localZone === 0;
   const cloudHasProgress = cloudKills > 10 || cloudZone > 0;
 
+  console.log('Local empty:', localIsEmpty, 'Cloud has progress:', cloudHasProgress);
+
   if (localIsEmpty && cloudHasProgress) {
     console.log('Local save is empty, cloud has progress - showing modal');
+    toast('📱 Affichage du choix...');
     showSyncModal(cloudData, cloudTime, localTime);
   } else if (cloudTime > localTime + 60000) {
     console.log('Cloud is newer - showing modal');
+    toast('📱 Cloud plus récent...');
     showSyncModal(cloudData, cloudTime, localTime);
   } else if (localTime > cloudTime + 60000) {
     console.log('Local save is newer, uploading to cloud...');
