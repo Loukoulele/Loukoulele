@@ -2817,7 +2817,7 @@ const PET_SYNERGIES = [
 // ============ RELICS (Eternals) ============
 const RELICS = [
   { id: 'ancient_wand',   name: 'Baguette Ancienne',   icon: '🪄', desc: '+5% DPS permanent par niveau', maxLvl: 5, costs: [100, 250, 500, 1000, 2000], effect: { type: 'all_dmg', perLevel: 0.05 }},
-  { id: 'mana_crystal',   name: 'Cristal de Mana',     icon: '💎', desc: '+10% mana max par niveau',     maxLvl: 5, costs: [150, 350, 700, 1400, 2800], effect: { type: 'mana', perLevel: 0.10 }},
+  { id: 'gold_pouch',     name: 'Bourse Sans Fond',    icon: '💰', desc: '+10% gold gagné par niveau',   maxLvl: 5, costs: [150, 350, 700, 1400, 2800], effect: { type: 'gold', perLevel: 0.10 }},
   { id: 'broken_hourglass', name: 'Sablier Brisé',     icon: '⏳', desc: '-2% cooldown sorts par niveau', maxLvl: 5, costs: [200, 450, 900, 1800, 3600], effect: { type: 'all_cd', perLevel: 0.02 }},
   { id: 'phoenix_amulet', name: 'Amulette du Phoenix', icon: '🔥', desc: '+1% chance critique par niveau', maxLvl: 5, costs: [250, 550, 1100, 2200, 4400], effect: { type: 'crit', perLevel: 0.01 }},
   { id: 'lost_grimoire',  name: 'Grimoire Oublié',     icon: '📖', desc: '+3% TP par niveau',             maxLvl: 5, costs: [120, 300, 600, 1200, 2400], effect: { type: 'tp', perLevel: 0.03 }},
@@ -3217,6 +3217,7 @@ function getGoldMult() {
   let m = 1 + (t ? getTalent(t.id) * t.effect.perLevel : 0);
   m += getMultiPetBonus('gold');
   m += getCategoryBonus('gold');
+  m += getRelicBonus('gold');
   m *= G.rebirthMult * G.prestigeMult * (G.infinityMult || 1);
   if (hasBuff('gold_rush')) m *= 2;
   return m;
