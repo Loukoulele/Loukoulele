@@ -48,7 +48,22 @@ export default function WandIdle() {
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
-body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--parchment); min-height:100vh; overflow-x:hidden; user-select:none; }
+html {
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+body {
+  font-family:'Crimson Text',serif;
+  background:var(--darkest);
+  color:var(--parchment);
+  min-height:100vh;
+  min-height:100dvh;
+  overflow-x:hidden;
+  user-select:none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
 
 .top-bar { background:linear-gradient(180deg, rgba(35,30,50,0.98), rgba(20,15,35,0.98)); border-bottom:2px solid var(--gold-dark); padding:8px 15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 15px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(212,168,67,0.1); }
 .game-logo { font-family:'Cinzel',serif; color:var(--gold); font-size:1.1em; text-shadow:0 0 15px rgba(212,168,67,0.3); display:flex; align-items:center; gap:10px; }
@@ -87,7 +102,6 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
 .nav-btn.active::after { content:''; position:absolute; bottom:-2px; left:20%; right:20%; height:2px; background:var(--gold); border-radius:2px; box-shadow:0 0 8px var(--gold); }
 .nav-btn.active .nav-icon { filter:drop-shadow(0 0 4px rgba(212,168,67,0.6)); }
 .nav-notif { position:absolute; top:2px; right:2px; background:var(--red); color:#fff; font-size:0.5em; font-weight:bold; min-width:14px; height:14px; border-radius:50%; display:flex; align-items:center; justify-content:center; animation:pulse-dot 1.5s infinite; }
-@media (max-width:600px) { .nav-btn { padding:8px 2px; } .nav-btn .nav-icon { font-size:1.3em; } .nav-btn .nav-label { font-size:0.75em; } }
 
 .main { max-width:900px; margin:0 auto; padding:10px; }
 .panel { display:none; }
@@ -371,11 +385,158 @@ body { font-family:'Crimson Text',serif; background:var(--darkest); color:var(--
   50% { border-color: #ff6666; box-shadow: 0 0 20px rgba(198,40,40,0.8); }
 }
 
+/* ========== MOBILE RESPONSIVE ========== */
 @media (max-width:600px) {
-  .talent-grid { grid-template-columns:repeat(2,1fr); }
-  .currency-bar { gap:10px; font-size:0.8em; }
-  .spell-upgrade-card { flex-direction:column; text-align:center; }
-  .spell-upgrade-card .su-stats { justify-content:center; }
+  /* Top Bar - plus compact */
+  .top-bar { padding:6px 10px; }
+  .game-logo { font-size:0.9em; gap:6px; }
+  .currency-bar { gap:6px; }
+  .currency { padding:4px 8px 4px 6px; font-size:0.8em; border-radius:15px; }
+  .currency .c-icon { font-size:1em; }
+  .currency .c-ps { display:none; }
+
+  /* Nav bar - icônes seulement */
+  .nav { padding:3px 1px; gap:1px; top:38px; }
+  .nav-btn { padding:8px 2px; }
+  .nav-btn .nav-icon { font-size:1.4em; }
+  .nav-btn .nav-label { font-size:0.65em; }
+
+  /* Main content */
+  .main { padding:6px; }
+  .panel.active { padding-bottom:100px; }
+
+  /* Zone header */
+  .zone-header { padding:8px; margin-bottom:8px; }
+  .zone-name { font-size:1.1em; }
+  .zone-desc { font-size:0.8em; }
+
+  /* Battle area */
+  .battle-area { border-radius:8px; margin-bottom:8px; }
+  #battleSceneContainer canvas { max-height:180px; }
+  .mob-info-bar { padding:6px; }
+  .mob-info-bar .mob-name { font-size:0.9em; }
+  .mob-info-bar .mob-hp-bar { width:160px; height:10px; }
+  .mob-info-bar .mob-hp-text { font-size:0.7em; }
+
+  /* Mini mode sur mobile - en bas, pleine largeur */
+  .battle-area.mini-mode {
+    width: calc(100% - 20px) !important;
+    left: 10px;
+    bottom: 10px;
+  }
+  .battle-area.mini-mode #battleSceneContainer { height: 80px; }
+
+  /* Spell bar - plus petit */
+  .spell-bar { gap:4px; padding:8px 4px; flex-wrap:wrap; }
+  .spell-slot { width:56px; height:56px; }
+  .spell-slot .spell-circle { width:46px; height:46px; border-width:2px; }
+  .spell-slot .s-icon { font-size:1.4em; }
+  .spell-cd-radial { width:46px; height:46px; }
+  .spell-slot .s-info { font-size:0.55em; padding:1px 4px; bottom:-4px; }
+  .spell-slot .s-cd-text { font-size:0.85em; }
+  .spell-slot .spell-tooltip { display:none; }
+
+  /* Hero recap - empilé */
+  .hero-recap { padding:6px 10px; top:76px; gap:8px; }
+  .hero-recap .hr-section { gap:4px; }
+  .hero-recap .hr-label { font-size:0.55em; }
+  .hero-recap .hr-icon { font-size:1.1em; }
+  .hero-recap .hr-val { font-size:0.7em; }
+  .hero-recap .hr-divider { height:20px; }
+  .hero-recap .hr-pet { padding:3px 6px; }
+  .hero-recap .hr-pet .pet-icon { font-size:1.1em; }
+  .hero-recap .hr-pet .pet-name { font-size:0.65em; }
+  .hero-recap .hr-pet .pet-bonus { display:none; }
+
+  /* Cards */
+  .card { padding:10px; margin-bottom:8px; border-radius:8px; }
+  .card-title { font-size:0.85em; margin-bottom:6px; }
+
+  /* Spell upgrade cards */
+  .spell-upgrade-card { flex-direction:column; text-align:center; padding:12px; gap:10px; }
+  .spell-upgrade-card .su-icon { font-size:2em; }
+  .spell-upgrade-card .su-name { font-size:0.9em; }
+  .spell-upgrade-card .su-desc { font-size:0.75em; }
+  .spell-upgrade-card .su-stats { justify-content:center; gap:10px; font-size:0.75em; }
+  .spell-upgrade-card .su-actions { text-align:center; margin-top:8px; }
+  .spell-upgrade-card .su-level { font-size:1em; }
+
+  /* Talents */
+  .talent-grid { grid-template-columns:repeat(2,1fr); gap:6px; }
+  .talent-node { padding:8px; }
+  .talent-node .t-icon { font-size:1.3em; }
+  .talent-node .t-name { font-size:0.7em; }
+  .talent-node .t-level { font-size:0.65em; }
+  .talent-node .t-desc { font-size:0.65em; }
+
+  /* Gates */
+  .gate-item { padding:10px 12px; border-radius:8px; }
+  .gate-zone { font-size:0.85em; }
+  .gate-cost { font-size:0.75em; }
+  .gate-mob { font-size:0.75em; }
+
+  /* Prestige */
+  .prestige-box { padding:15px; }
+  .prestige-box .p-icon { font-size:3em; }
+  .prestige-box .p-title { font-size:1.1em; }
+  .prestige-box .p-desc { font-size:0.8em; }
+  .prestige-tier { padding:10px; }
+  .prestige-tier .pt-name { font-size:0.9em; }
+
+  /* Buttons - plus gros pour le tactile */
+  .btn { padding:10px 16px; font-size:0.85em; min-height:44px; }
+  .btn-sm { padding:8px 12px; font-size:0.75em; min-height:36px; }
+
+  /* Stats */
+  .stat-row { font-size:0.8em; padding:5px 0; }
+
+  /* Buffs bar */
+  .active-buffs-bar {
+    padding:8px 12px;
+    gap:8px;
+    max-width:100%;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .buff-item { padding:6px 10px; gap:6px; }
+  .buff-item .buff-icon { font-size:1.4em; }
+  .buff-item .buff-name { font-size:0.75em; }
+  .buff-item .buff-timer { font-size:0.95em; }
+
+  /* Toast */
+  .toast { font-size:0.8em; padding:8px 15px; bottom:70px; }
+
+  /* Kill counter */
+  .kill-counter { font-size:0.75em; }
+
+  /* Patch modal */
+  .patch-content { width:95%; max-height:85vh; }
+  .patch-header { padding:12px 15px; }
+  .patch-header h2 { font-size:1em; }
+  .patch-body { padding:15px; }
+  .patch-section h3 { font-size:0.85em; }
+  .patch-section li { font-size:0.8em; }
+}
+
+/* Extra small phones */
+@media (max-width:380px) {
+  .nav-btn .nav-label { display:none; }
+  .nav-btn .nav-icon { font-size:1.6em; }
+  .nav-btn { padding:10px 4px; }
+
+  .spell-bar { gap:2px; }
+  .spell-slot { width:48px; height:48px; }
+  .spell-slot .spell-circle { width:40px; height:40px; }
+  .spell-slot .s-icon { font-size:1.2em; }
+  .spell-cd-radial { width:40px; height:40px; }
+
+  .currency { padding:3px 6px; }
+  .currency .c-icon { font-size:0.9em; }
+
+  .talent-grid { grid-template-columns:1fr 1fr; gap:4px; }
+
+  .hero-recap { flex-wrap:wrap; justify-content:center; }
+  .hero-recap .hr-divider { display:none; }
 }
 
 /* World Boss Styles */
