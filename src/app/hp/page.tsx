@@ -2405,44 +2405,22 @@ body {
       <button class="patch-close" onclick="togglePatchModal(false)">&times;</button>
     </div>
     <div class="patch-body">
-      <div class="patch-version">Version 3.2.0 — Interface Melvor</div>
+      <div class="patch-version">Version 3.2.1 — Correctifs</div>
       <div class="patch-section">
-        <h3>🎨 Refonte UI Complète</h3>
+        <h3>🐛 Correction Bug Temps de Jeu</h3>
         <ul>
-          <li>Nouveau design inspiré de <b>Melvor Idle 2</b></li>
-          <li><b>Sidebar latérale</b> sur desktop (barre en bas sur mobile)</li>
-          <li>Thème sombre modernisé avec accents verts</li>
-          <li>Panneaux semi-transparents style Melvor</li>
-          <li>Nouveaux boutons colorés (vert, or, violet, rouge)</li>
-        </ul>
-      </div>
-      <div class="patch-section">
-        <h3>📊 Barre de Progression</h3>
-        <ul>
-          <li>Nouvelle <b>bottom bar</b> avec stats en temps réel</li>
-          <li>Affichage Zone, Kills, DPS, Or/s</li>
-          <li>Visible sur tous les onglets</li>
-        </ul>
-      </div>
-      <div class="patch-section">
-        <h3>🏆 82 Hauts Faits</h3>
-        <ul>
-          <li>9 catégories : Combat, Progression, Collection, Sorts, Économie, Talents, Shop, Temps, Daily</li>
-          <li>Nouveaux trackings : crits, talents, consommables, temps de jeu</li>
-          <li>Icône talents changée (📖 au lieu de ⭐)</li>
-        </ul>
-      </div>
-      <div class="patch-section">
-        <h3>✨ Améliorations Visuelles</h3>
-        <ul>
-          <li>Barres HP/XP plus grandes et colorées</li>
-          <li>Cards avec header et bordure verte</li>
-          <li>Gates avec indicateur coloré à gauche</li>
-          <li>Achievements et Reliques redesignés</li>
+          <li>Le temps de jeu compte maintenant le <b>temps réellement joué</b></li>
+          <li>Avant : affichait le temps depuis la première session (bug)</li>
+          <li>Les compteurs de temps sont <b>remis à zéro</b> pour tous les joueurs</li>
+          <li>Les achievements de temps de jeu sont recalibrés</li>
         </ul>
       </div>
       <div class="patch-section" style="border-top:1px solid rgba(212,168,67,0.2);margin-top:15px;padding-top:15px;">
         <h3>📜 Historique</h3>
+        <details style="margin-bottom:8px;">
+          <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v3.2.0 — Interface Melvor</summary>
+          <ul style="margin-top:5px;"><li>Refonte UI inspirée Melvor Idle 2</li><li>Sidebar latérale sur desktop</li><li>82 Hauts Faits</li><li>Bottom bar avec stats temps réel</li></ul>
+        </details>
         <details style="margin-bottom:8px;">
           <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v3.1.0 — Collection Ultimate</summary>
           <ul style="margin-top:5px;"><li>63 pets à collecter</li><li>5 raretés avec pets permanents</li><li>Pets Secrets & Légendaires</li><li>20+ synergies</li></ul>
@@ -2498,7 +2476,7 @@ body {
     const script = document.createElement('script');
     script.textContent = `
 // ============ PATCH NOTES SYSTEM ============
-const PATCH_VERSION = '3.2.0';
+const PATCH_VERSION = '3.2.1';
 
 function togglePatchModal(show) {
   const modal = document.getElementById('patchModal');
@@ -3110,6 +3088,7 @@ function defaultState() {
     lastTick: Date.now(),
     _saveTimer: 0,
     startTime: Date.now(),
+    totalPlayTime: 0,  // Cumulative play time in seconds
     // === NEW SYSTEMS ===
     // Star Dust & Eternals
     starDust: 0,
@@ -3868,6 +3847,7 @@ function tick(now) {
   if (!G) return;
   const dt = Math.min((now - lastTime) / 1000, 0.1);
   lastTime = now;
+  G.totalPlayTime += dt;  // Cumulative play time tracking
   tickSpells(dt);
   tickWorldBoss(dt);
 
@@ -3911,7 +3891,7 @@ function tick(now) {
   G._timeAchievTimer = (G._timeAchievTimer || 0) + dt;
   if (G._timeAchievTimer >= 60) {
     G._timeAchievTimer = 0;
-    const playTime = Math.floor((Date.now() - G.startTime) / 1000);
+    const playTime = Math.floor(G.totalPlayTime || 0);
     checkAchievement('play_1h', playTime);
     checkAchievement('play_10h', playTime);
     checkAchievement('play_24h', playTime);
@@ -4906,7 +4886,7 @@ function rebuildPrestige() {
 function rebuildStats() {
   const el = document.getElementById('statsContent');
   if (!el) return;
-  const playTime = Math.floor((Date.now() - (G.startTime || Date.now())) / 1000);
+  const playTime = Math.floor(G.totalPlayTime || 0);
   const hours = Math.floor(playTime / 3600);
   const mins = Math.floor((playTime % 3600) / 60);
   el.innerHTML = \`
@@ -6933,6 +6913,7 @@ if (load()) {
   if (!G.spellLevels) G.spellLevels = { stupefix: 1, confringo: 1, patronus: 1 };
   if (G.highestZone === undefined) G.highestZone = G.currentZone;
   if (!G.startTime) G.startTime = Date.now();
+  if (G.totalPlayTime === undefined) G.totalPlayTime = 0;  // Reset play time tracking (now tracks actual time played)
   if (G.rebirth === undefined) {
     // Migrate old prestige saves: old prestige 1/2 → rebirth 1/2
     if (G.prestige >= 2) { G.rebirth = 2; G.rebirthMult = 3.0; G.prestige = 0; G.prestigeMult = 1; }
