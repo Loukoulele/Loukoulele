@@ -5865,6 +5865,21 @@ async function subscribeToBoss() {
           lastBossStatus = 'expired';
           updateBossUI();
         }
+      } else if (data && data.status === 'dormant') {
+        // Boss survived - waiting for next round with remaining HP
+        worldBossState.active = false;
+        worldBossState.status = 'dormant';
+        worldBossState.boss = {
+          id: data.id,
+          name: data.name,
+          icon: data.icon,
+          hp: data.hp,
+          maxHp: data.maxHp,
+        };
+        if (lastBossStatus !== 'dormant') {
+          lastBossStatus = 'dormant';
+          updateBossUI();
+        }
       } else {
         worldBossState.active = false;
         worldBossState.status = 'waiting';
@@ -6068,22 +6083,32 @@ async function endWorldBoss(result) {
         rank: i + 1
       }));
 
-    // Update boss status
-    await firebaseDb.ref('worldBoss/current/status').set(result === 'victory' ? 'defeated' : 'expired');
+    if (result === 'victory') {
+      // Boss killed - archive and reset
+      await firebaseDb.ref('worldBoss/current/status').set('defeated');
 
-    // Set next spawn time
+      // Archive to history
+      if (worldBossState.boss) {
+        await firebaseDb.ref('worldBoss/history/' + Date.now()).set({
+          name: worldBossState.boss.name,
+          maxHp: worldBossState.boss.maxHp,
+          result: result,
+          endedAt: Date.now(),
+          topDamagers: topDamagers,
+        });
+      }
+    } else {
+      // Boss survived - set to dormant, keep HP for next round
+      await firebaseDb.ref('worldBoss/current/status').set('dormant');
+      // Save remaining HP for next spawn
+      if (worldBossState.boss) {
+        await firebaseDb.ref('worldBoss/current/hp').set(worldBossState.boss.hp);
+      }
+    }
+
+    // Set next spawn time (boss will respawn with remaining HP if dormant)
     await firebaseDb.ref('worldBoss/nextSpawn').set(Date.now() + WORLD_BOSS_CONFIG.spawnInterval);
 
-    // Archive to history (optional)
-    if (worldBossState.boss) {
-      await firebaseDb.ref('worldBoss/history/' + Date.now()).set({
-        name: worldBossState.boss.name,
-        maxHp: worldBossState.boss.maxHp,
-        result: result,
-        endedAt: Date.now(),
-        topDamagers: topDamagers,
-      });
-    }
   } catch (e) {
     console.error('Error ending boss:', e);
   }
@@ -6342,6 +6367,21 @@ function updateBossUIInternal() {
     } else {
       if (expiredClaimBtn) expiredClaimBtn.style.display = 'inline-block';
       if (expiredAlreadyClaimed) expiredAlreadyClaimed.style.display = 'none';
+    }
+
+  } else if (worldBossState.status === 'dormant') {
+    // Boss survived - show dormant status with remaining HP
+    waiting.style.display = 'block';
+    hideBossNotification();
+
+    const hpPercent = worldBossState.boss ? Math.floor((worldBossState.boss.hp / worldBossState.boss.maxHp) * 100) : 0;
+    const nextEl = document.getElementById('bossNextCountdown');
+    if (nextEl && worldBossState.boss) {
+      nextEl.innerHTML = '💀 <strong>' + worldBossState.boss.name + '</strong> a survécu !<br>Il revient avec <span style="color:#ff6666;">' + hpPercent + '% HP</span>';
+    }
+
+    if (firebaseUser) {
+      document.getElementById('bossLoginPrompt').style.display = 'none';
     }
 
   } else {
@@ -6748,10 +6788,20 @@ function tickWorldBoss(dt) {
     const timerEl = document.getElementById('bossTimer');
     if (timerEl) timerEl.textContent = '⏱️ ' + mins + ':' + secs.toString().padStart(2, '0');
 
-    // Check if time expired locally
+    // Check if time expired locally - boss goes dormant if not killed
     if (remaining <= 0 && worldBossState.boss.hp > 0) {
-      worldBossState.status = 'expired';
+      endWorldBoss('timeout');
+      worldBossState.status = 'dormant';
       updateBossUI();
+    }
+  }
+
+  // Check if dormant boss should respawn (nextSpawn reached)
+  if (worldBossState.status === 'dormant' && worldBossState.nextSpawn && worldBossState.boss) {
+    const remaining = worldBossState.nextSpawn - Date.now();
+    if (remaining <= 0) {
+      // Reactivate dormant boss with remaining HP
+      reactivateDormantBoss();
     }
   }
 
@@ -6878,6 +6928,31 @@ async function spawnTestBoss() {
   } catch (e) {
     console.error('Error spawning boss:', e);
     toast('❌ Erreur: ' + e.message);
+  }
+}
+
+// Reactivate a dormant boss with remaining HP
+async function reactivateDormantBoss() {
+  if (!firebaseDb || !worldBossState.boss) return;
+
+  const now = Date.now();
+  const duration = WORLD_BOSS_CONFIG.duration;
+
+  try {
+    // Reactivate with remaining HP
+    await firebaseDb.ref('worldBoss/current').update({
+      startedAt: now,
+      endsAt: now + duration,
+      status: 'active',
+    });
+
+    // Set next spawn time
+    await firebaseDb.ref('worldBoss/nextSpawn').set(now + WORLD_BOSS_CONFIG.spawnInterval);
+
+    const hpPercent = Math.floor((worldBossState.boss.hp / worldBossState.boss.maxHp) * 100);
+    toast('⚔️ ' + worldBossState.boss.name + ' revient ! (' + hpPercent + '% HP restants)');
+  } catch (e) {
+    console.error('Error reactivating boss:', e);
   }
 }
 
