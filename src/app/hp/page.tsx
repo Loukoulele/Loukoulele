@@ -2658,9 +2658,24 @@ async function checkCloudSave() {
 
   const localTime = G.lastTick || 0;
   const cloudTime = cloudData.cloudSaveTime || cloudData.lastTick || 0;
-  console.log('Cloud time:', cloudTime, 'Local time:', localTime);
+  const localKills = G.totalKills || 0;
+  const cloudKills = cloudData.totalKills || 0;
+  const localZone = G.highestZone || 0;
+  const cloudZone = cloudData.highestZone || 0;
 
-  if (cloudTime > localTime + 60000) {
+  console.log('Cloud time:', cloudTime, 'Local time:', localTime);
+  console.log('Cloud kills:', cloudKills, 'Local kills:', localKills);
+  console.log('Cloud zone:', cloudZone, 'Local zone:', localZone);
+
+  // Si la sauvegarde locale est "vide" (nouvelle partie) et le cloud a de la progression
+  const localIsEmpty = localKills < 10 && localZone === 0;
+  const cloudHasProgress = cloudKills > 10 || cloudZone > 0;
+
+  if (localIsEmpty && cloudHasProgress) {
+    console.log('Local save is empty, cloud has progress - showing modal');
+    showSyncModal(cloudData, cloudTime, localTime);
+  } else if (cloudTime > localTime + 60000) {
+    console.log('Cloud is newer - showing modal');
     showSyncModal(cloudData, cloudTime, localTime);
   } else if (localTime > cloudTime + 60000) {
     console.log('Local save is newer, uploading to cloud...');
