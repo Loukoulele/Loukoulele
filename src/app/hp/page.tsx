@@ -2644,20 +2644,17 @@ async function loadFromCloud() {
 }
 
 async function checkCloudSave() {
-  alert('checkCloudSave called! User: ' + (firebaseUser ? 'YES' : 'NO'));
   if (!firebaseUser) {
     console.log('No firebase user, skipping cloud check');
     return;
   }
   console.log('Checking cloud save...');
-  toast('🔄 Vérification cloud...');
 
   let cloudData;
   try {
     cloudData = await loadFromCloud();
   } catch (e) {
     console.error('Error loading cloud save:', e);
-    toast('❌ Erreur cloud: ' + e.message);
     return;
   }
 
@@ -2668,8 +2665,6 @@ async function checkCloudSave() {
     toast('☁️ Sauvegarde synchronisée !');
     return;
   }
-
-  toast('☁️ Cloud trouvé! Zone ' + (cloudData.highestZone || 0));
 
   const localTime = G.lastTick || 0;
   const cloudTime = cloudData.cloudSaveTime || cloudData.lastTick || 0;
@@ -2686,15 +2681,11 @@ async function checkCloudSave() {
   const localIsEmpty = localKills < 10 && localZone === 0;
   const cloudHasProgress = cloudKills > 10 || cloudZone > 0;
 
-  console.log('Local empty:', localIsEmpty, 'Cloud has progress:', cloudHasProgress);
-
   if (localIsEmpty && cloudHasProgress) {
     console.log('Local save is empty, cloud has progress - showing modal');
-    toast('📱 Affichage du choix...');
     showSyncModal(cloudData, cloudTime, localTime);
   } else if (cloudTime > localTime + 60000) {
     console.log('Cloud is newer - showing modal');
-    toast('📱 Cloud plus récent...');
     showSyncModal(cloudData, cloudTime, localTime);
   } else if (localTime > cloudTime + 60000) {
     console.log('Local save is newer, uploading to cloud...');
@@ -2791,11 +2782,9 @@ async function initFirebase() {
         subscribeToBoss();
         // Check for cloud save when user logs in
         console.log('User logged in, will check cloud save in 1s...');
-        alert('Login detected! Checking cloud in 1s...');
         setTimeout(() => {
           console.log('Timeout fired, firebaseUser:', !!firebaseUser, 'firebaseDb:', !!firebaseDb);
-          alert('Timeout fired! Calling checkCloudSave...');
-          checkCloudSave().catch(e => { console.error('checkCloudSave error:', e); alert('Error: ' + e.message); });
+          checkCloudSave().catch(e => console.error('checkCloudSave error:', e));
         }, 1000);
       } else {
         unsubscribeFromBoss();
