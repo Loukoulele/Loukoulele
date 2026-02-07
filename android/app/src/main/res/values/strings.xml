@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Wand Idle</string>
-    <string name="title_activity_main">Wand Idle</string>
+    <string name="app_name">Wizard IDLE</string>
+    <string name="title_activity_main">Wizard IDLE</string>
     <string name="package_name">com.loukoulele.wandidle</string>
     <string name="custom_url_scheme">com.loukoulele.wandidle</string>
 </resources>

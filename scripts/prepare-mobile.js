@@ -3,12 +3,12 @@ const path = require('path');
 
 const outDir = path.join(__dirname, '..', 'out');
 
-// 1. Copy hp/index.html to root index.html so Capacitor loads the game directly
-const hpIndex = path.join(outDir, 'hp', 'index.html');
+// 1. Copy wizard-idle/index.html to root index.html so Capacitor loads the game directly
+const gameIndex = path.join(outDir, 'wizard-idle', 'index.html');
 const rootIndex = path.join(outDir, 'index.html');
-if (fs.existsSync(hpIndex)) {
-  fs.copyFileSync(hpIndex, rootIndex);
-  console.log('Copied hp/index.html -> index.html (game = home page)');
+if (fs.existsSync(gameIndex)) {
+  fs.copyFileSync(gameIndex, rootIndex);
+  console.log('Copied wizard-idle/index.html -> index.html (game = home page)');
 }
 
 // 2. Remove non-game assets to reduce app size
@@ -22,7 +22,7 @@ for (const p of removePaths) {
 }
 
 // 3. Remove non-game pages (bg remover, test3d, portfolio)
-const removePages = ['bg', 'test3d'];
+const removePages = ['bg', 'test3d', 'hp', 'hp2'];
 for (const p of removePages) {
   const fullPath = path.join(outDir, p);
   if (fs.existsSync(fullPath)) {

@@ -20,6 +20,94 @@ export default function WandIdle() {
     setBattleAPI(api);
   }, []);
 
+  // === CAPACITOR BRIDGES (RevenueCat, Notifications, App Lifecycle) ===
+  useEffect(() => {
+    const setupCapacitorBridges = async () => {
+      if (typeof window === 'undefined') return;
+
+      try {
+        const { Capacitor } = await import('@capacitor/core');
+        (window as any).Capacitor = Capacitor;
+
+        if (!Capacitor.isNativePlatform()) return;
+
+        // --- RevenueCat Bridge ---
+        try {
+          const rc = await import('@/lib/revenuecat');
+          await rc.initRevenueCat();
+          (window as any).RevenueCat = {
+            getOfferings: rc.getOfferings,
+            purchasePackage: rc.purchasePackage,
+            restorePurchases: rc.restorePurchases,
+            getCustomerInfo: rc.getCustomerInfo,
+            isPremium: rc.isPremium,
+            hasEntitlement: rc.hasEntitlement,
+            identifyUser: rc.identifyUser,
+          };
+        } catch (e) {
+          console.log('RevenueCat not available:', e);
+        }
+
+        // --- AdMob Bridge ---
+        try {
+          const admob = await import('@/lib/admob');
+          await admob.initAdMob();
+          (window as any).AdMobBridge = {
+            showRewardedAd: admob.showRewardedAd,
+            showInterstitialAd: admob.showInterstitialAd,
+          };
+        } catch (e) {
+          console.log('AdMob not available:', e);
+        }
+
+        // --- Local Notifications Bridge ---
+        try {
+          const { LocalNotifications } = await import('@capacitor/local-notifications');
+          await LocalNotifications.requestPermissions();
+          (window as any).sendNativeNotification = async (title: string, body: string) => {
+            await LocalNotifications.schedule({
+              notifications: [{
+                title, body,
+                id: Math.floor(Math.random() * 100000),
+                schedule: { at: new Date(Date.now() + 100) },
+              }]
+            });
+          };
+        } catch (e) {
+          console.log('Local notifications not available:', e);
+        }
+
+        // --- StatusBar + SplashScreen ---
+        try {
+          const { StatusBar, Style } = await import('@capacitor/status-bar');
+          await StatusBar.setOverlaysWebView({ overlay: false });
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#1e2028' });
+        } catch (e) {}
+        try {
+          const { SplashScreen } = await import('@capacitor/splash-screen');
+          await SplashScreen.hide();
+        } catch (e) {}
+
+        // --- App Lifecycle (background/foreground) ---
+        try {
+          const { App } = await import('@capacitor/app');
+          App.addListener('appStateChange', ({ isActive }) => {
+            if (isActive) {
+              if ((window as any).calcOffline) (window as any).calcOffline();
+            } else {
+              if ((window as any).save) (window as any).save();
+            }
+          });
+        } catch (e) {}
+
+      } catch (e) {
+        console.log('Not in Capacitor environment');
+      }
+    };
+    setupCapacitorBridges();
+  }, []);
+
   useEffect(() => {
     if (injectedRef.current) return;
     injectedRef.current = true;
@@ -89,7 +177,7 @@ body {
 .top-bar {
   background: linear-gradient(180deg, rgba(30,32,40,0.98), rgba(22,24,32,0.98));
   border-bottom: 1px solid var(--panel-border);
-  padding: 8px 20px;
+  padding: max(8px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 8px max(20px, env(safe-area-inset-left));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -237,6 +325,197 @@ body {
   animation: pulse-dot 1.5s infinite;
 }
 
+/* ============ MORE BUTTON (hidden on desktop) ============ */
+.nav-more { display: none; }
+
+/* ============ MORE DRAWER (bottom sheet) ============ */
+.more-drawer-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  z-index: 999;
+  align-items: flex-end;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+.more-drawer-backdrop.open {
+  display: flex;
+  background: rgba(0,0,0,0.6);
+}
+.more-drawer {
+  width: 100%;
+  max-width: 500px;
+  background: var(--darker);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 0 0 env(safe-area-inset-bottom, 0px);
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  border-top: 1px solid rgba(212,168,67,0.25);
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+}
+.more-drawer-backdrop.open .more-drawer { transform: translateY(0); }
+.more-drawer-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  margin: 10px auto 0;
+}
+.more-drawer-title {
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8em;
+  color: var(--gold);
+  letter-spacing: 1px;
+  padding: 12px 0 14px;
+  border-bottom: 1px solid var(--panel-border);
+  margin: 0 20px;
+}
+.more-drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 16px 16px 20px;
+}
+.more-drawer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 6px 12px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 0.65em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.more-drawer-item:active {
+  transform: scale(0.95);
+  background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+  color: var(--parchment);
+}
+.more-drawer-item.active {
+  color: var(--green);
+  background: linear-gradient(145deg, rgba(39,174,96,0.18), rgba(39,174,96,0.08));
+  border-color: rgba(39,174,96,0.35);
+  box-shadow: 0 0 12px rgba(39,174,96,0.15), inset 0 0 12px rgba(39,174,96,0.05);
+}
+.more-drawer-item.active .more-icon {
+  filter: drop-shadow(0 0 6px var(--green-glow));
+}
+.more-icon {
+  font-size: 2em;
+  line-height: 1;
+  transition: filter 0.2s;
+}
+.more-label {
+  font-size: 0.85em;
+  text-align: center;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+.drawer-notif {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.5em;
+  font-weight: bold;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse-dot 1.5s infinite;
+  box-shadow: 0 0 8px rgba(231,76,60,0.4);
+}
+/* Drawer footer - profile & discord */
+.more-drawer-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 6px;
+  border-top: 1px solid var(--panel-border);
+  margin-top: 2px;
+}
+.drawer-profile {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.drawer-profile:active { transform: scale(0.98); background: rgba(255,255,255,0.08); }
+.drawer-profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--green);
+  object-fit: cover;
+}
+.drawer-profile-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 2px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+}
+.drawer-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.drawer-profile-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8em;
+  color: var(--parchment);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.drawer-profile-info .drawer-profile-sub {
+  font-size: 0.65em;
+  color: var(--text-dim);
+}
+.drawer-discord-btn {
+  padding: 10px 14px;
+  background: linear-gradient(145deg, #5865F2, #4752C4);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75em;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 2px 8px rgba(88,101,242,0.3);
+}
+.drawer-discord-btn:active { transform: scale(0.95); }
+
 .sidebar-divider {
   height: 1px;
   background: var(--panel-border);
@@ -379,7 +658,7 @@ body {
 .mob-info-bar .mob-hp-fill {
   height: 100%;
   background: var(--hp-gradient);
-  transition: width 0.15s ease-out;
+  transition: width 0.4s ease-out;
   box-shadow: 0 0 10px rgba(231,76,60,0.4);
 }
 .mob-info-bar .mob-hp-text {
@@ -436,11 +715,9 @@ body {
 
 @keyframes spellPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
 
-/* Radial cooldown overlay */
+/* Radial cooldown overlay - hidden, replaced by bump system */
 .spell-cd-radial {
-  position:absolute; top:0; left:0; width:60px; height:60px; border-radius:50%;
-  background:conic-gradient(rgba(0,0,0,0.75) var(--cd-percent, 0%), transparent var(--cd-percent, 0%));
-  pointer-events:none; z-index:3;
+  display:none;
 }
 
 .spell-slot .s-info {
@@ -451,24 +728,30 @@ body {
 }
 
 .spell-slot .s-cd-text {
-  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  font-family:'Cinzel',serif; font-size:1em; font-weight:bold;
-  color:#fff; text-shadow:0 0 5px rgba(0,0,0,0.8); z-index:4;
+  position:absolute; top:-2px; right:-2px;
+  font-family:'Cinzel',serif; font-size:0.48em;
+  color:#fff; z-index:5;
+  pointer-events:none;
+  background:rgba(0,0,0,0.8);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:6px;
+  padding:1px 5px;
+  white-space:nowrap;
+  line-height:1.3;
 }
 
-/* Casting animation */
-.spell-slot.casting .spell-circle {
-  animation:castFlash 0.2s ease-out;
+/* Casting bump */
+.spell-slot.bump .spell-circle {
+  animation:spellBump 0.4s ease-out;
 }
-@keyframes castFlash {
+@keyframes spellBump {
   0% { transform:scale(1); filter:brightness(1); }
-  50% { transform:scale(1.15); filter:brightness(1.5); }
+  25% { transform:scale(1.18); filter:brightness(1.5); }
+  60% { transform:scale(0.95); filter:brightness(1.1); }
   100% { transform:scale(1); filter:brightness(1); }
 }
 
-/* On cooldown state */
-.spell-slot.on-cd .spell-circle { filter:saturate(0.3) brightness(0.7); }
-.spell-slot.on-cd .s-icon { filter:grayscale(0.5) drop-shadow(0 2px 3px rgba(0,0,0,0.5)); animation:none; }
+/* Spell slots are always active-looking now (bump system) */
 
 /* Tooltip on hover */
 .spell-slot .spell-tooltip {
@@ -671,6 +954,47 @@ body {
 }
 .btn-red:hover {
   background: #ec7063;
+}
+/* ===== GEM SHOP ===== */
+.shop-tab-bar {
+  display: flex; gap: 0; margin-bottom: 15px; border-radius: 10px; overflow: hidden; border: 1px solid var(--panel-border);
+}
+.shop-tab {
+  flex: 1; padding: 12px; background: rgba(0,0,0,0.3); border: none; color: var(--text-dim);
+  font-family: 'Cinzel', serif; font-size: 0.9em; cursor: pointer; transition: all 0.2s;
+}
+.shop-tab:hover { background: rgba(0,0,0,0.4); color: var(--parchment); }
+.shop-tab.active {
+  background: linear-gradient(145deg, rgba(138,43,226,0.25), rgba(138,43,226,0.1));
+  color: var(--gold); box-shadow: inset 0 -2px 0 var(--gold);
+}
+.btn-gem {
+  background: linear-gradient(145deg, rgba(138,43,226,0.4), rgba(138,43,226,0.2)) !important;
+  border-color: rgba(138,43,226,0.5) !important; color: #e0b0ff !important;
+}
+.btn-gem:hover:not(:disabled) {
+  background: linear-gradient(145deg, rgba(138,43,226,0.6), rgba(138,43,226,0.3)) !important;
+  box-shadow: 0 0 10px rgba(138,43,226,0.3);
+}
+.btn-gem:disabled { opacity: 0.4; }
+.gem-pack-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:8px; }
+.gem-pack-card { background:rgba(138,43,226,0.1); border:1px solid rgba(138,43,226,0.25); border-radius:10px; padding:10px 6px; text-align:center; transition:all 0.2s; }
+.gem-pack-card:hover { border-color:rgba(138,43,226,0.6); background:rgba(138,43,226,0.2); }
+.gem-pack-amount { font-family:'Cinzel',serif; font-size:1em; color:var(--gold); margin-bottom:2px; }
+.gem-pack-name { font-size:0.7em; color:#aaa; margin-bottom:4px; }
+.gem-pack-bonus { font-size:0.65em; color:var(--green); margin-bottom:4px; font-weight:bold; }
+.gem-pack-price { font-size:0.85em; color:#fff; background:rgba(138,43,226,0.4); border-radius:6px; padding:4px 8px; display:inline-block; }
+.gem-pet-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; max-height: 200px; overflow-y: auto;
+}
+.gem-pet-item {
+  display: flex; flex-direction: column; align-items: center; padding: 10px 5px;
+  background: rgba(0,0,0,0.3); border: 1px solid var(--panel-border); border-radius: 8px; transition: all 0.15s;
+}
+.gem-pet-item:hover { border-color: rgba(138,43,226,0.5); background: rgba(138,43,226,0.15); transform: scale(1.05); }
+.spell-upgrade-card.mega-active {
+  border-color: rgba(138,43,226,0.5) !important; background: rgba(138,43,226,0.1) !important;
+  box-shadow: 0 0 15px rgba(138,43,226,0.15);
 }
 .btn-outline {
   background: transparent;
@@ -889,24 +1213,56 @@ body {
   font-weight: 600;
 }
 
-/* ============ STATS - MELVOR STYLE ============ */
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  font-size: 0.9em;
-  transition: background 0.2s;
+/* ============ STATS - VISUAL ============ */
+.stats-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;
 }
-.stat-row:hover {
-  background: rgba(255,255,255,0.02);
+.stat-card {
+  background:rgba(255,255,255,0.04); border-radius:10px; padding:12px;
+  border:1px solid rgba(255,255,255,0.06); text-align:center;
+}
+.stat-card .sc-icon { font-size:1.4em; margin-bottom:4px; }
+.stat-card .sc-value { font-size:1.3em; font-weight:700; color:var(--gold); font-family:'Cinzel',serif; }
+.stat-card .sc-label { font-size:0.7em; color:var(--text-dim); margin-top:2px; }
+.stat-bar-section { margin-bottom:14px; }
+.stat-bar-row {
+  margin-bottom:10px; padding:0 4px;
+}
+.stat-bar-header {
+  display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.8em;
+}
+.stat-bar-header .sb-label { color:var(--text-dim); }
+.stat-bar-header .sb-value { color:var(--green); font-family:'Cinzel',serif; font-weight:600; }
+.stat-bar-track {
+  height:10px; background:rgba(0,0,0,0.4); border-radius:5px; overflow:hidden;
+  border:1px solid rgba(255,255,255,0.08);
+}
+.stat-bar-fill {
+  height:100%; border-radius:5px; transition:width 0.5s ease-out;
+  background:linear-gradient(90deg, var(--bar-from, #4fc3f7), var(--bar-to, #81d4fa));
+}
+.stat-section-title {
+  font-size:0.75em; color:var(--gold); font-family:'Cinzel',serif; text-transform:uppercase;
+  letter-spacing:1px; margin:14px 0 8px; padding-bottom:4px;
+  border-bottom:1px solid rgba(212,168,67,0.2);
+}
+.spell-stat-card {
+  display:flex; align-items:center; gap:10px; padding:8px 10px;
+  background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:6px;
+  border:1px solid rgba(255,255,255,0.05);
+}
+.spell-stat-card .ssc-icon { font-size:1.6em; }
+.spell-stat-card .ssc-info { flex:1; }
+.spell-stat-card .ssc-name { font-size:0.85em; font-weight:600; color:var(--parchment); }
+.spell-stat-card .ssc-details { font-size:0.7em; color:var(--text-dim); margin-top:2px; }
+.spell-stat-card .ssc-bar { flex:0 0 80px; }
+.spell-stat-card .ssc-bar .stat-bar-track { height:6px; }
+.stat-row {
+  display: flex; justify-content: space-between; padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85em;
 }
 .stat-row .stat-label { color: var(--text-dim); }
-.stat-row .stat-value {
-  color: var(--green);
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-}
+.stat-row .stat-value { color: var(--green); font-family: 'Cinzel', serif; font-weight: 600; }
 
 /* ============ CARDS - MELVOR STYLE PANELS ============ */
 .card {
@@ -1000,63 +1356,60 @@ body {
   background: var(--panel-border);
 }
 
-/* Active Buffs Bar */
-.active-buffs-bar {
+/* Active Buffs - floating bubbles */
+.active-buffs-floating {
   position: fixed;
-  bottom: 45px;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 8px;
+  bottom: 120px;
   display: flex;
-  gap: 12px;
-  padding: 10px 15px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  z-index: 399;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  flex-direction: column;
+  gap: 6px;
+  z-index: 398;
+  pointer-events: none;
 }
-.active-buffs-bar:empty {
-  display: none;
-}
+.active-buffs-floating:empty { display: none; }
 .buff-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid var(--green);
+  gap: 5px;
+  background: rgba(16,18,26,0.92);
+  border: 1px solid rgba(39,174,96,0.35);
+  border-left: 3px solid var(--green);
   border-radius: 8px;
-  padding: 8px 12px;
-  animation: buffPulse 2s ease-in-out infinite;
-}
-@keyframes buffPulse {
-  0%, 100% { box-shadow: 0 0 5px var(--green-glow); }
-  50% { box-shadow: 0 0 15px var(--green-glow); }
+  padding: 5px 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 .buff-item .buff-icon {
-  font-size: 1.6em;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 .buff-item .buff-info {
   display: flex;
-  flex-direction: column;
+  align-items: center;
 }
 .buff-item .buff-name {
-  font-family: 'Cinzel', serif;
-  font-size: 0.8em;
-  color: var(--parchment);
+  display: none;
 }
 .buff-item .buff-timer {
-  font-size: 1em;
+  font-size: 10px;
   font-weight: bold;
   color: var(--green);
   font-family: 'Cinzel', serif;
+  line-height: 1;
+  white-space: nowrap;
 }
 .buff-item.expiring {
-  border-color: var(--red);
-  animation: buffExpiring 0.5s ease-in-out infinite;
+  border-left-color: var(--red);
+  border-color: rgba(231,76,60,0.35);
 }
-@keyframes buffExpiring {
-  0%, 100% { box-shadow: 0 0 10px rgba(231,76,60,0.4); }
-  50% { box-shadow: 0 0 20px rgba(231,76,60,0.6); }
+.buff-item.expiring .buff-timer {
+  color: var(--red);
+  animation: buffTimerBlink 0.8s ease-in-out infinite;
+}
+@keyframes buffTimerBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 /* ========== MOBILE RESPONSIVE ========== */
@@ -1074,27 +1427,28 @@ body {
     top: auto;
     bottom: 0;
     width: 100%;
-    height: 60px;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
     flex-direction: row;
-    padding: 0;
+    padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
     border-right: none;
     border-top: 1px solid var(--panel-border);
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: hidden;
     z-index: 500;
   }
-  .sidebar-divider {
-    width: 1px;
-    height: 100%;
-    margin: 0 2px;
-  }
-  .nav-btn {
-    min-width: 55px;
+  /* Hide secondary buttons and dividers on mobile */
+  .sidebar .nav-btn:not(.nav-primary):not(.nav-more) { display: none !important; }
+  .sidebar .sidebar-divider { display: none !important; }
+  /* Show More button on mobile */
+  .nav-more { display: flex !important; }
+  .nav-btn.nav-primary, .nav-btn.nav-more {
+    flex: 1;
+    min-width: 0;
     padding: 6px 4px;
     border-left: none;
     border-top: 3px solid transparent;
   }
-  .nav-btn.active {
+  .nav-btn.nav-primary.active, .nav-btn.nav-more.active {
     border-left-color: transparent;
     border-top-color: var(--green);
   }
@@ -1103,29 +1457,30 @@ body {
 
   .main-content {
     margin-left: 0;
-    padding-bottom: 70px;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Bottom progress bar - above mobile nav */
   .bottom-progress-bar {
-    bottom: 60px;
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Buffs bar - above bottom bar */
-  .active-buffs-bar {
-    bottom: 105px;
+  /* Buffs floating bubbles - above progress bar + nav */
+  .active-buffs-floating {
+    right: 6px;
+    bottom: calc(100px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Toast - above bottom bar */
   .toast {
-    bottom: 130px;
+    bottom: calc(130px + env(safe-area-inset-bottom, 0px));
   }
 }
 
 @media (max-width:600px) {
   /* Top Bar - plus compact */
   .top-bar {
-    padding: 6px 10px;
+    padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 6px max(10px, env(safe-area-inset-left));
     flex-wrap: wrap;
     gap: 8px;
   }
@@ -1145,7 +1500,9 @@ body {
   }
   .currency .c-icon { font-size: 0.9em; }
   .currency .c-ps { display: none; }
-  #userZone { order: 2; }
+  #userZone { display: none !important; }
+  .top-bar { justify-content: center; }
+  .game-logo { flex: none; }
 
   /* Main content */
   .main { padding: 8px; }
@@ -1165,13 +1522,10 @@ body {
   .mob-info-bar .mob-hp-bar { width: 180px; height: 16px; }
   .mob-info-bar .mob-hp-text { font-size: 0.75em; }
 
-  /* Mini mode sur mobile */
+  /* Mini mode sur mobile - caché pour ne pas bloquer les panels */
   .battle-area.mini-mode {
-    width: calc(100% - 20px) !important;
-    left: 10px;
-    bottom: 130px;
+    display: none !important;
   }
-  .battle-area.mini-mode #battleSceneContainer { height: 80px; }
 
   /* Spell bar */
   .spell-bar { gap: 6px; padding: 10px 8px; flex-wrap: wrap; }
@@ -1180,7 +1534,7 @@ body {
   .spell-slot .s-icon { font-size: 1.4em; }
   .spell-cd-radial { width: 46px; height: 46px; }
   .spell-slot .s-info { font-size: 0.55em; padding: 1px 4px; bottom: -4px; }
-  .spell-slot .s-cd-text { font-size: 0.85em; }
+  .spell-slot .s-cd-text { font-size: 0.45em; }
   .spell-slot .spell-tooltip { display: none; }
 
   /* Hero recap */
@@ -1260,15 +1614,11 @@ body {
   .bottom-progress-bar .bp-item { font-size: 0.75em; gap: 4px; }
   .bottom-progress-bar .bp-divider { height: 15px; }
 
-  /* Buffs bar */
-  .active-buffs-bar {
-    bottom: 40px;
-    padding: 8px 10px;
-    gap: 6px;
-    max-width: calc(100% - 20px);
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+  /* Buffs bubbles smaller on small screens */
+  .active-buffs-floating { gap: 4px; }
+  .buff-item { padding: 4px 6px; gap: 4px; }
+  .buff-item .buff-icon { font-size: 12px; }
+  .buff-item .buff-timer { font-size: 9px; }
   .buff-item { padding: 6px 8px; gap: 6px; }
   .buff-item .buff-icon { font-size: 1.3em; }
   .buff-item .buff-name { font-size: 0.7em; }
@@ -1291,9 +1641,11 @@ body {
 
 /* Extra small phones */
 @media (max-width:380px) {
-  .nav-btn .nav-label { display:none; }
-  .nav-btn .nav-icon { font-size:1.6em; }
-  .nav-btn { padding:10px 4px; }
+  .nav-btn.nav-primary .nav-label, .nav-btn.nav-more .nav-label { display:none; }
+  .nav-btn.nav-primary .nav-icon, .nav-btn.nav-more .nav-icon { font-size:1.6em; }
+  .nav-btn.nav-primary, .nav-btn.nav-more { padding:10px 4px; }
+  .more-drawer-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px 12px 16px; }
+  .more-drawer-item { padding: 14px 4px 10px; }
 
   .spell-bar { gap:2px; }
   .spell-slot { width:48px; height:48px; }
@@ -1425,6 +1777,32 @@ body {
 }
 .achievement-card.unlocked .achievement-icon {
   filter: drop-shadow(0 0 6px var(--green-glow));
+}
+.achievement-card.new-achieve {
+  border-color: #e74c3c;
+  box-shadow: 0 0 12px rgba(231,76,60,0.3);
+  animation: newAchievePulse 2s ease-in-out infinite;
+}
+@keyframes newAchievePulse {
+  0%,100% { box-shadow: 0 0 8px rgba(231,76,60,0.2); }
+  50% { box-shadow: 0 0 16px rgba(231,76,60,0.5); }
+}
+.new-achieve-badge {
+  background: #e74c3c;
+  color: #fff;
+  font-size: 0.6em;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 8px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: newBadgePop 0.4s ease-out;
+}
+@keyframes newBadgePop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .achievement-card.locked {
@@ -2144,20 +2522,49 @@ body {
 <div class="game-layout">
   <!-- Sidebar Navigation -->
   <nav class="sidebar">
-    <button class="nav-btn active" onclick="switchPanel('zone',this)"><span class="nav-icon">⚔️</span><span class="nav-label">Combat</span></button>
-    <button class="nav-btn" onclick="switchPanel('gates',this)"><span class="nav-icon">🚪</span><span class="nav-label">Portes</span></button>
-    <button class="nav-btn" onclick="switchPanel('spells',this)"><span class="nav-icon">✨</span><span class="nav-label">Sorts</span></button>
-    <button class="nav-btn" onclick="switchPanel('talents',this)"><span class="nav-icon">📖</span><span class="nav-label">Talents</span></button>
-    <button class="nav-btn" onclick="switchPanel('shop',this)"><span class="nav-icon">🏪</span><span class="nav-label">Shop</span></button>
+    <button class="nav-btn nav-primary active" data-panel="zone" onclick="switchPanel('zone',this)"><span class="nav-icon">⚔️</span><span class="nav-label">Combat</span></button>
+    <button class="nav-btn nav-primary" data-panel="gates" onclick="switchPanel('gates',this)"><span class="nav-icon">🚪</span><span class="nav-label">Portes</span></button>
+    <button class="nav-btn nav-primary" data-panel="spells" onclick="switchPanel('spells',this)"><span class="nav-icon">✨</span><span class="nav-label">Sorts</span></button>
+    <button class="nav-btn" data-panel="talents" onclick="switchPanel('talents',this)"><span class="nav-icon">📖</span><span class="nav-label">Talents</span></button>
+    <button class="nav-btn nav-primary" data-panel="shop" onclick="switchPanel('shop',this)"><span class="nav-icon">🏪</span><span class="nav-label">Shop</span></button>
     <div class="sidebar-divider"></div>
-    <button class="nav-btn" onclick="switchPanel('pets',this)"><span class="nav-icon">🐾</span><span class="nav-label">Pets</span><span id="petNotif" class="nav-notif" style="display:none;">!</span></button>
-    <button class="nav-btn" onclick="switchPanel('boss',this)"><span class="nav-icon" id="bossNavIcon">👹</span><span class="nav-label">Boss</span><span id="bossNotif" style="display:none;position:absolute;top:4px;right:4px;background:var(--red);color:#fff;font-size:0.5em;padding:2px 4px;border-radius:6px;animation:pulse-dot 1.5s infinite;">LIVE</span></button>
+    <button class="nav-btn" data-panel="pets" onclick="switchPanel('pets',this)"><span class="nav-icon">🐾</span><span class="nav-label">Pets</span><span id="petNotif" class="nav-notif" style="display:none;">!</span></button>
+    <button class="nav-btn" data-panel="boss" onclick="switchPanel('boss',this)"><span class="nav-icon" id="bossNavIcon">👹</span><span class="nav-label">Boss</span><span id="bossNotif" style="display:none;position:absolute;top:4px;right:4px;background:var(--red);color:#fff;font-size:0.5em;padding:2px 4px;border-radius:6px;animation:pulse-dot 1.5s infinite;">LIVE</span></button>
     <div class="sidebar-divider"></div>
-    <button class="nav-btn" onclick="switchPanel('prestige',this)"><span class="nav-icon">🔮</span><span class="nav-label">Prestige</span></button>
-    <button class="nav-btn" onclick="switchPanel('eternals',this)"><span class="nav-icon">⭐</span><span class="nav-label">Eternals</span><span id="eternalsNotif" class="nav-notif" style="display:none;">!</span></button>
-    <button class="nav-btn" onclick="switchPanel('achievements',this)"><span class="nav-icon">🏆</span><span class="nav-label">Hauts Faits</span><span id="achieveNotif" class="nav-notif" style="display:none;">!</span></button>
-    <button class="nav-btn" onclick="switchPanel('stats',this)"><span class="nav-icon">📊</span><span class="nav-label">Stats</span></button>
+    <button class="nav-btn" data-panel="prestige" onclick="switchPanel('prestige',this)"><span class="nav-icon">🔮</span><span class="nav-label">Prestige</span></button>
+    <button class="nav-btn" data-panel="eternals" onclick="switchPanel('eternals',this)"><span class="nav-icon">⭐</span><span class="nav-label">Eternals</span><span id="eternalsNotif" class="nav-notif" style="display:none;">!</span></button>
+    <button class="nav-btn" data-panel="achievements" onclick="switchPanel('achievements',this)"><span class="nav-icon">🏆</span><span class="nav-label">Hauts Faits</span><span id="achieveNotif" class="nav-notif" style="display:none;">!</span></button>
+    <button class="nav-btn" data-panel="stats" onclick="switchPanel('stats',this)"><span class="nav-icon">📊</span><span class="nav-label">Stats</span></button>
+    <button class="nav-btn nav-more" onclick="toggleMoreDrawer()"><span class="nav-icon">☰</span><span class="nav-label">Plus</span><span id="moreNotif" class="nav-notif" style="display:none;">!</span></button>
   </nav>
+
+  <!-- More Drawer (bottom sheet) -->
+  <div id="moreDrawer" class="more-drawer-backdrop" onclick="closeMoreDrawer()">
+    <div class="more-drawer" onclick="event.stopPropagation()">
+      <div class="more-drawer-handle"></div>
+      <div class="more-drawer-title">NAVIGATION</div>
+      <div class="more-drawer-grid">
+        <button class="more-drawer-item" data-panel="talents" onclick="switchFromDrawer('talents')"><span class="more-icon">📖</span><span class="more-label">Talents</span></button>
+        <button class="more-drawer-item" data-panel="pets" onclick="switchFromDrawer('pets')"><span class="more-icon">🐾</span><span class="more-label">Pets</span><span id="petNotifMore" class="drawer-notif" style="display:none;">!</span></button>
+        <button class="more-drawer-item" data-panel="boss" onclick="switchFromDrawer('boss')"><span class="more-icon">👹</span><span class="more-label">Boss</span><span id="bossNotifMore" class="drawer-notif" style="display:none;">LIVE</span></button>
+        <button class="more-drawer-item" data-panel="prestige" onclick="switchFromDrawer('prestige')"><span class="more-icon">🔮</span><span class="more-label">Prestige</span></button>
+        <button class="more-drawer-item" data-panel="eternals" onclick="switchFromDrawer('eternals')"><span class="more-icon">⭐</span><span class="more-label">Eternals</span><span id="eternalsNotifMore" class="drawer-notif" style="display:none;">!</span></button>
+        <button class="more-drawer-item" data-panel="achievements" onclick="switchFromDrawer('achievements')"><span class="more-icon">🏆</span><span class="more-label">Hauts Faits</span><span id="achieveNotifMore" class="drawer-notif" style="display:none;">!</span></button>
+        <button class="more-drawer-item" data-panel="stats" onclick="switchFromDrawer('stats')"><span class="more-icon">📊</span><span class="more-label">Stats</span></button>
+      </div>
+      <div class="more-drawer-footer">
+        <div class="drawer-profile" id="drawerProfile" onclick="handleLogin()">
+          <img id="drawerAvatar" src="" class="drawer-profile-avatar" style="display:none;" />
+          <div class="drawer-profile-placeholder" id="drawerAvatarPlaceholder">👤</div>
+          <div class="drawer-profile-info">
+            <span class="drawer-profile-name" id="drawerName">Non connecté</span>
+            <span class="drawer-profile-sub" id="drawerSub">Appuie pour te connecter</span>
+          </div>
+        </div>
+        <button class="drawer-discord-btn" id="drawerLoginBtn" onclick="closeMoreDrawer();handleLogin();">🎮 Discord</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Main Content Area -->
   <div class="main-content">
@@ -2207,10 +2614,27 @@ body {
   </div>
 
   <div id="panel-shop" class="panel">
-    <div class="card">
-      <div class="card-title">🛒 Shop</div>
-      <div style="font-size:0.8em;color:#888;margin-bottom:12px;">Améliorations uniques et consommables. Les unlocks survivent au rebirth mais pas au prestige.</div>
-      <div id="shopList"></div>
+    <div class="shop-tab-bar">
+      <button class="shop-tab active" onclick="switchShopTab('gold',this)">🪙 Gold</button>
+      <button class="shop-tab" onclick="switchShopTab('gems',this)">💎 Gemmes</button>
+    </div>
+    <div id="shop-tab-gold">
+      <div class="card" style="margin-bottom:15px;">
+        <div class="card-title">👑 Premium Shop <span id="premiumBadge" style="display:none;background:var(--gold);color:#000;font-size:0.6em;padding:2px 8px;border-radius:10px;vertical-align:middle;margin-left:8px;">ACTIF</span></div>
+        <div id="premiumShopContent"><p style="color:#888;font-size:0.85em;text-align:center;padding:20px;">Chargement...</p></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🛒 Shop</div>
+        <div style="font-size:0.8em;color:#888;margin-bottom:12px;">Améliorations uniques et consommables. Les unlocks survivent au rebirth mais pas au prestige.</div>
+        <div id="shopList"></div>
+      </div>
+    </div>
+    <div id="shop-tab-gems" style="display:none;">
+      <div class="card">
+        <div class="card-title">💎 Boutique Gemmes</div>
+        <div style="font-size:0.8em;color:#888;margin-bottom:12px;">Dépense tes gemmes pour des améliorations permanentes et puissantes. Survit aux rebirths ET prestiges.</div>
+        <div id="gemShopList"></div>
+      </div>
     </div>
   </div>
 
@@ -2358,8 +2782,8 @@ body {
   </div><!-- /main-content -->
 </div><!-- /game-layout -->
 
-<!-- Active Buffs Bar -->
-<div id="activeBuffsBar" class="active-buffs-bar"></div>
+<!-- Active Buffs - floating bubbles -->
+<div id="activeBuffsBar" class="active-buffs-floating"></div>
 
 <!-- Bottom Progress Bar - Melvor Style -->
 <div class="bottom-progress-bar" id="bottomProgressBar">
@@ -2468,7 +2892,7 @@ body {
         </details>
         <details style="margin-bottom:8px;">
           <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.2.0 — Corrections</summary>
-          <ul style="margin-top:5px;"><li>Fix bug NaN après rebirth</li><li>Initialisation correcte de Mortalis</li></ul>
+          <ul style="margin-top:5px;"><li>Fix bug NaN après rebirth</li><li>Initialisation correcte d'Mortalis</li></ul>
         </details>
         <details>
           <summary style="cursor:pointer;color:var(--gold);font-size:0.85em;">v1.0.0 — Lancement</summary>
@@ -2537,71 +2961,71 @@ function fmt(n) {
 // Z21-Z25 endgame with x3 boost
 
 const ZONES = [
-  // Zone 1-3: TUTORIAL (45s, 1m30, 3m)
-  { name: 'Prairie Calme',        mob: { name: 'Lutin',           icon: '🧚', hp: 6,        gold: 8 }},
-  { name: 'Sentier Ombragé',      mob: { name: 'Araignée',        icon: '🕷️', hp: 18,       gold: 20 }},
-  { name: 'Forêt Dense',          mob: { name: 'Loup',            icon: '🐺', hp: 50,       gold: 49 }},
-  // Zone 4-6: EARLY GAME (5m, 8m, 10m)
-  { name: 'Clairière Maudite',    mob: { name: 'Troll',           icon: '🧌', hp: 140,      gold: 118 }},
-  { name: 'Grotte Humide',        mob: { name: 'Kraken',          icon: '🐙', hp: 350,      gold: 257 }},
-  { name: 'Marécage Noir',        mob: { name: 'Goule',           icon: '🧟', hp: 800,      gold: 519 }},
-  // Zone 7-9: MID GAME (15m, 20m, 25m)
-  { name: 'Ruines Anciennes',     mob: { name: 'Spectre',         icon: '👻', hp: 2000,     gold: 1100 }},
-  { name: 'Donjon Oublié',        mob: { name: 'Squelette',       icon: '💀', hp: 5000,     gold: 2500 }},
-  { name: 'Crypte des Ombres',    mob: { name: 'Vampire',         icon: '🧛', hp: 12500,    gold: 5400 }},
-  // Zone 10: PRESTIGE WALL 1 (30m)
-  { name: '🔒 Seuil du Destin',   mob: { name: 'Gardien',         icon: '⚔️', hp: 30000,    gold: 11300 }, prestigeWall: true },
-  // Zone 11-13: POST-PRESTIGE 1 (10m, 15m, 20m)
-  { name: 'Plaine de Cendres',    mob: { name: 'Golem de Pierre', icon: '🗿', hp: 75e3,     gold: 25e3 }, reqRebirth: 1 },
-  { name: 'Volcan Dormant',       mob: { name: 'Salamandre',      icon: '🦎', hp: 200e3,    gold: 60e3 }, reqRebirth: 1 },
-  { name: 'Lac de Lave',          mob: { name: 'Dragon de Feu',   icon: '🐉', hp: 500e3,    gold: 150e3 }, reqRebirth: 1 },
-  // Zone 14-16: MID-LATE (25m, 30m, 35m)
-  { name: 'Glacier Éternel',      mob: { name: 'Géant de Glace',  icon: '🏔️', hp: 1.3e6,    gold: 350e3 }, reqRebirth: 1 },
-  { name: 'Désert des Esprits',   mob: { name: 'Djinn',           icon: '🌪️', hp: 3e6,      gold: 800e3 }, reqRebirth: 1 },
-  { name: 'Forteresse Noire',     mob: { name: 'Chevalier Noir',  icon: '🖤', hp: 7.5e6,    gold: 2e6 }, reqRebirth: 1 },
-  // Zone 17-19: LATE (40m, 45m, 50m)
-  { name: 'Cimetière Maudit',     mob: { name: 'Liche',           icon: '☠️', hp: 20e6,     gold: 5e6 }, reqRebirth: 1 },
-  { name: 'Tour du Nécromant',    mob: { name: 'Nécromant',       icon: '🧙‍♂️', hp: 50e6,     gold: 12.5e6 }, reqRebirth: 1 },
-  { name: 'Portail des Abysses',  mob: { name: 'Démon',           icon: '😈', hp: 125e6,    gold: 30e6 }, reqRebirth: 1 },
-  // Zone 20: PRESTIGE WALL 2 (1h)
-  { name: '🔒 Jugement Final',    mob: { name: 'Archange Déchu',  icon: '👁️', hp: 300e6,    gold: 75e6 }, prestigeWall: true, reqRebirth: 1 },
-  // Zone 21-25: ENDGAME (20m, 30m, 40m, 50m, 1h)
-  { name: 'Dimension Alpha',      mob: { name: 'Entité Alpha',    icon: '🌀', hp: 1e9,      gold: 208.7e6 }, reqRebirth: 2 },
-  { name: 'Faille Temporelle',    mob: { name: 'Chrono-Bête',     icon: '⏳', hp: 3e9,      gold: 600e6 }, reqRebirth: 2 },
-  { name: 'Néant Absolu',         mob: { name: 'Vide Incarné',    icon: '⚫', hp: 10e9,     gold: 2e9 }, reqRebirth: 2 },
-  { name: 'Cœur du Chaos',        mob: { name: 'Titan du Chaos',  icon: '💥', hp: 35e9,     gold: 7e9 }, reqRebirth: 2 },
-  { name: 'Éternité',             mob: { name: 'L\\'Éternel',      icon: '✨', hp: 125e9,    gold: 25e9 }, reqRebirth: 2 },
+  // Zone 1-3: TUTORIAL (fast, learn mechanics)
+  { name: 'Prairie Calme',        mob: { name: 'Lutin',           icon: '🧚', hp: 12,       gold: 8 }},
+  { name: 'Sentier Ombragé',      mob: { name: 'Araignée',        icon: '🕷️', hp: 35,       gold: 20 }},
+  { name: 'Forêt Dense',          mob: { name: 'Loup',            icon: '🐺', hp: 100,      gold: 55 }},
+  // Zone 4-6: EARLY GAME (getting hooked)
+  { name: 'Clairière Maudite',    mob: { name: 'Troll',           icon: '🧌', hp: 280,      gold: 140 }},
+  { name: 'Grotte Humide',        mob: { name: 'Kraken',      icon: '🐙', hp: 700,      gold: 320 }},
+  { name: 'Marécage Noir',        mob: { name: 'Goule',           icon: '🧟', hp: 1600,     gold: 700 }},
+  // Zone 7-9: MID GAME (investment pays off)
+  { name: 'Ruines Anciennes',     mob: { name: 'Spectre',         icon: '👻', hp: 4000,     gold: 1600 }},
+  { name: 'Donjon Oublié',        mob: { name: 'Squelette',       icon: '💀', hp: 10000,    gold: 3800 }},
+  { name: 'Crypte des Ombres',    mob: { name: 'Vampire',         icon: '🧛', hp: 25000,    gold: 9000 }},
+  // Zone 10: PRESTIGE WALL 1
+  { name: '🔒 Seuil du Destin',   mob: { name: 'Gardien',         icon: '⚔️', hp: 60000,    gold: 20000 }, prestigeWall: true },
+  // Zone 11-13: POST-PRESTIGE 1 (x1.5 — feels fast again)
+  { name: 'Plaine de Cendres',    mob: { name: 'Golem de Pierre', icon: '🗿', hp: 150e3,    gold: 50e3 }, reqRebirth: 1 },
+  { name: 'Volcan Dormant',       mob: { name: 'Salamandre',      icon: '🦎', hp: 400e3,    gold: 120e3 }, reqRebirth: 1 },
+  { name: 'Lac de Lave',          mob: { name: 'Dragon de Feu',   icon: '🐉', hp: 1e6,      gold: 300e3 }, reqRebirth: 1 },
+  // Zone 14-16: MID-LATE
+  { name: 'Glacier Éternel',      mob: { name: 'Géant de Glace',  icon: '🏔️', hp: 2.5e6,    gold: 700e3 }, reqRebirth: 1 },
+  { name: 'Désert des Esprits',   mob: { name: 'Djinn',           icon: '🌪️', hp: 6e6,      gold: 1.6e6 }, reqRebirth: 1 },
+  { name: 'Forteresse Noire',     mob: { name: 'Chevalier Noir',  icon: '🖤', hp: 15e6,     gold: 4e6 }, reqRebirth: 1 },
+  // Zone 17-19: LATE
+  { name: 'Cimetière Maudit',     mob: { name: 'Liche',           icon: '☠️', hp: 40e6,     gold: 10e6 }, reqRebirth: 1 },
+  { name: 'Tour du Nécromant',    mob: { name: 'Nécromant',       icon: '🧙‍♂️', hp: 100e6,    gold: 25e6 }, reqRebirth: 1 },
+  { name: 'Portail des Abysses',  mob: { name: 'Démon',           icon: '😈', hp: 250e6,    gold: 60e6 }, reqRebirth: 1 },
+  // Zone 20: PRESTIGE WALL 2
+  { name: '🔒 Jugement Final',    mob: { name: 'Archange Déchu',  icon: '👁️', hp: 600e6,    gold: 150e6 }, prestigeWall: true, reqRebirth: 1 },
+  // Zone 21-25: ENDGAME (x3 boost)
+  { name: 'Dimension Alpha',      mob: { name: 'Entité Alpha',    icon: '🌀', hp: 2e9,      gold: 400e6 }, reqRebirth: 2 },
+  { name: 'Faille Temporelle',    mob: { name: 'Chrono-Bête',     icon: '⏳', hp: 6e9,      gold: 1.2e9 }, reqRebirth: 2 },
+  { name: 'Néant Absolu',         mob: { name: 'Vide Incarné',    icon: '⚫', hp: 20e9,     gold: 4e9 }, reqRebirth: 2 },
+  { name: 'Cœur du Chaos',        mob: { name: 'Titan du Chaos',  icon: '💥', hp: 70e9,     gold: 14e9 }, reqRebirth: 2 },
+  { name: 'Éternité',             mob: { name: 'L\\'Éternel',      icon: '✨', hp: 250e9,    gold: 50e9 }, reqRebirth: 2 },
 ];
 
-// Gate costs calibrated to timing targets (~16 gold/s en Z1)
+// Gate costs calibrated to timing targets
 const GATE_COSTS = [
-  0,           // Z1 free
-  1000,        // Z2 — 1m
-  3500,        // Z3 — 2m
-  9000,        // Z4 — 3m
-  20000,       // Z5 — 5m
-  45000,       // Z6 — 7m
-  12.8e6,      // Z7 — 15m
-  37.3e6,      // Z8 — 20m
-  101.5e6,     // Z9 — 25m
-  256.3e6,     // Z10 — 30m (prestige wall)
+  0,        // Z1 free
+  60,       // Z2 — ~30s farm
+  350,      // Z3 — ~1min
+  1200,     // Z4 — ~2min
+  4000,     // Z5 — ~3min
+  12000,    // Z6 — ~4min
+  35000,    // Z7 — ~5min
+  90000,    // Z8 — ~7min
+  220000,   // Z9 — ~9min
+  500000,   // Z10 — ~12min (prestige wall)
   // Post-prestige 1
-  186.1e6,     // Z11 — 10m
-  652.6e6,     // Z12 — 15m
-  2e9,         // Z13 — 20m
-  6.2e9,       // Z14 — 25m
-  16.7e9,      // Z15 — 30m
-  46.1e9,      // Z16 — 35m
-  139.2e9,     // Z17 — 40m
-  370.6e9,     // Z18 — 45m
-  1e12,        // Z19 — 50m
-  2.9e12,      // Z20 — 1h (prestige wall 2)
+  800e3,    // Z11
+  2e6,      // Z12
+  5e6,      // Z13
+  12e6,     // Z14
+  30e6,     // Z15
+  70e6,     // Z16
+  160e6,    // Z17
+  400e6,    // Z18
+  900e6,    // Z19
+  2e9,      // Z20 (prestige wall 2)
   // Post-prestige 2
-  3.2e12,      // Z21 — 20m
-  12e12,       // Z22 — 30m
-  50.5e12,     // Z23 — 40m
-  219.3e12,    // Z24 — 50m
-  936.9e12,    // Z25 — 1h (FINAL)
+  5e9,      // Z21
+  15e9,     // Z22
+  50e9,     // Z23
+  150e9,    // Z24
+  500e9,    // Z25
 ];
 
 function getGateCost(zoneId) {
@@ -2622,9 +3046,9 @@ const PRESTIGE_MULT_PER = 0.3;
 // ============ SPELLS ============
 // Ordre logique de puissance : Fulgur < Aegis < Ignis < Mortalis
 const BASE_SPELLS = [
-  { id: 'fulgur',    name: 'Fulgur',    icon: '⚡', baseDmg: 10, baseCD: 1.2, desc: 'Éclair rapide.' },
-  { id: 'aegis',     name: 'Aegis',     icon: '🦌', baseDmg: 15, baseCD: 1.5, desc: 'Lumière sacrée.' },
-  { id: 'ignis',     name: 'Ignis',     icon: '🔥', baseDmg: 24, baseCD: 2.0, desc: 'Explosion puissante.' },
+  { id: 'fulgur',  name: 'Fulgur',  icon: '⚡', baseDmg: 10, baseCD: 1.2, desc: 'Éclair rapide.' },
+  { id: 'aegis',  name: 'Aegis',  icon: '🦌', baseDmg: 15, baseCD: 1.5, desc: 'Lumière sacrée.' },
+  { id: 'ignis', name: 'Ignis', icon: '🔥', baseDmg: 24, baseCD: 2.0, desc: 'Explosion puissante.' },
 ];
 const SPELL4 = { id: 'mortalis', name: 'Mortalis', icon: '💀', baseDmg: 100, baseCD: 2.0, desc: 'Le sort interdit.' };
 function getSpells() { return hasShop('spell4') ? [...BASE_SPELLS, SPELL4] : BASE_SPELLS; }
@@ -2637,14 +3061,14 @@ function spellUpgradeCost(level) {
 
 // ============ TALENTS ============
 const TALENTS = [
-  { id: 'fulgur_dmg',    spell: 'fulgur',    name: 'Puissance Fulgur',    icon: '⚡', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'fulgur',    perLevel: 0.2 }},
-  { id: 'fulgur_cd',     spell: 'fulgur',    name: 'Vélocité Fulgur',     icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'fulgur',    perLevel: 0.05 }},
-  { id: 'ignis_dmg',     spell: 'ignis',     name: 'Puissance Ignis',     icon: '🔥', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'ignis',     perLevel: 0.2 }},
-  { id: 'ignis_cd',      spell: 'ignis',     name: 'Vélocité Ignis',      icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'ignis',     perLevel: 0.05 }},
-  { id: 'aegis_dmg',     spell: 'aegis',     name: 'Puissance Aegis',     icon: '🦌', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'aegis',     perLevel: 0.2 }},
-  { id: 'aegis_cd',      spell: 'aegis',     name: 'Vélocité Aegis',      icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'aegis',     perLevel: 0.05 }},
-  { id: 'mortalis_dmg',  spell: 'mortalis',  name: 'Puissance Mortalis',  icon: '💀', desc: '+25% dmg', maxLvl: 20, costBase: 3, effect: { type: 'spell_dmg', spell: 'mortalis',  perLevel: 0.25 }},
-  { id: 'mortalis_cd',   spell: 'mortalis',  name: 'Vélocité Mortalis',   icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 3, effect: { type: 'spell_cd',  spell: 'mortalis',  perLevel: 0.05 }},
+  { id: 'fulgur_dmg',  spell: 'fulgur',  name: 'Puissance Fulgur',  icon: '⚡', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'fulgur',  perLevel: 0.2 }},
+  { id: 'fulgur_cd',   spell: 'fulgur',  name: 'Vélocité Fulgur',   icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'fulgur',  perLevel: 0.05 }},
+  { id: 'ignis_dmg', spell: 'ignis', name: 'Puissance Ignis', icon: '🔥', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'ignis', perLevel: 0.2 }},
+  { id: 'ignis_cd',  spell: 'ignis', name: 'Vélocité Ignis',  icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'ignis', perLevel: 0.05 }},
+  { id: 'aegis_dmg',  spell: 'aegis',  name: 'Puissance Aegis',  icon: '🦌', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'aegis',  perLevel: 0.2 }},
+  { id: 'aegis_cd',   spell: 'aegis',  name: 'Vélocité Aegis',   icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'aegis',  perLevel: 0.05 }},
+  { id: 'mortalis_dmg',  spell: 'mortalis',     name: 'Puissance Mortalis',     icon: '💀', desc: '+25% dmg', maxLvl: 20, costBase: 3, effect: { type: 'spell_dmg', spell: 'mortalis',     perLevel: 0.25 }},
+  { id: 'mortalis_cd',   spell: 'mortalis',     name: 'Vélocité Mortalis',      icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 3, effect: { type: 'spell_cd',  spell: 'mortalis',     perLevel: 0.05 }},
   { id: 'crit_chance', spell: null, name: 'Chance Critique',   icon: '🎯', desc: '+2% crit',       maxLvl: 25, costBase: 2, effect: { type: 'crit_chance', perLevel: 0.02 }},
   { id: 'crit_dmg',    spell: null, name: 'Dégâts Critiques', icon: '💥', desc: '+15% dmg crit',  maxLvl: 20, costBase: 2, effect: { type: 'crit_dmg',    perLevel: 0.15 }},
   { id: 'gold_bonus',  spell: null, name: 'Cupidité',         icon: '🪙', desc: '+10% gold/kill', maxLvl: 30, costBase: 1, effect: { type: 'gold_bonus',  perLevel: 0.10 }},
@@ -2667,7 +3091,7 @@ const PETS = [
   { id: 'owl',       zone: 2,  icon: '🦉', name: 'Hibou',          dropRate: 0.00004,  rarity: 'common', desc: '+5% TP',          effect: { type: 'tp', val: 0.05 }},
   { id: 'troll',     zone: 3,  icon: '🧌', name: 'Troll',          dropRate: 0.000035, rarity: 'common', desc: '+10% tous dmg',   effect: { type: 'all_dmg', val: 0.10 }},
   { id: 'bat',       zone: 3,  icon: '🦇', name: 'Chauve-souris',  dropRate: 0.000035, rarity: 'common', desc: '-4% tous CD',     effect: { type: 'all_cd', val: 0.04 }},
-  { id: 'kraken',    zone: 4,  icon: '🐙', name: 'Kraken',         dropRate: 0.00003,  rarity: 'common', desc: '+8% Ignis dmg', effect: { type: 'spell_dmg', spell: 'ignis', val: 0.08 }},
+  { id: 'kraken',    zone: 4,  icon: '🐙', name: 'Kraken',     dropRate: 0.00003,  rarity: 'common', desc: '+8% Ignis dmg', effect: { type: 'spell_dmg', spell: 'ignis', val: 0.08 }},
   { id: 'snake',     zone: 4,  icon: '🐍', name: 'Serpent',        dropRate: 0.00003,  rarity: 'common', desc: '+7% tous dmg',    effect: { type: 'all_dmg', val: 0.07 }},
   { id: 'ghoul',     zone: 5,  icon: '🧟', name: 'Goule',          dropRate: 0.000025, rarity: 'common', desc: '+12% gold',       effect: { type: 'gold', val: 0.12 }},
   { id: 'frog',      zone: 5,  icon: '🐸', name: 'Crapaud',        dropRate: 0.000025, rarity: 'common', desc: '+8% TP',          effect: { type: 'tp', val: 0.08 }},
@@ -2683,14 +3107,14 @@ const PETS = [
   // === RARE (Zones 10-17) === dropRate x100 plus rare
   { id: 'golem',     zone: 10, icon: '🗿', name: 'Golem',          dropRate: 0.00001,  rarity: 'rare', desc: '+20% gold',       effect: { type: 'gold', val: 0.20 }},
   { id: 'unicorn',   zone: 10, icon: '🦄', name: 'Licorne',        dropRate: 0.000009, rarity: 'rare', desc: '+15% TP',         effect: { type: 'tp', val: 0.15 }},
-  { id: 'salamander',zone: 11, icon: '🦎', name: 'Salamandre',     dropRate: 0.000009, rarity: 'rare', desc: '+12% Ignis',      effect: { type: 'spell_dmg', spell: 'ignis', val: 0.12 }},
+  { id: 'salamander',zone: 11, icon: '🦎', name: 'Salamandre',     dropRate: 0.000009, rarity: 'rare', desc: '+12% Ignis',  effect: { type: 'spell_dmg', spell: 'ignis', val: 0.12 }},
   { id: 'eagle',     zone: 11, icon: '🦅', name: 'Aigle',          dropRate: 0.000008, rarity: 'rare', desc: '+10% crit chance', effect: { type: 'crit', val: 0.10 }},
   { id: 'dragon',    zone: 12, icon: '🐉', name: 'Dragon',         dropRate: 0.000008, rarity: 'rare', desc: '+20% tous dmg',   effect: { type: 'all_dmg', val: 0.20 }},
   { id: 'tiger',     zone: 12, icon: '🐅', name: 'Tigre',          dropRate: 0.000007, rarity: 'rare', desc: '-10% tous CD',    effect: { type: 'all_cd', val: 0.10 }},
   { id: 'giant',     zone: 13, icon: '🏔️', name: 'Géant de Glace', dropRate: 0.000007, rarity: 'rare', desc: '+8% crit chance', effect: { type: 'crit', val: 0.08 }},
   { id: 'lion',      zone: 13, icon: '🦁', name: 'Lion',           dropRate: 0.000006, rarity: 'rare', desc: '+18% tous dmg',   effect: { type: 'all_dmg', val: 0.18 }},
   { id: 'djinn',     zone: 14, icon: '🌪️', name: 'Djinn',          dropRate: 0.000006, rarity: 'rare', desc: '-10% tous CD',    effect: { type: 'all_cd', val: 0.10 }},
-  { id: 'hippogriff',zone: 14, icon: '🪽', name: 'Griffon Ailé',   dropRate: 0.0000055,rarity: 'rare', desc: '+25% gold',       effect: { type: 'gold', val: 0.25 }},
+  { id: 'hippogriff',zone: 14, icon: '🪽', name: 'Griffon Ailé',    dropRate: 0.0000055,rarity: 'rare', desc: '+25% gold',       effect: { type: 'gold', val: 0.25 }},
   { id: 'knight',    zone: 15, icon: '🖤', name: 'Chevalier Noir', dropRate: 0.0000055,rarity: 'rare', desc: '+25% tous dmg',   effect: { type: 'all_dmg', val: 0.25 }},
   { id: 'griffin',   zone: 15, icon: '🦅', name: 'Griffon',        dropRate: 0.000005, rarity: 'rare', desc: '+15% Aegis dmg', effect: { type: 'spell_dmg', spell: 'aegis', val: 0.15 }},
   { id: 'lich',      zone: 16, icon: '☠️', name: 'Liche',          dropRate: 0.000005, rarity: 'rare', desc: '+30% gold',       effect: { type: 'gold', val: 0.30 }},
@@ -2720,17 +3144,17 @@ const PETS = [
     unlock: { type: 'rebirth', target: 500, desc: '500 Rebirths', hidden: true }},
   { id: 'basilisk',  zone: -1, icon: '🐍', name: 'Serpent Royal',   dropRate: 0, rarity: 'secret', desc: '+80% tous dmg', effect: { type: 'all_dmg', val: 0.80 },
     unlock: { type: 'kills', target: 10000000, desc: '10M kills', hidden: true }},
-  { id: 'thestral',  zone: -1, icon: '🦓', name: 'Ombre Ailée',    dropRate: 0, rarity: 'secret', desc: '+20% crit chance', effect: { type: 'crit', val: 0.20 },
+  { id: 'thestral',  zone: -1, icon: '🦓', name: 'Ombre Ailée',        dropRate: 0, rarity: 'secret', desc: '+20% crit chance', effect: { type: 'crit', val: 0.20 },
     unlock: { type: 'prestige', target: 5, desc: '5 Prestige', hidden: true }},
   { id: 'niffler',   zone: -1, icon: '🦡', name: 'Fouineur',       dropRate: 0, rarity: 'secret', desc: '+100% gold', effect: { type: 'gold', val: 1.00 },
     unlock: { type: 'gold_total', target: 1e15, desc: '1Q or total', hidden: true }},
-  { id: 'spider',     zone: -1,icon: '🕸️', name: 'Tisseuse Géante',dropRate: 0, rarity: 'secret', desc: '-25% tous CD', effect: { type: 'all_cd', val: 0.25 },
+  { id: 'spider',     zone: -1,icon: '🕸️', name: 'Tisseuse Géante',    dropRate: 0, rarity: 'secret', desc: '-25% tous CD', effect: { type: 'all_cd', val: 0.25 },
     unlock: { type: 'zone_clear', target: 24, desc: 'Clear Zone 25' }},  // VISIBLE
-  { id: 'dementor',  zone: -1, icon: '🖤', name: 'Spectre Noir',   dropRate: 0, rarity: 'secret', desc: '+40% tous dmg, -10% CD', effect: { type: 'all', val: 0.40, cd: 0.10 },
+  { id: 'dementor',  zone: -1, icon: '🖤', name: 'Spectre Noir',     dropRate: 0, rarity: 'secret', desc: '+40% tous dmg, -10% CD', effect: { type: 'all', val: 0.40, cd: 0.10 },
     unlock: { type: 'world_boss_dmg', target: 1e15, desc: '1Q dmg World Boss', hidden: true }},
   { id: 'boggart',   zone: -1, icon: '👤', name: 'Changeforme',    dropRate: 0, rarity: 'secret', desc: '+30% TP', effect: { type: 'tp', val: 0.30 },
     unlock: { type: 'spells_cast', target: 1000000, desc: '1M sorts lancés', hidden: true }},
-  { id: 'house_elf', zone: -1, icon: '🧝', name: 'Lutin Serviteur',dropRate: 0, rarity: 'secret', desc: '+50% gold, +20% TP', effect: { type: 'gold', val: 0.50, tp: 0.20 },
+  { id: 'house_elf', zone: -1, icon: '🧝', name: 'Lutin Serviteur', dropRate: 0, rarity: 'secret', desc: '+50% gold, +20% TP', effect: { type: 'gold', val: 0.50, tp: 0.20 },
     unlock: { type: 'all_common_pets', target: 1, desc: 'Tous pets communs' }},  // VISIBLE
 
   // === LEGENDARY PETS (Ultra rare conditions) ===
@@ -2876,10 +3300,10 @@ const ACHIEVEMENTS = [
   { id: 'spellcaster',    category: 'spells', name: 'Lanceur de Sorts',  icon: '✨', desc: 'Lancer 1,000 sorts',            target: 1000,   reward: { gems: 25 }},
   { id: 'wizard',         category: 'spells', name: 'Sorcier',           icon: '🧙', desc: 'Lancer 10,000 sorts',           target: 10000,  reward: { gems: 50, starDust: 25 }},
   { id: 'archmage',       category: 'spells', name: 'Archimage',         icon: '🔮', desc: 'Lancer 100,000 sorts',          target: 100000, reward: { gems: 150, starDust: 150 }},
-  { id: 'pyromancer',     category: 'spells', name: 'Pyromane',          icon: '🔥', desc: 'Lancer 1,000 Ignis',            target: 1000,   reward: { gems: 25 }},
-  { id: 'electromancer',  category: 'spells', name: 'Électromancien',    icon: '⚡', desc: 'Lancer 1,000 Fulgur',            target: 1000,   reward: { gems: 25 }},
-  { id: 'lightbringer',   category: 'spells', name: 'Porteur de Lumière', icon: '☀️', desc: 'Lancer 1,000 Aegis',           target: 1000,   reward: { gems: 25 }},
-  { id: 'deathdealer',    category: 'spells', name: 'Marchand de Mort',  icon: '💀', desc: 'Lancer 1,000 Mortalis',         target: 1000,   reward: { gems: 50, starDust: 50 }},
+  { id: 'pyromancer',     category: 'spells', name: 'Pyromane',          icon: '🔥', desc: 'Lancer 1,000 Ignis',        target: 1000,   reward: { gems: 25 }},
+  { id: 'electromancer',  category: 'spells', name: 'Électromancien',    icon: '⚡', desc: 'Lancer 1,000 Fulgur',         target: 1000,   reward: { gems: 25 }},
+  { id: 'lightbringer',   category: 'spells', name: 'Porteur de Lumière', icon: '☀️', desc: 'Lancer 1,000 Aegis',        target: 1000,   reward: { gems: 25 }},
+  { id: 'deathdealer',    category: 'spells', name: 'Marchand de Mort',  icon: '💀', desc: 'Lancer 1,000 Mortalis',    target: 1000,   reward: { gems: 50, starDust: 50 }},
   { id: 'spell_master',   category: 'spells', name: 'Maître des Sorts',  icon: '📖', desc: 'Un sort au niveau 50',          target: 50,     reward: { gems: 50, starDust: 50 }},
   { id: 'spell_legend',   category: 'spells', name: 'Légende des Sorts', icon: '📚', desc: 'Tous les sorts au niveau 100',  target: 100,    reward: { gems: 200, starDust: 300 }},
 
@@ -2911,7 +3335,7 @@ const ACHIEVEMENTS = [
   { id: 'shopaholic',     category: 'shop', name: 'Accro du Shopping',   icon: '🏪', desc: 'Tout débloquer dans la boutique', target: 5,   reward: { gems: 100, starDust: 100 }},
   { id: 'buff_user',      category: 'shop', name: 'Utilisateur de Buffs', icon: '⚡', desc: 'Utiliser 10 consommables',       target: 10,  reward: { gems: 25 }},
   { id: 'buff_addict',    category: 'shop', name: 'Accro aux Buffs',      icon: '💊', desc: 'Utiliser 100 consommables',      target: 100, reward: { gems: 75, starDust: 50 }},
-  { id: 'mortalis_unlock',category: 'shop', name: 'Magie Interdite',      icon: '💀', desc: 'Débloquer Mortalis',              target: 1,   reward: { gems: 50, starDust: 50 }},
+  { id: 'mortalis_unlock', category: 'shop', name: 'Magie Interdite',      icon: '💀', desc: 'Débloquer Mortalis',        target: 1,   reward: { gems: 50, starDust: 50 }},
 
   // ===== TIME (5) =====
   { id: 'play_1h',        category: 'time', name: 'Première Heure',      icon: '⏰', desc: 'Jouer 1 heure',                   target: 3600,    reward: { gems: 15 }},
@@ -2980,7 +3404,7 @@ const SHOP_UNLOCKS = [
   { id: 'pet_magnet',    name: 'Aimant à Pets',   icon: '🧲', desc: 'Double le taux de drop de tous les pets.', cost: 15000 },
   { id: 'triple_hit',    name: 'Triple Frappe',    icon: '⚔️', desc: 'Les double hits peuvent devenir des triple hits (33% chance).', cost: 50000 },
   { id: 'gold_crit',     name: 'Gold Critique',    icon: '💰', desc: 'Les coups critiques donnent aussi x2 gold sur ce kill.', cost: 100000 },
-  { id: 'spell4',        name: 'Mortalis',         icon: '💀', desc: 'Débloque un 4ème sort : 40 dmg, 3.0s CD.', cost: 500000 },
+  { id: 'spell4',        name: 'Mortalis',    icon: '💀', desc: 'Débloque un 4ème sort : 40 dmg, 3.0s CD.', cost: 500000 },
 ];
 // Consumables (repeatable, cost scales)
 const SHOP_CONSUMABLES = [
@@ -2988,6 +3412,42 @@ const SHOP_CONSUMABLES = [
   { id: 'frenzy',     name: 'Frénésie',       icon: '⚡', desc: '-50% CD sorts pendant 2 minutes.',  baseCost: 800,  costMult: 1.05, duration: 120 },
   { id: 'lucky',      name: 'Chance Pure',     icon: '🍀', desc: 'x3 drop rate pets pendant 2 min.', baseCost: 1200, costMult: 1.05, duration: 120 },
 ];
+
+// ============ GEM SHOP ============
+const GEM_SHOP_UPGRADES = [
+  { id: 'gem_pet_slot',   name: 'Slot Pet',         icon: '🐾', desc: '+1 emplacement pet',           maxLevel: 3,  costs: [3000, 15000, 60000] },
+  { id: 'gem_spell_xp',   name: 'Puissance Arcane', icon: '🔮', desc: '+10% dégâts sorts par niveau', maxLevel: 10, baseCost: 500, costMult: 1.7 },
+  { id: 'gem_gold_boost',  name: "Toucher d'Or",    icon: '💰', desc: '+15% gold gagné par niveau',   maxLevel: 10, baseCost: 400, costMult: 1.65 },
+  { id: 'gem_offline',    name: 'Veille Améliorée', icon: '🌙', desc: '+25% gains hors-ligne par niv', maxLevel: 5, baseCost: 1000, costMult: 2.0 },
+];
+const GEM_SHOP_MEGA_BUFFS = [
+  { id: 'mega_dps',  name: 'Méga DPS',   icon: '⚔️', desc: 'x5 dégâts pendant 30 min.',        cost: 1500, duration: 1800 },
+  { id: 'mega_gold', name: 'Méga Gold',   icon: '🪙', desc: 'x10 gold gagné pendant 30 min.',   cost: 2000, duration: 1800 },
+  { id: 'mega_luck', name: 'Méga Chance', icon: '🍀', desc: 'x5 drop rate pets pendant 10 min.', cost: 2500, duration: 600 },
+];
+const SHINY_FY_COST = 8000;
+const DAILY_REROLL_COST = 200;
+const GEM_PACKS = [
+  { productId: 'gems_500',    gems: 500,    name: 'Poignée',     icon: '💎',  bonus: '' },
+  { productId: 'gems_2500',   gems: 2500,   name: 'Sac',         icon: '💎',  bonus: '' },
+  { productId: 'gems_6500',   gems: 6500,   name: 'Coffre',      icon: '💎',  bonus: '+8%' },
+  { productId: 'gems_15000',  gems: 15000,  name: 'Trésor',      icon: '💎',  bonus: '+15%' },
+  { productId: 'gems_40000',  gems: 40000,  name: 'Caverne',     icon: '💎',  bonus: '+25%' },
+  { productId: 'gems_100000', gems: 100000, name: 'Légendaire',  icon: '👑',  bonus: '+40%' },
+];
+const ALL_BUFF_ITEMS = [...SHOP_CONSUMABLES, ...GEM_SHOP_MEGA_BUFFS];
+
+// ============ ADS ============
+const AD_REWARD_GEMS = 50;
+const AD_REWARDED_COOLDOWN = 300000; // 5 min entre rewarded ads
+const AD_INTERSTITIAL_INTERVAL = 3;  // interstitial toutes les 3 zones
+var _lastRewardedAd = 0;
+var _zonesSinceLastAd = 0;
+
+function gemUpgradeCost(item, lvl) {
+  if (item.costs) return item.costs[lvl] || 99999;
+  return Math.floor(item.baseCost * Math.pow(item.costMult, lvl));
+}
 
 // Pet upgrade cost: scales with pet zone, rarity, and level (VERY HARD scaling)
 function petUpgradeCost(pet, level) {
@@ -3031,7 +3491,7 @@ const WORLD_BOSSES = [
   { id: 'ombral', name: 'Seigneur Ombral', icon: '🐍', hpMult: 1.0 },
   { id: 'malachar', name: 'Malachar', icon: '⚡', hpMult: 1.2 },
   { id: 'basilisk', name: 'Grand Serpent', icon: '🐉', hpMult: 0.8 },
-  { id: 'spectral_king', name: 'Roi Spectral', icon: '👻', hpMult: 1.5 },
+  { id: 'dementor_king', name: 'Roi Spectral', icon: '👻', hpMult: 1.5 },
   { id: 'dragon', name: 'Dragon Cornu', icon: '🔥', hpMult: 1.3 },
 ];
 
@@ -3069,6 +3529,216 @@ function calcEffectiveHp(currentHp, baseMaxHp, effectiveMaxHp) {
 // Firebase user state
 let firebaseUser = null;
 let bossUnsubscribers = [];
+
+// Premium state (synced from RevenueCat)
+let premiumActive = false;
+let ownedPacks = { starter: false, pet: false };
+
+async function checkPremiumStatus() {
+  if (!window.RevenueCat) return;
+  try {
+    const info = await window.RevenueCat.getCustomerInfo();
+    if (!info) return;
+    premiumActive = window.RevenueCat.isPremium(info);
+    ownedPacks.starter = window.RevenueCat.hasEntitlement(info, 'starter_pack');
+    ownedPacks.pet = window.RevenueCat.hasEntitlement(info, 'pet_pack');
+    updatePremiumUI();
+  } catch (e) {
+    console.error('Premium check error:', e);
+  }
+}
+
+function updatePremiumUI() {
+  const badge = document.getElementById('premiumBadge');
+  if (badge) badge.style.display = premiumActive ? 'inline-flex' : 'none';
+}
+
+async function renderPremiumShop() {
+  const container = document.getElementById('premiumShopContent');
+  if (!container) return;
+
+  if (!window.RevenueCat) {
+    container.innerHTML = '<p style="color:#888;font-size:0.85em;text-align:center;padding:20px;">Premium Shop disponible uniquement dans l\\'application mobile.</p>';
+    return;
+  }
+
+  try {
+    const offerings = await window.RevenueCat.getOfferings();
+    if (!offerings || !offerings.current) {
+      container.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">Chargement des offres...</p>';
+      return;
+    }
+
+    const packages = offerings.current.availablePackages;
+    let html = '';
+
+    // Premium subscription section
+    html += '<div style="margin-bottom:20px;border:1px solid rgba(212,168,67,0.3);border-radius:12px;padding:15px;background:rgba(212,168,67,0.05);">';
+    html += '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:1em;margin-bottom:8px;">👑 Archmage Premium</div>';
+    html += '<div style="font-size:0.8em;color:#aaa;margin-bottom:12px;line-height:1.4;">🚫 Sans pubs · × 2 gold idle · +1 slot pet · ×1.5 gems boss · +1 défi quotidien</div>';
+
+    if (premiumActive) {
+      html += '<div style="color:var(--green);font-size:0.9em;padding:8px;text-align:center;border:1px solid var(--green);border-radius:8px;">✅ Actif</div>';
+    } else {
+      packages.forEach((pkg, i) => {
+        const id = pkg.product.identifier;
+        if (id.includes('premium')) {
+          html += '<button onclick="handlePurchase(' + i + ')" class="btn btn-sm" style="width:100%;margin-bottom:6px;padding:10px;">';
+          html += pkg.product.title + ' — ' + pkg.product.priceString;
+          html += '</button>';
+        }
+      });
+    }
+    html += '</div>';
+
+    // Special packs
+    html += '<div style="margin-bottom:15px;">';
+    html += '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:0.95em;margin-bottom:10px;">🎁 Packs Spéciaux</div>';
+    packages.forEach((pkg, i) => {
+      const id = pkg.product.identifier;
+      if (id === 'starter_pack' || id === 'pet_pack') {
+        const owned = (id === 'starter_pack' && ownedPacks.starter) || (id === 'pet_pack' && ownedPacks.pet);
+        html += '<button onclick="' + (owned ? '' : 'handlePurchase(' + i + ')') + '" class="btn btn-sm" style="width:100%;margin-bottom:6px;padding:10px;' + (owned ? 'opacity:0.5;' : '') + '">';
+        html += pkg.product.title + ' — ' + (owned ? '✅ Acheté' : pkg.product.priceString);
+        html += '</button>';
+      }
+    });
+    html += '</div>';
+
+    // Restore button
+    html += '<button onclick="handleRestore()" class="btn btn-sm" style="width:100%;opacity:0.6;font-size:0.8em;">Restaurer les achats</button>';
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<p style="color:#f55;font-size:0.85em;text-align:center;padding:20px;">Erreur de chargement du shop.</p>';
+    console.error('Premium shop error:', e);
+  }
+}
+
+async function handlePurchase(packageIndex) {
+  try {
+    const offerings = await window.RevenueCat.getOfferings();
+    if (!offerings || !offerings.current) return;
+
+    const pkg = offerings.current.availablePackages[packageIndex];
+    if (!pkg) return;
+
+    toast('⏳ Achat en cours...');
+    const info = await window.RevenueCat.purchasePackage(pkg);
+    if (info) {
+      const productId = pkg.product.identifier;
+      // Apply gem packs
+      const gemPack = GEM_PACKS.find(function(p) { return p.productId === productId; });
+      if (gemPack) {
+        G.gems += gemPack.gems;
+        toast('💎 +' + fmt(gemPack.gems) + ' gemmes !');
+      } else if (productId === 'starter_pack') {
+        G.gems += 100;
+        G.gold += 5000;
+        toast('🎁 Starter Pack activé !');
+      } else if (productId === 'pet_pack') {
+        G.gems += 50;
+        toast('🎁 Pet Master Pack activé !');
+      } else if (productId.includes('premium')) {
+        toast('👑 Archmage Premium activé !');
+      }
+      save();
+      checkPremiumStatus();
+      renderPremiumShop();
+      rebuildGemShop();
+      document.getElementById('goldVal').textContent = fmt(G.gold);
+      document.getElementById('gemsVal').textContent = G.gems;
+    }
+  } catch (e) {
+    toast('⚠️ Achat échoué, réessaie plus tard');
+    console.error('Purchase error:', e);
+  }
+}
+
+async function handleRestore() {
+  try {
+    toast('⏳ Restauration...');
+    const info = await window.RevenueCat.restorePurchases();
+    if (info) {
+      checkPremiumStatus();
+      renderPremiumShop();
+      toast('✅ Achats restaurés !');
+    }
+  } catch (e) {
+    toast('⚠️ Restauration échouée, réessaie plus tard');
+    console.error('Restore error:', e);
+  }
+}
+
+// ============ GEM PACK IAP ============
+var _gemPackPrices = {};
+
+async function loadGemPackPrices() {
+  if (!window.RevenueCat) return;
+  try {
+    var offerings = await window.RevenueCat.getOfferings();
+    if (!offerings || !offerings.current) return;
+    offerings.current.availablePackages.forEach(function(pkg) {
+      _gemPackPrices[pkg.product.identifier] = pkg.product.priceString;
+    });
+  } catch(e) { console.error('loadGemPackPrices:', e); }
+}
+
+async function handleGemPackPurchase(productId) {
+  if (!window.RevenueCat) { toast('Disponible uniquement dans l\\'app mobile'); return; }
+  try {
+    var offerings = await window.RevenueCat.getOfferings();
+    if (!offerings || !offerings.current) return;
+    var pkg = offerings.current.availablePackages.find(function(p) { return p.product.identifier === productId; });
+    if (!pkg) { toast('Pack introuvable'); return; }
+    toast('⏳ Achat en cours...');
+    var info = await window.RevenueCat.purchasePackage(pkg);
+    if (info) {
+      var gemPack = GEM_PACKS.find(function(p) { return p.productId === productId; });
+      if (gemPack) {
+        G.gems += gemPack.gems;
+        toast('💎 +' + fmt(gemPack.gems) + ' gemmes !');
+      }
+      save();
+      rebuildGemShop();
+      document.getElementById('gemsVal').textContent = G.gems;
+    }
+  } catch(e) {
+    toast('⚠️ Achat échoué, réessaie plus tard');
+    console.error('Gem pack purchase error:', e);
+  }
+}
+
+// ============ AD FUNCTIONS ============
+async function watchAdForGems() {
+  if (!window.AdMobBridge) { toast('Disponible uniquement dans l\\'app mobile'); return; }
+  var now = Date.now();
+  if (now - _lastRewardedAd < AD_REWARDED_COOLDOWN) {
+    var remaining = Math.ceil((AD_REWARDED_COOLDOWN - (now - _lastRewardedAd)) / 1000);
+    toast('⏳ Disponible dans ' + remaining + 's');
+    return;
+  }
+  toast('⏳ Chargement de la pub...');
+  var earned = await window.AdMobBridge.showRewardedAd();
+  if (earned) {
+    G.gems += AD_REWARD_GEMS;
+    _lastRewardedAd = Date.now();
+    save();
+    toast('💎 +' + AD_REWARD_GEMS + ' gemmes !');
+    rebuildGemShop();
+    document.getElementById('gemsVal').textContent = G.gems;
+  }
+}
+
+async function tryShowInterstitial() {
+  if (premiumActive) return;
+  if (!window.AdMobBridge) return;
+  _zonesSinceLastAd++;
+  if (_zonesSinceLastAd >= AD_INTERSTITIAL_INTERVAL) {
+    _zonesSinceLastAd = 0;
+    await window.AdMobBridge.showInterstitialAd();
+  }
+}
 
 // ============ STATE ============
 let G = null;
@@ -3111,7 +3781,10 @@ function defaultState() {
     activePets: [],  // array of equipped pet ids (replaces activePet for multi-pet)
     petSlots: 1,  // number of pet slots (1 base, 2 after zone 15, 3 after prestige)
     // Achievements
+    // Gem Shop
+    gemShop: { gem_pet_slot: 0, gem_spell_xp: 0, gem_gold_boost: 0, gem_offline: 0 },
     achievements: [],  // array of completed achievement ids
+    seenAchievements: [],  // achievements the player has seen in the panel
     achievementProgress: {},  // achievementId → progress value
     // Daily Challenges
     dailyChallenges: [],  // [{id, type, target, progress, completed}]
@@ -3135,19 +3808,11 @@ function defaultState() {
 
 function save() {
   G.lastTick = Date.now();
-  localStorage.setItem('wandIdle_test', JSON.stringify(G));
-  // No cloud sync for test version
+  localStorage.setItem('wandIdle', JSON.stringify(G));
+  // Sync to cloud if logged in
+  saveToCloud();
 }
-function load() {
-  // Force reset for new balancing v8
-  const BALANCE_VERSION = 'v8';
-  if (localStorage.getItem('wandIdle_test_version') !== BALANCE_VERSION) {
-    localStorage.removeItem('wandIdle_test');
-    localStorage.setItem('wandIdle_test_version', BALANCE_VERSION);
-    return false;
-  }
-  try { const d = localStorage.getItem('wandIdle_test'); if (d) { G = JSON.parse(d); return true; } } catch(e) {} return false;
-}
+function load() { try { const d = localStorage.getItem('wandIdle'); if (d) { G = JSON.parse(d); return true; } } catch(e) {} return false; }
 
 // Cloud sync functions are defined after Firebase initialization (see below)
 
@@ -3189,6 +3854,11 @@ function getSpellDmg(spellId) {
   dmg *= (1 + getCategoryBonus('all_dmg'));
   // Multipliers
   dmg *= G.rebirthMult * G.prestigeMult * (G.infinityMult || 1);
+  // Gem shop spell damage boost
+  const gemSpellLvl = (G.gemShop && G.gemShop.gem_spell_xp) || 0;
+  if (gemSpellLvl > 0) dmg *= (1 + gemSpellLvl * 0.10);
+  // Mega DPS buff
+  if (hasBuff('mega_dps')) dmg *= 5;
   return dmg;
 }
 
@@ -3228,6 +3898,11 @@ function getGoldMult() {
   m += getRelicBonus('gold');
   m *= G.rebirthMult * G.prestigeMult * (G.infinityMult || 1);
   if (hasBuff('gold_rush')) m *= 2;
+  // Gem shop gold boost
+  const gemGoldLvl = (G.gemShop && G.gemShop.gem_gold_boost) || 0;
+  if (gemGoldLvl > 0) m *= (1 + gemGoldLvl * 0.15);
+  // Mega Gold buff
+  if (hasBuff('mega_gold')) m *= 10;
   return m;
 }
 
@@ -3272,10 +3947,12 @@ function getGoldPerSec() {
   const zone = ZONES[G.currentZone] || ZONES[ZONES.length - 1];
   const dps = getDPS();
   if (zone.mob.hp <= 0) return 0;
-  return (dps / zone.mob.hp) * zone.mob.gold * getGoldMult();
+  const premiumMult = premiumActive ? 2.0 : 1.0;
+  return (dps / zone.mob.hp) * zone.mob.gold * getGoldMult() * premiumMult;
 }
 
 // ============ MOB ============
+let _barBusy = false;
 function spawnMob() {
   const zone = ZONES[G.currentZone] || ZONES[ZONES.length - 1];
   G.mobHp = zone.mob.hp;
@@ -3314,6 +3991,12 @@ function damageMob(amount, spellType) {
 }
 
 function onMobKill(wasCrit) {
+  if (!_barBusy) {
+    _barBusy = true;
+    var hpEl = document.getElementById('mobHpFill');
+    if (hpEl) hpEl.style.width = '0%';
+    setTimeout(function(){ var h = document.getElementById('mobHpFill'); if (h) h.style.width = '100%'; setTimeout(function(){ _barBusy = false; }, 400); }, 400);
+  }
   const zone = ZONES[G.currentZone] || ZONES[ZONES.length - 1];
   let goldDrop = Math.floor(zone.mob.gold * getGoldMult());
   if (wasCrit && hasShop('gold_crit')) goldDrop *= 2;
@@ -3335,10 +4018,17 @@ function onMobKill(wasCrit) {
 
   // Check achievements
   checkAchievement('first_blood', G.totalKills);
+  checkAchievement('slayer', G.totalKills);
   checkAchievement('hunter', G.totalKills);
+  checkAchievement('destroyer', G.totalKills);
   checkAchievement('exterminator', G.totalKills);
+  checkAchievement('genocide', G.totalKills);
+  checkAchievement('first_gold', G.totalGoldEarned);
+  checkAchievement('saver', G.totalGoldEarned);
   checkAchievement('wealthy', G.totalGoldEarned);
   checkAchievement('millionaire', G.totalGoldEarned);
+  checkAchievement('billionaire', G.totalGoldEarned);
+  checkAchievement('tycoon', G.totalGoldEarned);
 
   // Pet drop check
   const zonePets = PETS.filter(p => p.zone === G.currentZone);
@@ -3346,6 +4036,7 @@ function onMobKill(wasCrit) {
     let dr = p.dropRate;
     if (hasShop('pet_magnet')) dr *= 2;
     if (hasBuff('lucky')) dr *= 3;
+    if (hasBuff('mega_luck')) dr *= 5;
     if (!G.ownedPets.includes(p.id) && Math.random() < dr) {
       G.ownedPets.push(p.id);
       G.petLevels[p.id] = 1;
@@ -3480,6 +4171,7 @@ function checkPetCollectionAchievements() {
 
   checkAchievement('pet_friend', owned.length);
   checkAchievement('pet_collector', owned.length);
+  checkAchievement('pet_hoarder', owned.length);
   checkAchievement('common_master', commonOwned);
   checkAchievement('rare_hunter', rareOwned);
   checkAchievement('epic_seeker', epicOwned);
@@ -3487,6 +4179,7 @@ function checkPetCollectionAchievements() {
   checkAchievement('legendary_one', legendaryOwned);
   checkAchievement('menagerie', owned.length);
   checkAchievement('shiny_hunter', (G.shinyPets || []).length > 0 ? 1 : 0);
+  checkAchievement('shiny_collector', (G.shinyPets || []).length);
   checkAchievement('shiny_master', (G.shinyPets || []).length);
 }
 
@@ -3516,30 +4209,25 @@ function spawnGoldNumber(amount) {
 }
 
 // ============ SPELL AUTO-CAST ============
+let _cachedSpells = null;
+let _spellCacheTimer = 0;
+let _lastBumpTime = {}; // timestamp of last visual bump per spell
+const MIN_BUMP_INTERVAL = 0.5; // minimum seconds between bumps
 function tickSpells(dt) {
-  getSpells().forEach(spell => {
-    const slotEl = document.getElementById('spell-slot-' + spell.id);
-    const cdEl = document.getElementById('spell-cd-' + spell.id);
-    const cdTextEl = document.getElementById('spell-cdtext-' + spell.id);
+  _spellCacheTimer += dt;
+  if (!_cachedSpells || _spellCacheTimer >= 1) { _cachedSpells = getSpells(); _spellCacheTimer = 0; }
+  _cachedSpells.forEach(spell => {
     const maxCd = getSpellCD(spell.id);
 
+    // Game logic: countdown + cast
     if (G.spellCDs[spell.id] > 0) {
       G.spellCDs[spell.id] = Math.max(0, G.spellCDs[spell.id] - dt);
-      // Update radial cooldown
-      const cdPercent = (G.spellCDs[spell.id] / maxCd) * 100;
-      if (cdEl) cdEl.style.setProperty('--cd-percent', cdPercent + '%');
-      if (cdTextEl) { cdTextEl.style.display = 'block'; cdTextEl.textContent = G.spellCDs[spell.id].toFixed(1); }
-      if (slotEl) { slotEl.classList.remove('ready'); slotEl.classList.add('on-cd'); }
     } else {
-      // Cast spell
       damageMob(getSpellDmg(spell.id), spell.id);
       G.spellCDs[spell.id] = maxCd;
-
-      // Track spell cast for achievements/challenges
       if (!G.spellsCast) G.spellsCast = {};
       G.spellsCast[spell.id] = (G.spellsCast[spell.id] || 0) + 1;
       updateDailyChallenge('cast_spells', 1);
-      // Spell achievements
       const totalSpells = Object.values(G.spellsCast).reduce((a, b) => a + b, 0);
       checkAchievement('first_spell', totalSpells);
       checkAchievement('spellcaster', totalSpells);
@@ -3550,18 +4238,29 @@ function tickSpells(dt) {
       if (spell.id === 'aegis') checkAchievement('lightbringer', G.spellsCast[spell.id]);
       if (spell.id === 'mortalis') checkAchievement('deathdealer', G.spellsCast[spell.id]);
 
-      if (slotEl) {
-        slotEl.classList.remove('on-cd');
-        slotEl.classList.add('casting');
-        setTimeout(() => {
-          slotEl.classList.remove('casting');
-          slotEl.classList.add('on-cd');
-        }, 200);
+      // Visual bump (capped at MIN_BUMP_INTERVAL)
+      var now = performance.now() / 1000;
+      var last = _lastBumpTime[spell.id] || 0;
+      if (now - last >= MIN_BUMP_INTERVAL) {
+        _lastBumpTime[spell.id] = now;
+        var slotEl = getEl('spell-slot-' + spell.id);
+        if (slotEl) {
+          slotEl.classList.remove('bump');
+          void slotEl.offsetWidth; // force reflow to restart animation
+          slotEl.classList.add('bump');
+        }
       }
-      if (cdEl) cdEl.style.setProperty('--cd-percent', '100%');
-      if (cdTextEl) { cdTextEl.style.display = 'block'; cdTextEl.textContent = maxCd.toFixed(1); }
     }
+
   });
+
+  // Update CD text only when spell cache refreshes (every 1s)
+  if (_spellCacheTimer === 0) {
+    _cachedSpells.forEach(function(spell) {
+      var cdTextEl = getEl('spell-cdtext-' + spell.id);
+      if (cdTextEl) { cdTextEl.style.display = 'block'; cdTextEl.textContent = getSpellCD(spell.id).toFixed(1) + 's'; }
+    });
+  }
 }
 
 // ============ SPELL UPGRADES ============
@@ -3596,9 +4295,9 @@ function checkSpellAchievements() {
   const maxSpellLevel = Math.max(...getSpells().map(s => G.spellLevels[s.id] || 1));
   checkAchievement('spell_master', maxSpellLevel);
 
-  // Check archmage (all spells at level 100)
+  // Check spell_legend (all spells at level 100)
   const allAt100 = getSpells().every(s => (G.spellLevels[s.id] || 1) >= 100);
-  if (allAt100) checkAchievement('archmage', 100);
+  if (allAt100) checkAchievement('spell_legend', 100);
 }
 
 // ============ GATES ============
@@ -3631,9 +4330,20 @@ function unlockGate(zoneId) {
   }
 
   // Check zone achievements
+  checkAchievement('beginner', zoneId + 1);
   checkAchievement('apprentice', zoneId + 1);
+  checkAchievement('student', zoneId + 1);
   checkAchievement('adventurer', zoneId + 1);
+  checkAchievement('explorer', zoneId + 1);
   checkAchievement('master', zoneId + 1);
+
+  // Track zone boss kills (each gate unlock = 1 boss defeated)
+  G.bossKills = (G.bossKills || 0) + 1;
+  checkAchievement('boss_slayer', G.bossKills);
+  checkAchievement('boss_hunter', G.bossKills);
+
+  // Interstitial ad (every 3 zones, not for premium)
+  tryShowInterstitial();
 
   rebuildGates();
 }
@@ -3762,8 +4472,19 @@ function doRebirth() {
   const keepInfinityMult = G.infinityMult || 1;
   // Achievements persist
   const keepAchievements = [...(G.achievements || [])];
+  const keepSeenAchievements = [...(G.seenAchievements || [])];
   const keepAchievementProgress = JSON.parse(JSON.stringify(G.achievementProgress || {}));
   const keepSpellsCast = JSON.parse(JSON.stringify(G.spellsCast || {}));
+  // Gem shop persists
+  const keepGemShop = JSON.parse(JSON.stringify(G.gemShop || {}));
+  // Stats that persist for achievements
+  const keepBossKills = G.bossKills || 0;
+  const keepWorldBossKills = G.worldBossKills || 0;
+  const keepTotalWorldBossDmg = G.totalWorldBossDmg || 0;
+  const keepTotalCrits = G.totalCrits || 0;
+  const keepTotalTalentsBought = G.totalTalentsBought || 0;
+  const keepTotalConsumablesUsed = G.totalConsumablesUsed || 0;
+  const keepTotalDailiesCompleted = G.totalDailiesCompleted || 0;
 
   const newRebirth = nextTier.id;
   const newRebirthMult = nextTier.mult;
@@ -3799,11 +4520,26 @@ function doRebirth() {
   G.infinityMult = keepInfinityMult;
   // Restore achievements
   G.achievements = keepAchievements;
+  G.seenAchievements = keepSeenAchievements;
   G.achievementProgress = keepAchievementProgress;
   G.spellsCast = keepSpellsCast;
+  G.gemShop = keepGemShop;
+  // Restore stats for achievements
+  G.bossKills = keepBossKills;
+  G.worldBossKills = keepWorldBossKills;
+  G.totalWorldBossDmg = keepTotalWorldBossDmg;
+  G.totalCrits = keepTotalCrits;
+  G.totalTalentsBought = keepTotalTalentsBought;
+  G.totalConsumablesUsed = keepTotalConsumablesUsed;
+  G.totalDailiesCompleted = keepTotalDailiesCompleted;
 
-  // Check rebirth achievement
+  // Check rebirth achievements (all tiers)
+  checkAchievementIncrement('rebirth_1', 1);
+  checkAchievementIncrement('rebirth_5', 1);
   checkAchievementIncrement('rebirthed', 1);
+  checkAchievementIncrement('rebirth_25', 1);
+  checkAchievementIncrement('rebirth_50', 1);
+  checkAchievementIncrement('rebirth_100', 1);
 
   spawnMob();
   save();
@@ -3834,8 +4570,19 @@ function doPrestige() {
   const keepInfinityMult = G.infinityMult || 1;
   // Achievements persist
   const keepAchievements = [...(G.achievements || [])];
+  const keepSeenAchievements = [...(G.seenAchievements || [])];
   const keepAchievementProgress = JSON.parse(JSON.stringify(G.achievementProgress || {}));
   const keepSpellsCast = JSON.parse(JSON.stringify(G.spellsCast || {}));
+  // Gem shop persists
+  const keepGemShop = JSON.parse(JSON.stringify(G.gemShop || {}));
+  // Stats that persist for achievements
+  const keepBossKills = G.bossKills || 0;
+  const keepWorldBossKills = G.worldBossKills || 0;
+  const keepTotalWorldBossDmg = G.totalWorldBossDmg || 0;
+  const keepTotalCrits = G.totalCrits || 0;
+  const keepTotalTalentsBought = G.totalTalentsBought || 0;
+  const keepTotalConsumablesUsed = G.totalConsumablesUsed || 0;
+  const keepTotalDailiesCompleted = G.totalDailiesCompleted || 0;
   // PETS PERSIST THROUGH ALL RESETS (collection focus)
   const keepPets = [...(G.ownedPets || [])];
   const keepPetLevels = JSON.parse(JSON.stringify(G.petLevels || {}));
@@ -3857,8 +4604,18 @@ function doPrestige() {
   G.infinityMult = keepInfinityMult;
   // Restore achievements
   G.achievements = keepAchievements;
+  G.seenAchievements = keepSeenAchievements;
   G.achievementProgress = keepAchievementProgress;
   G.spellsCast = keepSpellsCast;
+  G.gemShop = keepGemShop;
+  // Restore stats for achievements
+  G.bossKills = keepBossKills;
+  G.worldBossKills = keepWorldBossKills;
+  G.totalWorldBossDmg = keepTotalWorldBossDmg;
+  G.totalCrits = keepTotalCrits;
+  G.totalTalentsBought = keepTotalTalentsBought;
+  G.totalConsumablesUsed = keepTotalConsumablesUsed;
+  G.totalDailiesCompleted = keepTotalDailiesCompleted;
   // Restore PETS (permanent collection!)
   G.ownedPets = keepPets;
   G.petLevels = keepPetLevels;
@@ -3868,8 +4625,10 @@ function doPrestige() {
   // Award Star Dust on prestige
   awardStarDust(100 + (newPrestige * 50), 'Prestige ' + newPrestige);
 
-  // Check prestige achievement
+  // Check prestige achievements (all tiers)
   checkAchievement('transcended', newPrestige);
+  checkAchievement('prestige_5', newPrestige);
+  checkAchievement('prestige_10', newPrestige);
 
   spawnMob();
   save();
@@ -3948,9 +4707,10 @@ function tick(now) {
     checkAchievement('play_1000h', playTime);
   }
 
-  // UI update throttled to ~20fps for smoother visuals
+  // UI update throttled (~12fps on mobile, ~20fps on desktop)
+  const _uiInterval = window.Capacitor ? 0.08 : 0.05;
   G._uiTimer = (G._uiTimer || 0) + dt;
-  if (G._uiTimer >= 0.05) {
+  if (G._uiTimer >= _uiInterval) {
     G._uiTimer = 0;
     updateUI();
   }
@@ -3992,30 +4752,15 @@ function updateUI() {
     zoneProgressEl.textContent = 'Zone finale atteinte !';
   }
 
-  // Mob HP (always update - combat is real-time)
+  // Mob HP - don't touch bar during kill animation
   const hpPct = Math.max(0, G.mobHp / G.mobMaxHp * 100);
-  el('mobHpFill').style.width = hpPct + '%';
+  if (!_barBusy) el('mobHpFill').style.width = hpPct + '%';
   el('mobHpText').textContent = fmt(Math.max(0, G.mobHp)) + ' / ' + fmt(G.mobMaxHp);
   el('killCounter').textContent = 'Kills : ' + fmt(G.kills);
 
-  // Spell cooldowns (use cached spell list)
-  const spells = getSpells();
-  for (let i = 0; i < spells.length; i++) {
-    const spell = spells[i];
-    const cdOverlay = el('spell-cd-' + spell.id);
-    if (!cdOverlay) continue;
-    const cdText = el('spell-cdtext-' + spell.id);
-    const curCd = G.spellCDs[spell.id];
-    if (curCd > 0) {
-      const maxCd = getSpellCD(spell.id);
-      cdOverlay.style.height = (curCd / maxCd * 100) + '%';
-      cdText.textContent = curCd.toFixed(1) + 's';
-      cdText.style.display = '';
-    } else {
-      cdOverlay.style.height = '0%';
-      cdText.style.display = 'none';
-    }
-  }
+  // Spell cooldowns (use cached spell list from tickSpells)
+  const spells = _cachedSpells || getSpells();
+  // Spell CD text is now static (set by tickSpells cache refresh only)
 
   // Talent points
   const tpEl = el('tpAvailable');
@@ -4057,14 +4802,14 @@ function updateActiveBuffsBar() {
   if (!bar) return;
 
   // Check if buff composition changed (not just timers)
-  const activeBuffIds = SHOP_CONSUMABLES.filter(c => hasBuff(c.id)).map(c => c.id).join(',');
+  const activeBuffIds = ALL_BUFF_ITEMS.filter(c => hasBuff(c.id)).map(c => c.id).join(',');
   const needsRebuild = activeBuffIds !== _lastBuffKey;
 
   if (needsRebuild) {
     _lastBuffKey = activeBuffIds;
     let html = '';
-    for (let i = 0; i < SHOP_CONSUMABLES.length; i++) {
-      const c = SHOP_CONSUMABLES[i];
+    for (let i = 0; i < ALL_BUFF_ITEMS.length; i++) {
+      const c = ALL_BUFF_ITEMS[i];
       if (hasBuff(c.id)) {
         html += '<div class="buff-item" data-buff="' + c.id + '">';
         html += '<span class="buff-icon">' + c.icon + '</span>';
@@ -4080,8 +4825,8 @@ function updateActiveBuffsBar() {
   }
 
   // Update only timers (fast)
-  for (let i = 0; i < SHOP_CONSUMABLES.length; i++) {
-    const c = SHOP_CONSUMABLES[i];
+  for (let i = 0; i < ALL_BUFF_ITEMS.length; i++) {
+    const c = ALL_BUFF_ITEMS[i];
     if (hasBuff(c.id)) {
       const timerEl = getEl('bufftimer-' + c.id);
       if (timerEl) {
@@ -4120,16 +4865,17 @@ function refreshButtons() {
     _tpButtons[i].disabled = tp < Number(_tpButtons[i].dataset.costTp);
   }
   // Update cost text for spells (cost changes after upgrade)
-  getSpells().forEach(s => {
-    const costEl = document.getElementById('spell-cost-' + s.id);
+  const spells = _cachedSpells || getSpells();
+  for (let i = 0; i < spells.length; i++) {
+    const costEl = getEl('spell-cost-' + spells[i].id);
     if (costEl) {
-      const cost = spellUpgradeCost(G.spellLevels[s.id]);
+      const cost = spellUpgradeCost(G.spellLevels[spells[i].id]);
       costEl.textContent = fmt(cost) + ' 🪙';
     }
-  });
+  }
   // Update gate open button
   const nextGate = G.unlockedZones;
-  const gateBtn = document.getElementById('gate-btn-' + nextGate);
+  const gateBtn = getEl('gate-btn-' + nextGate);
   if (gateBtn) {
     gateBtn.disabled = G.gold < getGateCost(nextGate);
   }
@@ -4139,8 +4885,8 @@ function refreshButtons() {
       const lvl = G.talents[t.id] || 0;
       const cost = t.costBase + lvl;
       const isMax = lvl >= t.maxLvl;
-      const btn1 = document.getElementById('talent-btn-' + t.id);
-      const btnMax = document.getElementById('talent-btnmax-' + t.id);
+      const btn1 = getEl('talent-btn-' + t.id);
+      const btnMax = getEl('talent-btnmax-' + t.id);
       if (btn1) {
         btn1.disabled = isMax || G.talentPoints < cost;
         btn1.dataset.costTp = isMax ? 9999 : cost;
@@ -4153,7 +4899,7 @@ function refreshButtons() {
   }
   // Refresh shop only when a buff expires (not every tick)
   if (activePanel === 'shop') {
-    const currentBuffStates = SHOP_CONSUMABLES.map(c => hasBuff(c.id)).join(',');
+    const currentBuffStates = ALL_BUFF_ITEMS.map(c => hasBuff(c.id)).join(',');
     if (window._lastBuffStates !== currentBuffStates) {
       window._lastBuffStates = currentBuffStates;
       rebuildShop();
@@ -4165,12 +4911,18 @@ function refreshButtons() {
 
 // ============ UI HEAVY ============
 let activePanel = 'zone';
+const SECONDARY_PANELS = ['talents','pets','boss','prestige','eternals','achievements','stats'];
 
 function switchPanel(id, btnEl) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
   if (btnEl) btnEl.classList.add('active');
+  // If secondary panel, mark the More button active (visible on mobile)
+  if (SECONDARY_PANELS.includes(id)) {
+    const moreBtn = document.querySelector('.nav-more');
+    if (moreBtn) moreBtn.classList.add('active');
+  }
   activePanel = id;
   // Invalidate button cache when switching panels
   _goldButtons = null;
@@ -4179,7 +4931,7 @@ function switchPanel(id, btnEl) {
   if (id === 'gates') rebuildGates();
   if (id === 'spells') rebuildSpellUpgrades();
   if (id === 'talents') rebuildTalents();
-  if (id === 'shop') rebuildShop();
+  if (id === 'shop') { rebuildShop(); rebuildGemShop(); }
   if (id === 'pets') { rebuildPets(); clearPetNotif(); }
   if (id === 'boss') rebuildBoss();
   if (id === 'prestige') rebuildPrestige();
@@ -4189,6 +4941,85 @@ function switchPanel(id, btnEl) {
 
   // Afficher/masquer le mini combat popup
   updateMiniBattlePopup(id);
+}
+
+// ============ MORE DRAWER ============
+function toggleMoreDrawer() {
+  const bd = document.getElementById('moreDrawer');
+  if (!bd) return;
+  if (bd.classList.contains('open')) closeMoreDrawer();
+  else openMoreDrawer();
+}
+
+function openMoreDrawer() {
+  const bd = document.getElementById('moreDrawer');
+  if (!bd) return;
+  // Sync notifications from sidebar to drawer
+  [['petNotif','petNotifMore'],['bossNotif','bossNotifMore'],['eternalsNotif','eternalsNotifMore'],['achieveNotif','achieveNotifMore']].forEach(([src, dst]) => {
+    const s = document.getElementById(src);
+    const d = document.getElementById(dst);
+    if (s && d) d.style.display = s.style.display;
+  });
+  // Mark active drawer item
+  document.querySelectorAll('.more-drawer-item').forEach(it => {
+    it.classList.toggle('active', it.dataset.panel === activePanel);
+  });
+  // Sync profile info
+  syncDrawerProfile();
+  bd.style.display = 'flex';
+  requestAnimationFrame(() => { requestAnimationFrame(() => { bd.classList.add('open'); }); });
+}
+
+function syncDrawerProfile() {
+  const srcAvatar = document.getElementById('userAvatar');
+  const srcName = document.getElementById('userName');
+  const dAvatar = document.getElementById('drawerAvatar');
+  const dPlaceholder = document.getElementById('drawerAvatarPlaceholder');
+  const dName = document.getElementById('drawerName');
+  const dSub = document.getElementById('drawerSub');
+  const dProfile = document.getElementById('drawerProfile');
+  if (!dAvatar || !dName) return;
+  const isLoggedIn = srcAvatar && srcAvatar.style.display !== 'none' && srcAvatar.src;
+  const dLoginBtn = document.getElementById('drawerLoginBtn');
+  if (isLoggedIn) {
+    dAvatar.src = srcAvatar.src;
+    dAvatar.style.display = 'block';
+    if (dPlaceholder) dPlaceholder.style.display = 'none';
+    dName.textContent = srcName ? srcName.textContent : 'Joueur';
+    if (dSub) dSub.textContent = 'Modifier le profil';
+    if (dProfile) { dProfile.onclick = function() { closeMoreDrawer(); promptChangeName(); }; }
+    if (dLoginBtn) dLoginBtn.style.display = 'none';
+  } else {
+    dAvatar.style.display = 'none';
+    if (dPlaceholder) dPlaceholder.style.display = 'flex';
+    dName.textContent = 'Non connecté';
+    if (dSub) dSub.textContent = 'Appuie pour te connecter';
+    if (dProfile) { dProfile.onclick = function() { closeMoreDrawer(); handleLogin(); }; }
+    if (dLoginBtn) dLoginBtn.style.display = '';
+  }
+}
+
+function closeMoreDrawer() {
+  const bd = document.getElementById('moreDrawer');
+  if (!bd) return;
+  bd.classList.remove('open');
+  setTimeout(() => { if (!bd.classList.contains('open')) bd.style.display = 'none'; }, 300);
+}
+
+function switchFromDrawer(id) {
+  closeMoreDrawer();
+  const moreBtn = document.querySelector('.nav-more');
+  switchPanel(id, moreBtn);
+}
+
+function updateMoreNotif() {
+  const moreNotif = document.getElementById('moreNotif');
+  if (!moreNotif) return;
+  const hasAny = ['petNotif','bossNotif','eternalsNotif','achieveNotif'].some(nid => {
+    const el = document.getElementById(nid);
+    return el && el.style.display !== 'none';
+  });
+  moreNotif.style.display = hasAny ? 'flex' : 'none';
 }
 
 // ============ MINI BATTLE MODE ============
@@ -4201,6 +5032,7 @@ function updateMiniBattlePopup(panelId) {
   if (panelId === 'zone') {
     // Mode normal - dans le placeholder
     battleArea.classList.remove('mini-mode');
+    battleArea.style.display = '';
     battleArea.onclick = null;
     if (placeholder && battleArea.parentNode !== placeholder) {
       placeholder.appendChild(battleArea);
@@ -4226,7 +5058,7 @@ function updateMiniBattleInfo() {
 }
 
 function goToZonePanel() {
-  const zoneBtn = document.querySelector('.nav-btn');
+  const zoneBtn = document.querySelector('[data-panel="zone"]');
   switchPanel('zone', zoneBtn);
 }
 
@@ -4292,8 +5124,8 @@ function rebuildSpellBar() {
         <div class="spell-circle">
           <div class="s-icon">\${spell.icon}</div>
           <div class="spell-cd-radial" id="spell-cd-\${spell.id}" style="--cd-percent:\${cdPercent}%"></div>
-          <div class="s-cd-text" id="spell-cdtext-\${spell.id}" style="\${isReady ? 'display:none' : ''}">\${curCd.toFixed(1)}</div>
         </div>
+        <div class="s-cd-text" id="spell-cdtext-\${spell.id}" style="\${isReady ? 'display:none' : ''}">\${getSpellCD(spell.id).toFixed(1)}s</div>
         <div class="s-info">Niv.\${G.spellLevels[spell.id]}</div>
         <div class="spell-tooltip">
           <div class="tt-name">\${spell.name}</div>
@@ -4482,6 +5314,192 @@ function buyConsumable(id) {
   rebuildHeroRecap();
 }
 
+// ============ GEM SHOP ============
+function switchShopTab(tab, btnEl) {
+  document.querySelectorAll('.shop-tab').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  document.getElementById('shop-tab-gold').style.display = tab === 'gold' ? '' : 'none';
+  document.getElementById('shop-tab-gems').style.display = tab === 'gems' ? '' : 'none';
+  if (tab === 'gems') rebuildGemShop();
+  else rebuildShop();
+}
+
+function buyGemUpgrade(id) {
+  if (!G.gemShop) G.gemShop = {};
+  const item = GEM_SHOP_UPGRADES.find(u => u.id === id);
+  if (!item) return;
+  const lvl = G.gemShop[id] || 0;
+  if (lvl >= item.maxLevel) { toast('Niveau max atteint !'); return; }
+  const cost = gemUpgradeCost(item, lvl);
+  if (G.gems < cost) { toast('Pas assez de gemmes !'); return; }
+  G.gems -= cost;
+  G.gemShop[id] = lvl + 1;
+  toast('💎 ' + item.name + ' niveau ' + (lvl + 1) + ' !');
+  save();
+  rebuildGemShop();
+  rebuildHeroRecap();
+}
+
+function buyMegaBuff(id) {
+  const item = GEM_SHOP_MEGA_BUFFS.find(b => b.id === id);
+  if (!item) return;
+  if (hasBuff(id)) { toast('Déjà actif !'); return; }
+  if (G.gems < item.cost) { toast('Pas assez de gemmes !'); return; }
+  G.gems -= item.cost;
+  G.buffs[id] = Date.now() + item.duration * 1000;
+  toast('💎 ' + item.name + ' activé !');
+  save();
+  rebuildGemShop();
+}
+
+function shinyfyPet(petId) {
+  if (G.gems < SHINY_FY_COST) { toast('Pas assez de gemmes !'); return; }
+  if (!G.ownedPets.includes(petId)) { toast('Tu ne possèdes pas ce pet !'); return; }
+  if (isShiny(petId)) { toast('Ce pet est déjà shiny !'); return; }
+  G.gems -= SHINY_FY_COST;
+  if (!G.shinyPets) G.shinyPets = [];
+  G.shinyPets.push(petId);
+  const pet = PETS.find(p => p.id === petId);
+  toast('✨ ' + (pet ? pet.icon + ' ' + pet.name : petId) + ' est maintenant SHINY ! ✨');
+  checkPetCollectionAchievements();
+  save();
+  rebuildGemShop();
+  rebuildPets();
+}
+
+function rerollDailies() {
+  if (G.gems < DAILY_REROLL_COST) { toast('Pas assez de gemmes !'); return; }
+  G.gems -= DAILY_REROLL_COST;
+  G.lastDailyReset = 0;
+  generateDailyChallenges();
+  toast('💎 Défis quotidiens relancés !');
+  save();
+  rebuildGemShop();
+}
+
+function rebuildGemShop() {
+  const el = document.getElementById('gemShopList');
+  if (!el) return;
+  let html = '';
+
+  // Gem balance
+  html += '<div style="text-align:center;padding:12px;margin-bottom:15px;background:rgba(138,43,226,0.15);border-radius:10px;border:1px solid rgba(138,43,226,0.3);">';
+  html += '<span style="font-size:1.5em;">💎</span> <span style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:1.2em;">' + fmt(G.gems) + '</span>';
+  html += '<div style="font-size:0.7em;color:#888;margin-top:4px;">Gemmes disponibles</div>';
+  html += '</div>';
+
+  // === Acheter des Gemmes (IAP) ===
+  html += '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:0.95em;margin-bottom:10px;">💰 Acheter des Gemmes</div>';
+  html += '<div class="gem-pack-grid">';
+  GEM_PACKS.forEach(function(p) {
+    var price = _gemPackPrices[p.productId] || '...';
+    var hasPrice = !!_gemPackPrices[p.productId];
+    var clickable = hasPrice || !window.RevenueCat;
+    html += '<div class="gem-pack-card" onclick="' + (hasPrice ? "handleGemPackPurchase(\\'" + p.productId + "\\')" : '') + '" style="' + (!clickable ? 'opacity:0.5;' : 'cursor:pointer;') + '">';
+    html += '<div class="gem-pack-amount">' + p.icon + ' ' + fmt(p.gems) + '</div>';
+    html += '<div class="gem-pack-name">' + p.name + '</div>';
+    if (p.bonus) html += '<div class="gem-pack-bonus">' + p.bonus + '</div>';
+    html += '<div class="gem-pack-price">' + price + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  if (!window.RevenueCat) {
+    html += '<div style="text-align:center;font-size:0.75em;color:#666;margin-bottom:12px;">Disponible dans l\\'application mobile</div>';
+  } else {
+    html += '<div style="margin-bottom:12px;"></div>';
+  }
+
+  // === Pub Gratuite ===
+  var canWatch = (Date.now() - _lastRewardedAd >= AD_REWARDED_COOLDOWN);
+  html += '<div class="spell-upgrade-card" style="border-color:rgba(76,175,80,0.3);background:rgba(76,175,80,0.05);">';
+  html += '<div class="su-icon">🎬</div>';
+  html += '<div class="su-info">';
+  html += '<div class="su-name">Pub Gratuite</div>';
+  html += '<div class="su-desc">Regarde une pub pour gagner ' + AD_REWARD_GEMS + ' 💎</div>';
+  html += '</div>';
+  html += '<div class="su-actions"><button class="btn btn-sm" onclick="watchAdForGems()" style="background:rgba(76,175,80,0.3);border-color:rgba(76,175,80,0.5);" ' + (!canWatch ? 'disabled' : '') + '>' + (canWatch ? 'Regarder' : '⏳') + '</button></div>';
+  html += '</div>';
+
+  // === Permanent Upgrades ===
+  html += '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:0.95em;margin-bottom:8px;">Améliorations Permanentes</div>';
+
+  GEM_SHOP_UPGRADES.forEach(function(u) {
+    var lvl = (G.gemShop && G.gemShop[u.id]) || 0;
+    var maxed = lvl >= u.maxLevel;
+    var cost = maxed ? 0 : gemUpgradeCost(u, lvl);
+    var canAfford = G.gems >= cost;
+    var currentBonus = '';
+    if (u.id === 'gem_spell_xp' && lvl > 0) currentBonus = '<div style="font-size:0.75em;color:var(--green);margin-top:2px;">Actuel : +' + (lvl * 10) + '% dégâts</div>';
+    if (u.id === 'gem_gold_boost' && lvl > 0) currentBonus = '<div style="font-size:0.75em;color:var(--green);margin-top:2px;">Actuel : +' + (lvl * 15) + '% gold</div>';
+    if (u.id === 'gem_offline' && lvl > 0) currentBonus = '<div style="font-size:0.75em;color:var(--green);margin-top:2px;">Actuel : +' + (lvl * 25) + '% hors-ligne</div>';
+    if (u.id === 'gem_pet_slot' && lvl > 0) currentBonus = '<div style="font-size:0.75em;color:var(--green);margin-top:2px;">+' + lvl + ' slot(s) ajouté(s)</div>';
+    html += '<div class="spell-upgrade-card" style="' + (maxed ? 'opacity:0.6;' : '') + '">';
+    html += '<div class="su-icon">' + u.icon + '</div>';
+    html += '<div class="su-info">';
+    html += '<div class="su-name">' + u.name + ' <span style="font-size:0.8em;color:#aaa;">Niv.' + lvl + '/' + u.maxLevel + '</span></div>';
+    html += '<div class="su-desc">' + u.desc + '</div>';
+    html += currentBonus;
+    html += '</div>';
+    html += '<div class="su-actions">';
+    if (maxed) {
+      html += '<div style="color:var(--green);font-family:\\'Cinzel\\',serif;">✅ MAX</div>';
+    } else {
+      html += '<button class="btn btn-sm btn-gem" onclick="buyGemUpgrade(\\'' + u.id + '\\')" ' + (!canAfford ? 'disabled' : '') + '>' + fmt(cost) + ' 💎</button>';
+    }
+    html += '</div></div>';
+  });
+
+  // Daily Reroll
+  html += '<div class="spell-upgrade-card">';
+  html += '<div class="su-icon">🔄</div>';
+  html += '<div class="su-info"><div class="su-name">Relancer les Défis</div><div class="su-desc">Relance les défis quotidiens avec de nouvelles missions.</div></div>';
+  html += '<div class="su-actions"><button class="btn btn-sm btn-gem" onclick="rerollDailies()" ' + (G.gems < DAILY_REROLL_COST ? 'disabled' : '') + '>' + DAILY_REROLL_COST + ' 💎</button></div>';
+  html += '</div>';
+
+  // === Shiny-fy Pet ===
+  html += '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:0.95em;margin:16px 0 8px;">✨ Rendre Shiny</div>';
+  html += '<div style="font-size:0.8em;color:#888;margin-bottom:10px;">Sélectionne un pet pour le rendre shiny (x' + SHINY_MULT + ' bonus). Coût : ' + SHINY_FY_COST + ' 💎</div>';
+
+  var nonShinyOwned = (G.ownedPets || []).filter(function(id) { return !isShiny(id); });
+  if (nonShinyOwned.length === 0) {
+    html += '<div style="text-align:center;color:#555;padding:15px;">Aucun pet éligible.</div>';
+  } else {
+    html += '<div class="gem-pet-grid">';
+    nonShinyOwned.forEach(function(petId) {
+      var pet = PETS.find(function(p) { return p.id === petId; });
+      if (!pet) return;
+      var rarityInfo = PET_RARITIES[pet.rarity] || PET_RARITIES.common;
+      var canAfford = G.gems >= SHINY_FY_COST;
+      html += '<div class="gem-pet-item" onclick="' + (canAfford ? "shinyfyPet(\\'" + petId + "\\')" : '') + '" style="' + (!canAfford ? 'opacity:0.5;cursor:not-allowed;' : 'cursor:pointer;') + '" title="' + pet.name + ' — ' + SHINY_FY_COST + ' 💎">';
+      html += '<div style="font-size:1.8em;">' + pet.icon + '</div>';
+      html += '<div style="font-size:0.7em;color:' + rarityInfo.color + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;">' + pet.name + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // === Mega Buffs ===
+  html += '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:0.95em;margin:16px 0 8px;">⚡ Méga Buffs</div>';
+  html += '<div style="font-size:0.8em;color:#888;margin-bottom:10px;">Buffs surpuissants. Se cumulent avec les buffs gold.</div>';
+
+  GEM_SHOP_MEGA_BUFFS.forEach(function(b) {
+    var active = hasBuff(b.id);
+    var remaining = buffRemaining(b.id);
+    var canAfford = G.gems >= b.cost;
+    html += '<div class="spell-upgrade-card ' + (active ? 'mega-active' : '') + '">';
+    html += '<div class="su-icon">' + b.icon + '</div>';
+    html += '<div class="su-info">';
+    html += '<div class="su-name">' + b.name + '</div>';
+    html += '<div class="su-desc">' + b.desc + '</div>';
+    if (active) html += '<div style="font-size:0.8em;color:var(--green);margin-top:3px;">Actif — ' + Math.floor(remaining/60) + ':' + (remaining%60).toString().padStart(2,'0') + ' restantes</div>';
+    html += '</div>';
+    html += '<div class="su-actions"><button class="btn btn-sm btn-gem" onclick="buyMegaBuff(\\'' + b.id + '\\')" ' + (active || !canAfford ? 'disabled' : '') + '>' + b.cost + ' 💎</button></div>';
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
 function rebuildShop() {
   _goldButtons = null; // Invalidate cache when rebuilding
   const el = document.getElementById('shopList');
@@ -4595,6 +5613,8 @@ function getPetSlots() {
   let slots = 1;
   if (G.highestZone >= 14) slots = 2;  // After zone 15
   if (G.prestige >= 1) slots = 3;       // After prestige
+  if (premiumActive) slots += 1;        // Premium: +1 pet slot
+  slots += (G.gemShop && G.gemShop.gem_pet_slot) || 0;  // Gem shop pet slots
   return slots;
 }
 
@@ -4808,7 +5828,7 @@ function rebuildPets() {
           </div>
           <div>
             \${canGo
-              ? \`<button class="btn btn-sm" onclick="goToZone(\${p.zone});switchPanel('zone',document.querySelector('.nav-btn'));">Aller</button>\`
+              ? \`<button class="btn btn-sm" onclick="goToZone(\${p.zone});switchPanel('zone',document.querySelector('[data-panel=zone]'));">Aller</button>\`
               : '<span style="font-size:0.7em;color:#555;">🔒</span>'
             }
           </div>
@@ -4942,24 +5962,69 @@ function rebuildStats() {
   const playTime = Math.floor(G.totalPlayTime || 0);
   const hours = Math.floor(playTime / 3600);
   const mins = Math.floor((playTime % 3600) / 60);
+  const critPct = Math.min(getCritChance() * 100, 80);
+  const dblHitPct = Math.min(getMultiHitChance() * 100, 100);
+  const zonePct = ((G.currentZone + 1) / ZONES.length * 100).toFixed(0);
+  const zoneMaxPct = ((G.highestZone + 1) / ZONES.length * 100).toFixed(0);
+
+  function bar(pct, from, to) {
+    return '<div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + Math.min(100, pct) + '%;--bar-from:' + from + ';--bar-to:' + to + '"></div></div>';
+  }
+
   el.innerHTML = \`
-    <div class="stat-row"><span class="stat-label">DPS total</span><span class="stat-value">\${fmt(getDPS())}</span></div>
-    <div class="stat-row"><span class="stat-label">Gold/s</span><span class="stat-value">\${fmt(getGoldPerSec())}</span></div>
-    <div class="stat-row"><span class="stat-label">Zone actuelle</span><span class="stat-value">\${G.currentZone + 1} / \${ZONES.length}</span></div>
-    <div class="stat-row"><span class="stat-label">Zone max atteinte</span><span class="stat-value">\${G.highestZone + 1}</span></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="sc-icon">&#x2694;&#xFE0F;</div><div class="sc-value">\${fmt(getDPS())}</div><div class="sc-label">DPS</div></div>
+      <div class="stat-card"><div class="sc-icon">&#x1FA99;</div><div class="sc-value">\${fmt(getGoldPerSec())}</div><div class="sc-label">Gold / sec</div></div>
+      <div class="stat-card"><div class="sc-icon">&#x1F480;</div><div class="sc-value">\${fmt(G.totalKills)}</div><div class="sc-label">Kills total</div></div>
+      <div class="stat-card"><div class="sc-icon">&#x1F4B0;</div><div class="sc-value">\${fmt(G.totalGoldEarned)}</div><div class="sc-label">Gold total</div></div>
+      <div class="stat-card"><div class="sc-icon">&#x23F1;&#xFE0F;</div><div class="sc-value">\${hours}h \${mins}m</div><div class="sc-label">Temps de jeu</div></div>
+      <div class="stat-card"><div class="sc-icon">&#x1F504;</div><div class="sc-value">x\${(G.rebirthMult * G.prestigeMult).toFixed(1)}</div><div class="sc-label">Multiplicateur</div></div>
+    </div>
+
+    <div class="stat-section-title">Progression</div>
+    <div class="stat-bar-section">
+      <div class="stat-bar-row">
+        <div class="stat-bar-header"><span class="sb-label">Zone actuelle</span><span class="sb-value">\${G.currentZone + 1} / \${ZONES.length}</span></div>
+        \${bar(zonePct, '#4fc3f7', '#81d4fa')}
+      </div>
+      <div class="stat-bar-row">
+        <div class="stat-bar-header"><span class="sb-label">Zone max atteinte</span><span class="sb-value">\${G.highestZone + 1} / \${ZONES.length}</span></div>
+        \${bar(zoneMaxPct, '#ab47bc', '#ce93d8')}
+      </div>
+      <div class="stat-bar-row">
+        <div class="stat-bar-header"><span class="sb-label">Chance critique</span><span class="sb-value">\${critPct.toFixed(1)}%</span></div>
+        \${bar(critPct / 0.8, '#ff7043', '#ffab91')}
+      </div>
+      <div class="stat-bar-row">
+        <div class="stat-bar-header"><span class="sb-label">Mult. critique</span><span class="sb-value">x\${getCritMult().toFixed(2)}</span></div>
+        \${bar(Math.min(100, (getCritMult() - 2) * 20), '#ffa726', '#ffcc80')}
+      </div>
+      <div class="stat-bar-row">
+        <div class="stat-bar-header"><span class="sb-label">Double hit</span><span class="sb-value">\${dblHitPct.toFixed(1)}%</span></div>
+        \${bar(dblHitPct, '#66bb6a', '#a5d6a7')}
+      </div>
+    </div>
+
+    <div class="stat-section-title">Rebirth &amp; Prestige</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="sc-value">\${G.rebirth}</div><div class="sc-label">Rebirth (x\${G.rebirthMult.toFixed(1)})</div></div>
+      <div class="stat-card"><div class="sc-value">\${G.prestige}</div><div class="sc-label">Prestige (x\${G.prestigeMult.toFixed(1)})</div></div>
+    </div>
+
+    <div class="stat-section-title">Sorts</div>
+    \${getSpells().map(s => {
+      const maxLvl = 50;
+      const lvl = G.spellLevels[s.id] || 1;
+      const lvlPct = Math.min(100, lvl / maxLvl * 100);
+      return '<div class="spell-stat-card">' +
+        '<div class="ssc-icon">' + s.icon + '</div>' +
+        '<div class="ssc-info"><div class="ssc-name">' + s.name + ' Niv.' + lvl + '</div>' +
+        '<div class="ssc-details">' + fmt(getSpellDmg(s.id)) + ' dmg &mdash; ' + getSpellCD(s.id).toFixed(2) + 's</div></div>' +
+        '<div class="ssc-bar">' + bar(lvlPct, '#4fc3f7', '#81d4fa') + '</div></div>';
+    }).join('')}
+
+    <div class="stat-section-title">Session</div>
     <div class="stat-row"><span class="stat-label">Kills (session)</span><span class="stat-value">\${fmt(G.kills)}</span></div>
-    <div class="stat-row"><span class="stat-label">Kills (total)</span><span class="stat-value">\${fmt(G.totalKills)}</span></div>
-    <div class="stat-row"><span class="stat-label">Gold total</span><span class="stat-value">\${fmt(G.totalGoldEarned)}</span></div>
-    <div class="stat-row"><span class="stat-label">Rebirth</span><span class="stat-value">\${G.rebirth} (x\${G.rebirthMult.toFixed(1)})</span></div>
-    <div class="stat-row"><span class="stat-label">Prestige</span><span class="stat-value">\${G.prestige} (x\${G.prestigeMult.toFixed(1)})</span></div>
-    <div class="stat-row"><span class="stat-label">Mult. total</span><span class="stat-value">x\${(G.rebirthMult * G.prestigeMult).toFixed(1)}</span></div>
-    <div class="stat-row"><span class="stat-label">Critique</span><span class="stat-value">\${(getCritChance()*100).toFixed(1)}%</span></div>
-    <div class="stat-row"><span class="stat-label">Mult. crit</span><span class="stat-value">x\${getCritMult().toFixed(2)}</span></div>
-    <div class="stat-row"><span class="stat-label">Double hit</span><span class="stat-value">\${(getMultiHitChance()*100).toFixed(1)}%</span></div>
-    <div class="stat-row"><span class="stat-label">Temps de jeu</span><span class="stat-value">\${hours}h \${mins}m</span></div>
-    \${getSpells().map(s => \`
-      <div class="stat-row"><span class="stat-label">\${s.icon} \${s.name}</span><span class="stat-value">Niv.\${G.spellLevels[s.id]} — \${fmt(getSpellDmg(s.id))} dmg — \${getSpellCD(s.id).toFixed(2)}s</span></div>
-    \`).join('')}
   \`;
 }
 
@@ -5097,12 +6162,70 @@ function awardStarDust(amount, reason) {
     toast('⭐ +' + finalAmount + ' Star Dust (' + reason + ')');
   }
 
-  // Check achievement
+  // Check achievements
+  checkAchievement('stardust_1', G.totalStarDust);
   checkAchievement('eternal_one', G.totalStarDust);
   showEternalsNotif();
 }
 
 // ============ ACHIEVEMENTS SYSTEM ============
+// Catch-up function: re-check ALL achievements based on current game state
+// This ensures old saves get credit for achievements added later
+function recheckAllAchievements() {
+  if (!G) return;
+  // Combat kills
+  checkAchievement('first_blood', G.totalKills);
+  checkAchievement('slayer', G.totalKills);
+  checkAchievement('hunter', G.totalKills);
+  checkAchievement('destroyer', G.totalKills);
+  checkAchievement('exterminator', G.totalKills);
+  checkAchievement('genocide', G.totalKills);
+  // Boss kills
+  checkAchievement('boss_slayer', G.bossKills || 0);
+  checkAchievement('boss_hunter', G.bossKills || 0);
+  // World boss
+  checkAchievement('world_champion', G.worldBossKills || 0);
+  checkAchievement('world_legend', G.worldBossKills || 0);
+  // Crits
+  checkAchievement('crit_king', G.totalCrits || 0);
+  checkAchievement('crit_god', G.totalCrits || 0);
+  // Progression zones
+  const zoneReached = (G.highestZone || 0) + 1;
+  checkAchievement('beginner', zoneReached);
+  checkAchievement('apprentice', zoneReached);
+  checkAchievement('student', zoneReached);
+  checkAchievement('adventurer', zoneReached);
+  checkAchievement('explorer', zoneReached);
+  checkAchievement('master', zoneReached);
+  // Prestige
+  checkAchievement('transcended', G.prestige || 0);
+  checkAchievement('prestige_5', G.prestige || 0);
+  checkAchievement('prestige_10', G.prestige || 0);
+  // Economy
+  checkAchievement('first_gold', G.totalGoldEarned);
+  checkAchievement('saver', G.totalGoldEarned);
+  checkAchievement('wealthy', G.totalGoldEarned);
+  checkAchievement('millionaire', G.totalGoldEarned);
+  checkAchievement('billionaire', G.totalGoldEarned);
+  checkAchievement('tycoon', G.totalGoldEarned);
+  checkAchievement('gem_collector', G.gems || 0);
+  checkAchievement('gem_hoarder', G.gems || 0);
+  checkAchievement('stardust_1', G.totalStarDust || 0);
+  checkAchievement('eternal_one', G.totalStarDust || 0);
+  // Pets
+  checkPetCollectionAchievements();
+  // Spells
+  checkSpellAchievements();
+  // Talents
+  checkTalentAchievements();
+  // Time
+  checkAchievement('play_1h', G.totalPlayTime || 0);
+  checkAchievement('play_10h', G.totalPlayTime || 0);
+  checkAchievement('play_24h', G.totalPlayTime || 0);
+  checkAchievement('play_100h', G.totalPlayTime || 0);
+  checkAchievement('play_1000h', G.totalPlayTime || 0);
+}
+
 function hasAchievement(id) {
   return G.achievements && G.achievements.includes(id);
 }
@@ -5203,9 +6326,10 @@ function generateDailyChallenges() {
   G.dailyChallenges = [];
   G.lastDailyReset = now;
 
-  // Pick 3 random challenge types
+  // Pick 3 (or 4 with premium) random challenge types
+  const numDailies = premiumActive ? 4 : 3;
   const shuffled = [...DAILY_CHALLENGE_TYPES].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, 3);
+  const selected = shuffled.slice(0, numDailies);
 
   selected.forEach((type, i) => {
     const target = type.targets[Math.floor(Math.random() * type.targets.length)];
@@ -5261,12 +6385,14 @@ function doInfinityPrestige() {
   const newInfinity = (G.infinityPrestige || 0) + 1;
   const newInfinityMult = Math.pow(1.5, newInfinity);
   const keepAchievements = [...(G.achievements || [])];
+  const keepSeenAchievements = [...(G.seenAchievements || [])];
   const keepAchievementProgress = JSON.parse(JSON.stringify(G.achievementProgress || {}));
   const keepTotalStarDust = G.totalStarDust || 0;
   const keepTotalKills = G.totalKills || 0;
   const keepTotalGold = G.totalGoldEarned || 0;
   const keepStartTime = G.startTime;
   const keepShinyPets = [...(G.shinyPets || [])];  // Shiny pets persist!
+  const keepGemShop = JSON.parse(JSON.stringify(G.gemShop || {}));
 
   // Hard reset everything
   G = defaultState();
@@ -5275,12 +6401,14 @@ function doInfinityPrestige() {
   G.infinityPrestige = newInfinity;
   G.infinityMult = newInfinityMult;
   G.achievements = keepAchievements;
+  G.seenAchievements = keepSeenAchievements;
   G.achievementProgress = keepAchievementProgress;
   G.totalStarDust = keepTotalStarDust;
   G.totalKills = keepTotalKills;
   G.totalGoldEarned = keepTotalGold;
   G.startTime = keepStartTime;
   G.shinyPets = keepShinyPets;
+  G.gemShop = keepGemShop;
 
   spawnMob();
   save();
@@ -5292,31 +6420,39 @@ function doInfinityPrestige() {
 function showPetNotif() {
   const notif = document.getElementById('petNotif');
   if (notif) notif.style.display = 'flex';
+  updateMoreNotif();
 }
 
 function clearPetNotif() {
   const notif = document.getElementById('petNotif');
   if (notif) notif.style.display = 'none';
+  updateMoreNotif();
 }
 
 function showEternalsNotif() {
   const notif = document.getElementById('eternalsNotif');
   if (notif) notif.style.display = 'flex';
+  updateMoreNotif();
 }
 
 function clearEternalsNotif() {
   const notif = document.getElementById('eternalsNotif');
   if (notif) notif.style.display = 'none';
+  updateMoreNotif();
 }
 
 function showAchieveNotif() {
   const notif = document.getElementById('achieveNotif');
   if (notif) notif.style.display = 'flex';
+  updateMoreNotif();
 }
 
 function clearAchieveNotif() {
   const notif = document.getElementById('achieveNotif');
   if (notif) notif.style.display = 'none';
+  // Mark all current achievements as seen
+  G.seenAchievements = [...(G.achievements || [])];
+  updateMoreNotif();
 }
 
 // ============ REBUILD ETERNALS UI ============
@@ -5460,12 +6596,13 @@ function rebuildAchievements() {
       const done = hasAchievement(ach.id);
       const progress = getAchievementProgress(ach.id);
       const pct = Math.min(100, (progress / ach.target) * 100);
+      const isNew = done && !(G.seenAchievements || []).includes(ach.id);
 
       html += \`
-        <div class="achievement-card \${done ? 'unlocked' : progress > 0 ? '' : 'locked'}">
+        <div class="achievement-card \${done ? 'unlocked' : progress > 0 ? '' : 'locked'} \${isNew ? 'new-achieve' : ''}">
           <div class="achievement-icon">\${ach.icon}</div>
           <div class="achievement-info">
-            <div class="achievement-name">\${ach.name}</div>
+            <div class="achievement-name">\${ach.name}\${isNew ? '<span class="new-achieve-badge">Nouveau</span>' : ''}</div>
             <div class="achievement-desc">\${ach.desc}</div>
             \${!done ? \`
               <div class="achievement-progress">
@@ -5630,7 +6767,7 @@ function useCloudSave() {
       G.petResetV3 = true;
     }
 
-    localStorage.setItem('wandIdle_test', JSON.stringify(G));
+    localStorage.setItem('wandIdle', JSON.stringify(G));
     toast('☁️ Sauvegarde cloud chargée !');
     setTimeout(() => location.reload(), 500);
   }
@@ -5684,11 +6821,30 @@ async function initFirebase() {
     const btnEl = document.getElementById('loginBtn');
     if (btnEl) btnEl.textContent = '⏳...';
 
+    // Handle redirect result for mobile auth (must be called before onAuthStateChanged)
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      try {
+        const result = await firebaseAuth.getRedirectResult();
+        if (result && result.user) {
+          toast('✅ Connecté !');
+        }
+      } catch (e) {
+        console.error('Redirect result error:', e);
+      }
+    }
+
     // Listen for auth state changes
-    firebaseAuth.onAuthStateChanged((user) => {
+    firebaseAuth.onAuthStateChanged(async (user) => {
       firebaseUser = user;
       updateUserUI();
       if (user) {
+        // Identify user in RevenueCat for purchase tracking
+        if (window.RevenueCat) {
+          try {
+            await window.RevenueCat.identifyUser(user.uid);
+            checkPremiumStatus();
+          } catch (e) { console.error('RevenueCat identify error:', e); }
+        }
         subscribeToBoss();
         // Check for cloud save when user logs in
         console.log('User logged in, will check cloud save in 1s...');
@@ -5784,7 +6940,7 @@ async function handleLogin() {
   }
   try {
     if (!firebaseAuth) {
-      toast('❌ Firebase non configuré');
+      toast('⚠️ Connexion indisponible, réessaie plus tard');
       return;
     }
     loginInProgress = true;
@@ -5793,11 +6949,17 @@ async function handleLogin() {
 
     // Discord login via OIDC provider
     const provider = new firebase.auth.OAuthProvider('oidc.discord');
+    // Use redirect flow on mobile (popup blocked in WebView)
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      await firebaseAuth.signInWithRedirect(provider);
+      // Auth state will be handled by onAuthStateChanged after redirect
+      return;
+    }
     await firebaseAuth.signInWithPopup(provider);
     toast('✅ Connecté !');
   } catch (e) {
     if (e.code !== 'auth/popup-closed-by-user') {
-      toast('❌ Erreur de connexion');
+      toast('⚠️ Connexion échouée, réessaie dans quelques secondes');
       console.error(e);
     }
   } finally {
@@ -5976,7 +7138,9 @@ function showBossNotification() {
     showBossAlert(worldBossState.boss.icon, worldBossState.boss.name);
 
     // Notification système seulement pour un nouveau boss
-    if (Notification.permission === 'granted') {
+    if (window.sendNativeNotification) {
+      window.sendNativeNotification('World Boss actif !', 'Un boss mondial est apparu !');
+    } else if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('⚔️ World Boss actif !', { body: 'Un boss mondial est apparu !' });
     }
   }
@@ -6005,7 +7169,7 @@ function closeBossAlert() {
 function goToBossPanel(event) {
   if (event) event.stopPropagation();
   closeBossAlert();
-  switchPanel('boss', document.querySelector('.nav-btn:nth-child(7)'));
+  switchPanel('boss', document.querySelector('[data-panel="boss"]'));
 }
 
 function hideBossNotification() {
@@ -6016,7 +7180,7 @@ function hideBossNotification() {
 // ============ WORLD BOSS ATTACK ============
 async function attackWorldBoss() {
   if (!firebaseUser || !firebaseDb) {
-    toast('❌ Connecte-toi pour attaquer !');
+    toast('⚠️ Connecte-toi pour attaquer le boss !');
     return;
   }
   if (!worldBossState.active || worldBossState.attackCD > 0) return;
@@ -6069,7 +7233,7 @@ async function attackWorldBoss() {
     updateBossUI();
   } catch (e) {
     console.error('Error attacking boss:', e);
-    toast('❌ Erreur de connexion');
+    toast('⚠️ Problème de connexion, réessaie');
   }
 }
 
@@ -6125,7 +7289,7 @@ async function endWorldBoss(result) {
 // ============ WORLD BOSS REWARDS ============
 async function claimBossReward() {
   if (!firebaseUser || !firebaseDb) {
-    toast('❌ Non connecté');
+    toast('⚠️ Connecte-toi pour récupérer tes récompenses');
     return;
   }
   if (worldBossState.claimed) {
@@ -6133,7 +7297,7 @@ async function claimBossReward() {
     return;
   }
   if (worldBossState.status !== 'victory' && worldBossState.status !== 'expired') {
-    toast('❌ Pas de boss terminé');
+    toast('⚠️ Aucun boss terminé pour le moment');
     return;
   }
 
@@ -6153,7 +7317,7 @@ async function claimBossReward() {
   const myRank = worldBossState.participants.findIndex(p => p.uid === firebaseUser.uid) + 1;
 
   if (myDamage <= 0) {
-    toast('❌ Tu n\\'as pas participé ! (0 dégâts)');
+    toast('⚠️ Tu n\\'as pas participé à ce combat');
     console.log('Claim failed - myDamage:', myDamage, 'participants:', worldBossState.participants);
     return;
   }
@@ -6191,6 +7355,11 @@ async function claimBossReward() {
     bonusText = ' (+ bonus victoire !)';
   }
 
+  // Premium bonus: 1.5x gems from boss
+  if (premiumActive) {
+    totalGems = Math.floor(totalGems * 1.5);
+  }
+
   // Appliquer les récompenses
   G.gems += totalGems;
   G.gold += totalGold;
@@ -6200,6 +7369,10 @@ async function claimBossReward() {
   if (worldBossState.status === 'victory') {
     G.worldBossKills = (G.worldBossKills || 0) + 1;
   }
+
+  // Check world boss participation achievements
+  checkAchievement('world_champion', G.worldBossKills || 0);
+  checkAchievement('world_legend', G.worldBossKills || 0);
 
   // Check if any secret pets can now be unlocked
   checkSecretPetUnlocks();
@@ -6896,7 +8069,7 @@ function rebuildBoss() {
 // ============ DEV: SPAWN TEST BOSS ============
 async function spawnTestBoss() {
   if (!firebaseDb) {
-    toast('❌ Firebase non connecté');
+    toast('⚠️ Connexion au serveur indisponible');
     return;
   }
 
@@ -6907,7 +8080,7 @@ async function spawnTestBoss() {
     { id: 'ombral', name: 'Seigneur Ombral', icon: '🐍', hpMult: 1.0 },
     { id: 'malachar', name: 'Malachar', icon: '⚡', hpMult: 1.2 },
     { id: 'basilisk', name: 'Grand Serpent', icon: '🐉', hpMult: 0.8 },
-    { id: 'spectral_king', name: 'Roi Spectral', icon: '👻', hpMult: 1.5 },
+    { id: 'dementor_king', name: 'Roi Spectral', icon: '👻', hpMult: 1.5 },
     { id: 'dragon', name: 'Dragon Cornu', icon: '🔥', hpMult: 1.3 },
   ];
 
@@ -6935,7 +8108,7 @@ async function spawnTestBoss() {
     toast('⚔️ Boss ' + boss.name + ' invoqué !');
   } catch (e) {
     console.error('Error spawning boss:', e);
-    toast('❌ Erreur: ' + e.message);
+    toast('⚠️ Un problème est survenu, réessaie');
   }
 }
 
@@ -6984,7 +8157,7 @@ function promptChangeName() {
 
     toast('✅ Pseudo: ' + cleanName);
   } else if (newName !== null) {
-    toast('❌ Pseudo invalide (1-20 caractères)');
+    toast('⚠️ Le pseudo doit faire entre 1 et 20 caractères');
   }
 }
 
@@ -7006,7 +8179,7 @@ function promptChangeAvatar() {
 
     toast('✅ Avatar mis à jour !');
   } else if (newAvatar !== null && newAvatar.trim() !== '') {
-    toast('❌ URL invalide');
+    toast('⚠️ Lien d\\'image invalide');
   }
 }
 
@@ -7033,7 +8206,9 @@ function calcOffline() {
   const elapsed = (Date.now() - G.lastTick) / 1000;
   if (elapsed < 5) return;
   const capped = Math.min(elapsed, 3600 * 8);
-  const goldGain = getGoldPerSec() * capped;
+  let goldGain = getGoldPerSec() * capped;
+  const gemOfflineLvl = (G.gemShop && G.gemShop.gem_offline) || 0;
+  if (gemOfflineLvl > 0) goldGain *= (1 + gemOfflineLvl * 0.25);
   G.gold += goldGain;
   G.totalGoldEarned += goldGain;
   const zone = ZONES[G.currentZone] || ZONES[ZONES.length - 1];
@@ -7120,8 +8295,11 @@ if (load()) {
     G.activePets = G.activePet ? [G.activePet] : [];
   }
   if (G.petSlots === undefined) G.petSlots = 1;
+  // Gem Shop
+  if (!G.gemShop) G.gemShop = { gem_pet_slot: 0, gem_spell_xp: 0, gem_gold_boost: 0, gem_offline: 0 };
   // Achievements
   if (!G.achievements) G.achievements = [];
+  if (!G.seenAchievements) G.seenAchievements = [];
   if (!G.achievementProgress) G.achievementProgress = {};
   // Daily challenges
   if (!G.dailyChallenges) G.dailyChallenges = [];
@@ -7133,6 +8311,7 @@ if (load()) {
   if (!G.zone25FirstClear) G.zone25FirstClear = 0;
 
   calcOffline();
+  recheckAllAchievements();
   spawnMob();
 } else {
   G = defaultState();
@@ -7157,9 +8336,19 @@ checkPatchNotes();
 // Initialize Firebase for World Boss
 initFirebase();
 
-// Request notification permission for boss alerts
-if ('Notification' in window && Notification.permission === 'default') {
-  Notification.requestPermission();
+// Initialize Premium Shop (RevenueCat) + Gem Pack prices
+setTimeout(async function() {
+  checkPremiumStatus();
+  renderPremiumShop();
+  await loadGemPackPrices();
+  rebuildGemShop();
+}, 500);
+
+// Request notification permission for boss alerts (web only, native handled by Capacitor bridge)
+if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
 }
 
 // Placer la battle area dans son placeholder initial
@@ -7168,6 +8357,10 @@ const placeholder = document.getElementById('battleAreaPlaceholder');
 if (battleArea && placeholder) {
   placeholder.appendChild(battleArea);
 }
+
+// Expose globals for Capacitor app lifecycle bridge
+window.save = save;
+window.calcOffline = calcOffline;
 
 requestAnimationFrame(tick);
 `;

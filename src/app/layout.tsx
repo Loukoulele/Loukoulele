@@ -22,8 +22,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Wand Idle",
-  description: "Wand Idle - Idle RPG Game",
+  title: "Wizard IDLE",
+  description: "Wizard IDLE - Idle RPG Game",
 };
 
 export default function RootLayout({
