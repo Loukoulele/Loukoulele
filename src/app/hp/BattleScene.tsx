@@ -171,7 +171,7 @@ const TROLL_SPRITE = {
   ]
 };
 
-const STRANGULOT_SPRITE = {
+const KRAKEN_SPRITE = {
   palette: ['#00000000','#1a4a6a','#2a6a8a','#3a8aaa','#4aaacc','#22ff66'],
   pixels: [
     [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
@@ -851,7 +851,7 @@ const MOB_SPRITES: { [key: number]: typeof LUTIN_SPRITE } = {
   1: ARAIGNEE_SPRITE,
   2: LOUP_SPRITE,
   3: TROLL_SPRITE,
-  4: STRANGULOT_SPRITE,
+  4: KRAKEN_SPRITE,
   5: GOULE_SPRITE,
   6: SPECTRE_SPRITE,
   7: SQUELETTE_SPRITE,
@@ -873,6 +873,122 @@ const MOB_SPRITES: { [key: number]: typeof LUTIN_SPRITE } = {
   23: TITAN_SPRITE,
   24: ETERNEL_SPRITE,
 };
+
+// ============ CENTRALIZED PARTICLE SYSTEM ============
+// Replaces 30-50+ individual requestAnimationFrame loops with a single ticker callback
+
+interface ActiveParticle {
+  obj: PIXI.Container;
+  container: PIXI.Container;
+  vx: number;
+  vy: number;
+  fadeRate: number;
+  scaleDecay: number;
+  grow: number;
+}
+
+interface ActiveProjectile {
+  obj: PIXI.Container;
+  container: PIXI.Container;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  startTime: number;
+  duration: number;
+  arcHeight: number;
+  trailFn?: () => void;
+  onComplete: () => void;
+}
+
+const _particles: ActiveParticle[] = [];
+const _projectiles: ActiveProjectile[] = [];
+let _particleTickerAdded = false;
+
+
+function addParticle(
+  obj: PIXI.Container,
+  container: PIXI.Container,
+  opts: { vx?: number; vy?: number; fadeRate?: number; scaleDecay?: number; grow?: number; delay?: number } = {}
+) {
+  const p: ActiveParticle = {
+    obj, container,
+    vx: opts.vx || 0, vy: opts.vy || 0,
+    fadeRate: opts.fadeRate || 0.06,
+    scaleDecay: opts.scaleDecay || 1,
+    grow: opts.grow || 0
+  };
+  if (opts.delay) {
+    setTimeout(() => { _particles.push(p); }, opts.delay);
+  } else {
+    _particles.push(p);
+  }
+}
+
+function addProjectile(
+  obj: PIXI.Container,
+  container: PIXI.Container,
+  opts: { startX: number; startY: number; endX: number; endY: number; duration: number; arcHeight?: number; trailFn?: () => void; onComplete: () => void }
+) {
+  _projectiles.push({
+    obj, container,
+    startX: opts.startX, startY: opts.startY,
+    endX: opts.endX, endY: opts.endY,
+    startTime: performance.now(), duration: opts.duration,
+    arcHeight: opts.arcHeight || 0,
+    trailFn: opts.trailFn, onComplete: opts.onComplete
+  });
+}
+
+function setupParticleTicker(app: PIXI.Application) {
+  if (_particleTickerAdded) return;
+  _particleTickerAdded = true;
+
+  app.ticker.add(() => {
+    // Update simple particles
+    for (let i = _particles.length - 1; i >= 0; i--) {
+      const p = _particles[i];
+      p.obj.x += p.vx;
+      p.obj.y += p.vy;
+      p.obj.alpha -= p.fadeRate;
+      if (p.scaleDecay !== 1) {
+        p.obj.scale.x *= p.scaleDecay;
+        p.obj.scale.y *= p.scaleDecay;
+      }
+      if (p.grow !== 0) {
+        p.obj.scale.x += p.grow;
+        p.obj.scale.y += p.grow;
+      }
+      if (p.obj.alpha <= 0) {
+        p.container.removeChild(p.obj);
+        p.obj.destroy();
+        _particles.splice(i, 1);
+      }
+    }
+
+    // Update projectiles
+    const now = performance.now();
+    for (let i = _projectiles.length - 1; i >= 0; i--) {
+      const proj = _projectiles[i];
+      const elapsed = now - proj.startTime;
+      const progress = Math.min(elapsed / proj.duration, 1);
+
+      proj.obj.x = proj.startX + (proj.endX - proj.startX) * progress;
+      proj.obj.y = proj.startY + (proj.endY - proj.startY) * progress;
+      if (proj.arcHeight) {
+        proj.obj.y -= Math.sin(progress * Math.PI) * proj.arcHeight;
+      }
+
+      if (proj.trailFn && Math.random() > 0.5) proj.trailFn();
+
+      if (progress >= 1) {
+        proj.onComplete();
+        _projectiles.splice(i, 1);
+      }
+    }
+
+  });
+}
 
 // Create texture from pixel array
 function createSpriteTexture(
@@ -982,7 +1098,6 @@ interface BattleSceneProps {
 export interface BattleAPI {
   castSpell: (spellType?: string) => void;
   hitMob: () => void;
-  updateMobHp: (percent: number) => void;
   setMobName: (name: string) => void;
   setZone: (zone: number) => void;
 }
@@ -994,8 +1109,9 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
   const wizardRef = useRef<PIXI.Sprite | null>(null);
   const particlesRef = useRef<PIXI.Container | null>(null);
   const currentZoneRef = useRef<number>(currentZone);
+  // HP bar uses module-level _hpBarFill (no ref needed)
 
-  const castSpell = useCallback((spellType: string = 'stupefix') => {
+  const castSpell = useCallback((spellType: string = 'fulgur') => {
     const app = appRef.current;
     const particles = particlesRef.current;
     const wizard = wizardRef.current;
@@ -1003,15 +1119,26 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
 
     const wizardBaseX = 80, wizardBaseY = 260;
     const mobBaseX = 380, mobBaseY = 220;
-    const startX = wizardBaseX + 60, startY = wizardBaseY - 50;
+    const startX = wizardBaseX + 48, startY = wizardBaseY - 115;
     const endX = mobBaseX - 20, endY = mobBaseY - 30;
 
     // Wizard cast animation
+    const animWizard = wizard as unknown as PIXI.AnimatedSprite & { _idleFrames?: PIXI.Texture[]; _castFrames?: PIXI.Texture[] };
+    if (animWizard._castFrames && animWizard._idleFrames) {
+      animWizard.textures = animWizard._castFrames;
+      animWizard.animationSpeed = 0.15;
+      animWizard.play();
+      setTimeout(() => {
+        animWizard.textures = animWizard._idleFrames!;
+        animWizard.animationSpeed = 0.08;
+        animWizard.play();
+      }, 600);
+    }
     wizard.x = wizardBaseX + 5;
     setTimeout(() => { wizard.x = wizardBaseX; }, 150);
 
-    // ============ STUPEFIX - Lightning Bolt ============
-    if (spellType === 'stupefix') {
+    // ============ FULGUR - Lightning Bolt ============
+    if (spellType === 'fulgur') {
       const lightning = new PIXI.Graphics();
       const points: {x: number, y: number}[] = [];
       const segments = 8;
@@ -1024,28 +1151,18 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
         points.push({ x: x + offset * 0.3, y: y + offset });
       }
 
-      // Draw main bolt
       lightning.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i++) {
-        lightning.lineTo(points[i].x, points[i].y);
-      }
+      for (let i = 1; i < points.length; i++) lightning.lineTo(points[i].x, points[i].y);
       lightning.stroke({ width: 4, color: 0x4fc3f7, alpha: 0.9 });
-
-      // Draw core
       lightning.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i++) {
-        lightning.lineTo(points[i].x, points[i].y);
-      }
+      for (let i = 1; i < points.length; i++) lightning.lineTo(points[i].x, points[i].y);
       lightning.stroke({ width: 2, color: 0xffffff, alpha: 1 });
-
-      // Glow effect
       lightning.circle(endX, endY, 15);
       lightning.fill({ color: 0x4fc3f7, alpha: 0.3 });
-
       particles.addChild(lightning);
 
-      // Electric sparks at impact
-      for (let i = 0; i < 8; i++) {
+      // Sparks at impact
+      for (let i = 0; i < 5; i++) {
         const spark = new PIXI.Graphics();
         spark.moveTo(0, 0);
         spark.lineTo(Math.random() * 20 - 10, Math.random() * 20 - 10);
@@ -1054,84 +1171,41 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
         particles.addChild(spark);
         const angle = Math.random() * Math.PI * 2;
         const speed = 2 + Math.random() * 3;
-        const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
-        const animSpark = () => {
-          spark.x += vx; spark.y += vy; spark.alpha -= 0.08;
-          if (spark.alpha > 0) requestAnimationFrame(animSpark);
-          else particles.removeChild(spark);
-        };
-        setTimeout(animSpark, 50);
+        addParticle(spark, particles, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, fadeRate: 0.08, delay: 50 });
       }
 
       // Fade lightning
-      const fadeLightning = () => {
-        lightning.alpha -= 0.15;
-        if (lightning.alpha > 0) requestAnimationFrame(fadeLightning);
-        else particles.removeChild(lightning);
-      };
-      setTimeout(fadeLightning, 100);
+      addParticle(lightning, particles, { fadeRate: 0.15, delay: 100 });
     }
 
-    // ============ PATRONUS - Silver Deer ============
-    else if (spellType === 'patronus') {
-      const patronus = new PIXI.Graphics();
+    // ============ AEGIS - Silver Deer ============
+    else if (spellType === 'aegis') {
+      const aegis = new PIXI.Graphics();
+      aegis.moveTo(0, 0); aegis.lineTo(15, -5); aegis.lineTo(20, -15);
+      aegis.moveTo(15, -5); aegis.lineTo(25, -12);
+      aegis.moveTo(15, -5); aegis.lineTo(25, 0); aegis.lineTo(30, 10);
+      aegis.lineTo(25, 10); aegis.lineTo(20, 5); aegis.lineTo(10, 5);
+      aegis.lineTo(5, 10); aegis.lineTo(0, 10); aegis.lineTo(0, 0);
+      aegis.stroke({ width: 3, color: 0xffffff, alpha: 0.9 });
+      aegis.fill({ color: 0xe0e0e0, alpha: 0.4 });
+      aegis.circle(15, 0, 25);
+      aegis.fill({ color: 0xffffff, alpha: 0.2 });
+      aegis.x = startX; aegis.y = startY;
+      particles.addChild(aegis);
 
-      // Simple deer silhouette
-      patronus.moveTo(0, 0);
-      patronus.lineTo(15, -5);
-      patronus.lineTo(20, -15); // antler
-      patronus.moveTo(15, -5);
-      patronus.lineTo(25, -12); // antler 2
-      patronus.moveTo(15, -5);
-      patronus.lineTo(25, 0);
-      patronus.lineTo(30, 10);
-      patronus.lineTo(25, 10);
-      patronus.lineTo(20, 5);
-      patronus.lineTo(10, 5);
-      patronus.lineTo(5, 10);
-      patronus.lineTo(0, 10);
-      patronus.lineTo(0, 0);
-      patronus.stroke({ width: 3, color: 0xffffff, alpha: 0.9 });
-      patronus.fill({ color: 0xe0e0e0, alpha: 0.4 });
-
-      // Outer glow
-      patronus.circle(15, 0, 25);
-      patronus.fill({ color: 0xffffff, alpha: 0.2 });
-
-      patronus.x = startX;
-      patronus.y = startY;
-      particles.addChild(patronus);
-
-      const duration = 250;
-      const startTime = Date.now();
-
-      const animPatronus = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        patronus.x = startX + (endX - startX) * progress;
-        patronus.y = startY + (endY - startY) * progress;
-
-        // Light trail
-        if (Math.random() > 0.4) {
+      addProjectile(aegis, particles, {
+        startX, startY, endX, endY, duration: 250,
+        trailFn: () => {
           const trail = new PIXI.Graphics();
           trail.circle(0, 0, 4 + Math.random() * 4);
           trail.fill({ color: 0xffffff, alpha: 0.6 });
-          trail.x = patronus.x + Math.random() * 10 - 5;
-          trail.y = patronus.y + Math.random() * 10 - 5;
+          trail.x = aegis.x + Math.random() * 10 - 5;
+          trail.y = aegis.y + Math.random() * 10 - 5;
           particles.addChild(trail);
-          const fadeTrail = () => {
-            trail.alpha -= 0.08;
-            trail.scale.x *= 0.95; trail.scale.y *= 0.95;
-            if (trail.alpha > 0) requestAnimationFrame(fadeTrail);
-            else particles.removeChild(trail);
-          };
-          fadeTrail();
-        }
-
-        if (progress < 1) requestAnimationFrame(animPatronus);
-        else {
-          // Impact burst of light
-          for (let i = 0; i < 15; i++) {
+          addParticle(trail, particles, { fadeRate: 0.08, scaleDecay: 0.95 });
+        },
+        onComplete: () => {
+          for (let i = 0; i < 8; i++) {
             const light = new PIXI.Graphics();
             light.circle(0, 0, 3);
             light.fill({ color: 0xffffff, alpha: 0.8 });
@@ -1139,146 +1213,91 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
             particles.addChild(light);
             const angle = Math.random() * Math.PI * 2;
             const speed = 4 + Math.random() * 5;
-            const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
-            const animLight = () => {
-              light.x += vx; light.y += vy; light.alpha -= 0.04;
-              if (light.alpha > 0) requestAnimationFrame(animLight);
-              else particles.removeChild(light);
-            };
-            animLight();
+            addParticle(light, particles, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, fadeRate: 0.04 });
           }
-          particles.removeChild(patronus);
+          particles.removeChild(aegis);
+          aegis.destroy();
         }
-      };
-      animPatronus();
+      });
     }
 
-    // ============ CONFRINGO - Fireball ============
-    else if (spellType === 'confringo') {
+    // ============ IGNIS - Fireball ============
+    else if (spellType === 'ignis') {
       const fireball = new PIXI.Graphics();
-
-      // Core
-      fireball.circle(0, 0, 8);
-      fireball.fill({ color: 0xffff00, alpha: 1 });
-      fireball.circle(0, 0, 12);
-      fireball.fill({ color: 0xff8800, alpha: 0.8 });
-      fireball.circle(0, 0, 16);
-      fireball.fill({ color: 0xff4400, alpha: 0.5 });
-
-      fireball.x = startX;
-      fireball.y = startY;
+      fireball.circle(0, 0, 8); fireball.fill({ color: 0xffff00, alpha: 1 });
+      fireball.circle(0, 0, 12); fireball.fill({ color: 0xff8800, alpha: 0.8 });
+      fireball.circle(0, 0, 16); fireball.fill({ color: 0xff4400, alpha: 0.5 });
+      fireball.x = startX; fireball.y = startY;
       particles.addChild(fireball);
 
-      const duration = 200;
-      const startTime = Date.now();
+      const fireColors = [0xff4400, 0xff8800, 0xffcc00];
 
-      const animFireball = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        fireball.x = startX + (endX - startX) * progress;
-        fireball.y = startY + (endY - startY) * progress - Math.sin(progress * Math.PI) * 20;
-
-        // Fire trail
-        if (Math.random() > 0.3) {
+      addProjectile(fireball, particles, {
+        startX, startY, endX, endY, duration: 200, arcHeight: 20,
+        trailFn: () => {
           const flame = new PIXI.Graphics();
           const size = 5 + Math.random() * 8;
-          flame.moveTo(0, -size);
-          flame.lineTo(size * 0.5, 0);
-          flame.lineTo(0, size * 0.3);
-          flame.lineTo(-size * 0.5, 0);
-          flame.closePath();
-          flame.fill({ color: [0xff4400, 0xff8800, 0xffcc00][Math.floor(Math.random() * 3)], alpha: 0.7 });
+          flame.moveTo(0, -size); flame.lineTo(size * 0.5, 0);
+          flame.lineTo(0, size * 0.3); flame.lineTo(-size * 0.5, 0); flame.closePath();
+          flame.fill({ color: fireColors[Math.floor(Math.random() * 3)], alpha: 0.7 });
           flame.x = fireball.x + Math.random() * 10 - 5;
           flame.y = fireball.y + Math.random() * 10 - 5;
           flame.rotation = Math.random() * Math.PI;
           particles.addChild(flame);
-          const fadeFlame = () => {
-            flame.alpha -= 0.1; flame.y -= 1; flame.scale.x *= 0.9; flame.scale.y *= 0.9;
-            if (flame.alpha > 0) requestAnimationFrame(fadeFlame);
-            else particles.removeChild(flame);
-          };
-          fadeFlame();
-        }
-
-        if (progress < 1) requestAnimationFrame(animFireball);
-        else {
-          // Explosion
-          for (let i = 0; i < 20; i++) {
+          addParticle(flame, particles, { vy: -1, fadeRate: 0.1, scaleDecay: 0.9 });
+        },
+        onComplete: () => {
+          for (let i = 0; i < 12; i++) {
             const ember = new PIXI.Graphics();
             ember.circle(0, 0, 2 + Math.random() * 4);
-            ember.fill({ color: [0xff4400, 0xff8800, 0xffcc00][Math.floor(Math.random() * 3)], alpha: 0.9 });
+            ember.fill({ color: fireColors[Math.floor(Math.random() * 3)], alpha: 0.9 });
             ember.x = endX; ember.y = endY;
             particles.addChild(ember);
             const angle = Math.random() * Math.PI * 2;
             const speed = 5 + Math.random() * 7;
-            const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed - 2;
-            const animEmber = () => {
-              ember.x += vx; ember.y += vy; ember.alpha -= 0.04;
-              if (ember.alpha > 0) requestAnimationFrame(animEmber);
-              else particles.removeChild(ember);
-            };
-            animEmber();
+            addParticle(ember, particles, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2, fadeRate: 0.04 });
           }
-          // Explosion ring
           const ring = new PIXI.Graphics();
           ring.circle(0, 0, 10);
           ring.stroke({ width: 4, color: 0xff8800, alpha: 0.8 });
           ring.x = endX; ring.y = endY;
           particles.addChild(ring);
-          const expandRing = () => {
-            ring.scale.x += 0.3; ring.scale.y += 0.3; ring.alpha -= 0.1;
-            if (ring.alpha > 0) requestAnimationFrame(expandRing);
-            else particles.removeChild(ring);
-          };
-          expandRing();
+          addParticle(ring, particles, { fadeRate: 0.1, grow: 0.3 });
           particles.removeChild(fireball);
+          fireball.destroy();
         }
-      };
-      animFireball();
+      });
     }
 
-    // ============ AVADA KEDAVRA - Death Ray ============
-    else if (spellType === 'avada') {
-      // Green death beam
+    // ============ MORTALIS - Death Ray ============
+    else if (spellType === 'mortalis') {
       const beam = new PIXI.Graphics();
-      beam.moveTo(startX, startY);
-      beam.lineTo(endX, endY);
+      beam.moveTo(startX, startY); beam.lineTo(endX, endY);
       beam.stroke({ width: 8, color: 0x00ff00, alpha: 0.3 });
-      beam.moveTo(startX, startY);
-      beam.lineTo(endX, endY);
+      beam.moveTo(startX, startY); beam.lineTo(endX, endY);
       beam.stroke({ width: 4, color: 0x44ff44, alpha: 0.6 });
-      beam.moveTo(startX, startY);
-      beam.lineTo(endX, endY);
+      beam.moveTo(startX, startY); beam.lineTo(endX, endY);
       beam.stroke({ width: 2, color: 0xaaffaa, alpha: 1 });
       particles.addChild(beam);
 
       // Death particles along beam
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 8; i++) {
         setTimeout(() => {
           const t = Math.random();
           const deathP = new PIXI.Graphics();
-          // Skull-like shape (simplified)
-          deathP.circle(0, -2, 4);
-          deathP.fill({ color: 0x00ff00, alpha: 0.7 });
-          deathP.circle(-2, 0, 1.5);
-          deathP.circle(2, 0, 1.5);
+          deathP.circle(0, -2, 4); deathP.fill({ color: 0x00ff00, alpha: 0.7 });
+          deathP.circle(-2, 0, 1.5); deathP.circle(2, 0, 1.5);
           deathP.fill({ color: 0x003300, alpha: 1 });
           deathP.x = startX + (endX - startX) * t;
           deathP.y = startY + (endY - startY) * t;
           particles.addChild(deathP);
-          const vy = -1 - Math.random() * 2;
-          const animDeath = () => {
-            deathP.y += vy; deathP.alpha -= 0.05;
-            if (deathP.alpha > 0) requestAnimationFrame(animDeath);
-            else particles.removeChild(deathP);
-          };
-          animDeath();
-        }, i * 15);
+          addParticle(deathP, particles, { vy: -1 - Math.random() * 2, fadeRate: 0.05 });
+        }, i * 20);
       }
 
-      // Impact dark explosion
+      // Impact explosion
       setTimeout(() => {
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < 10; i++) {
           const dark = new PIXI.Graphics();
           dark.circle(0, 0, 3 + Math.random() * 3);
           dark.fill({ color: i % 2 === 0 ? 0x00ff00 : 0x004400, alpha: 0.8 });
@@ -1286,35 +1305,18 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
           particles.addChild(dark);
           const angle = Math.random() * Math.PI * 2;
           const speed = 4 + Math.random() * 5;
-          const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
-          const animDark = () => {
-            dark.x += vx; dark.y += vy; dark.alpha -= 0.05;
-            if (dark.alpha > 0) requestAnimationFrame(animDark);
-            else particles.removeChild(dark);
-          };
-          animDark();
+          addParticle(dark, particles, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, fadeRate: 0.05 });
         }
-        // Shockwave
         const shock = new PIXI.Graphics();
         shock.circle(0, 0, 8);
         shock.stroke({ width: 3, color: 0x00ff00, alpha: 0.8 });
         shock.x = endX; shock.y = endY;
         particles.addChild(shock);
-        const expandShock = () => {
-          shock.scale.x += 0.4; shock.scale.y += 0.4; shock.alpha -= 0.08;
-          if (shock.alpha > 0) requestAnimationFrame(expandShock);
-          else particles.removeChild(shock);
-        };
-        expandShock();
+        addParticle(shock, particles, { fadeRate: 0.08, grow: 0.4 });
       }, 50);
 
       // Fade beam
-      const fadeBeam = () => {
-        beam.alpha -= 0.1;
-        if (beam.alpha > 0) requestAnimationFrame(fadeBeam);
-        else particles.removeChild(beam);
-      };
-      setTimeout(fadeBeam, 150);
+      addParticle(beam, particles, { fadeRate: 0.1, delay: 150 });
     }
 
     // ============ DEFAULT (fallback) ============
@@ -1325,17 +1327,12 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
       spell.x = startX; spell.y = startY;
       particles.addChild(spell);
 
-      const duration = 200;
-      const startTime = Date.now();
-      const animSpell = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        spell.x = startX + (endX - startX) * progress;
-        spell.y = startY + (endY - startY) * progress;
-        if (progress < 1) requestAnimationFrame(animSpell);
-        else {
+      addProjectile(spell, particles, {
+        startX, startY, endX, endY, duration: 200,
+        onComplete: () => {
           particles.removeChild(spell);
-          for (let i = 0; i < 8; i++) {
+          spell.destroy();
+          for (let i = 0; i < 6; i++) {
             const p = new PIXI.Graphics();
             p.circle(0, 0, 3);
             p.fill({ color: 0x8866ff, alpha: 0.7 });
@@ -1343,27 +1340,41 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
             particles.addChild(p);
             const angle = Math.random() * Math.PI * 2;
             const speed = 3 + Math.random() * 3;
-            const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed;
-            const anim = () => { p.x += vx; p.y += vy; p.alpha -= 0.06; if (p.alpha > 0) requestAnimationFrame(anim); else particles.removeChild(p); };
-            anim();
+            addParticle(p, particles, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, fadeRate: 0.06 });
           }
         }
-      };
-      animSpell();
+      });
     }
   }, []);
 
   const hitMob = useCallback(() => {
     const mob = mobRef.current;
+    const particles = particlesRef.current;
     if (!mob) return;
     const baseX = 380;
-    mob.tint = 0xff8888;
-    mob.x = baseX + 8;
-    setTimeout(() => { mob.tint = 0xffffff; mob.x = baseX - 4; }, 50);
-    setTimeout(() => { mob.tint = 0xffffff; mob.x = baseX; }, 100);
+    // Flash white then red
+    mob.tint = 0xffffff;
+    mob.x = baseX + 10;
+    mob.scale.y *= 0.95;
+    setTimeout(() => { mob.tint = 0xff6666; mob.x = baseX - 6; }, 40);
+    setTimeout(() => { mob.tint = 0xff8888; mob.x = baseX + 3; mob.scale.y = mob.scale.x < 0 ? -Math.abs(mob.scale.y / 0.95) : Math.abs(mob.scale.y / 0.95); }, 80);
+    setTimeout(() => { mob.tint = 0xffffff; mob.x = baseX; }, 130);
+    // Hit sparks
+    if (particles) {
+      for (let i = 0; i < 3; i++) {
+        const spark = new PIXI.Graphics();
+        spark.circle(0, 0, 2 + Math.random() * 2);
+        spark.fill({ color: 0xffaa44, alpha: 0.9 });
+        spark.x = baseX + Math.random() * 20 - 10;
+        spark.y = 220 + Math.random() * 20 - 10;
+        particles.addChild(spark);
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 3;
+        addParticle(spark, particles, { vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, fadeRate: 0.08 });
+      }
+    }
   }, []);
 
-  const updateMobHp = useCallback(() => {}, []);
   const setMobName = useCallback(() => {}, []);
 
   const setZone = useCallback((zone: number) => {
@@ -1373,15 +1384,37 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
     if (currentZoneRef.current === zone) return;
     currentZoneRef.current = zone;
 
-    const mobSpriteData = MOB_SPRITES[zone] || LUTIN_SPRITE;
-    const newTexture = createSpriteTexture(mobSpriteData, app, 4);
-    mob.texture = newTexture;
+    const goblinFrames = (app as unknown as Record<string, unknown>)._goblinFrames as PIXI.Texture[] | undefined;
+
+    // Remove old mob
+    const parent = mob.parent;
+    if (parent) parent.removeChild(mob);
+
+    let newMob: PIXI.AnimatedSprite | PIXI.Sprite;
+    if (zone === 0 && goblinFrames) {
+      const animMob = new PIXI.AnimatedSprite(goblinFrames);
+      animMob.animationSpeed = 0.08;
+      animMob.scale.set(0.45);
+      animMob.play();
+      newMob = animMob;
+    } else {
+      const mobSpriteData = MOB_SPRITES[zone] || LUTIN_SPRITE;
+      const newTexture = createSpriteTexture(mobSpriteData, app, 4);
+      newMob = new PIXI.Sprite(newTexture);
+      newMob.scale.x = -1;
+    }
+    newMob.anchor.set(0.5, 1);
+    newMob.x = 380; newMob.y = 270;
+    if (parent) parent.addChild(newMob);
+    mobRef.current = newMob;
   }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
     if (globalInitialized) {
       if (globalPixiApp && containerRef.current.children.length === 0) {
+        globalPixiApp.canvas.style.width = '100%';
+        globalPixiApp.canvas.style.height = 'auto';
         containerRef.current.appendChild(globalPixiApp.canvas);
         appRef.current = globalPixiApp;
       }
@@ -1393,21 +1426,40 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
       if (containerRef.current) containerRef.current.innerHTML = '';
 
       const app = new PIXI.Application();
-      await app.init({ width: 500, height: 300, backgroundColor: 0x0a0a12, antialias: false, resolution: window.devicePixelRatio || 1, autoDensity: true });
+      await app.init({ width: 500, height: 300, backgroundColor: 0x0a0a12, antialias: false, resolution: Math.min(window.devicePixelRatio || 1, 2), autoDensity: true, powerPreference: 'high-performance' });
 
       globalPixiApp = app;
+      app.canvas.style.width = '100%';
+      app.canvas.style.height = 'auto';
       containerRef.current!.appendChild(app.canvas);
       appRef.current = app;
 
       const background = drawDungeonBackground(app);
       app.stage.addChild(background);
 
-      const wizardTexture = createSpriteTexture(WIZARD_SPRITE, app, 3);
-      const wizard = new PIXI.Sprite(wizardTexture);
+      // Load wizard individual frames (pre-split by Python script)
+      const wizardFrames: PIXI.Texture[] = [];
+      for (let i = 1; i <= 8; i++) {
+        const tex = await PIXI.Assets.load(`/sprites/wizard_${i}.png`);
+        wizardFrames.push(tex);
+      }
+
+      // Idle frames: 1-6, Cast frames: 7-8
+      const idleFrames = wizardFrames.slice(0, 6);
+      const castFrames = wizardFrames.slice(6, 8);
+
+      const wizard = new PIXI.AnimatedSprite(idleFrames);
       wizard.anchor.set(0.5, 1);
       wizard.x = 80; wizard.y = 260;
+      wizard.animationSpeed = 0.08;
+      wizard.scale.set(0.55);
+      wizard.play();
       app.stage.addChild(wizard);
       wizardRef.current = wizard;
+
+      // Store cast frames for spell animation
+      (wizard as unknown as Record<string, unknown>)._idleFrames = idleFrames;
+      (wizard as unknown as Record<string, unknown>)._castFrames = castFrames;
 
       let wizardTime = 0;
       app.ticker.add((t) => { wizardTime += t.deltaTime * 0.03; wizard.y = 260 + Math.sin(wizardTime) * 2; });
@@ -1416,25 +1468,51 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
       app.stage.addChild(particles);
       particlesRef.current = particles;
 
-      const mobSpriteData = MOB_SPRITES[currentZone] || LUTIN_SPRITE;
-      const mobTexture = createSpriteTexture(mobSpriteData, app, 4);
-      const mob = new PIXI.Sprite(mobTexture);
+      // Setup centralized particle ticker (single callback instead of 30-50+ rAF loops)
+      setupParticleTicker(app);
+
+      // Load goblin frames for zone 0
+      const goblinFrames: PIXI.Texture[] = [];
+      for (let i = 1; i <= 9; i++) {
+        const tex = await PIXI.Assets.load(`/sprites/goblin_${i}.png`);
+        goblinFrames.push(tex);
+      }
+      (app as unknown as Record<string, unknown>)._goblinFrames = goblinFrames;
+
+      let mob: PIXI.AnimatedSprite | PIXI.Sprite;
+      if (currentZone === 0) {
+        const animMob = new PIXI.AnimatedSprite(goblinFrames);
+        animMob.animationSpeed = 0.08;
+        animMob.scale.set(0.45);
+        animMob.play();
+        mob = animMob;
+      } else {
+        const mobSpriteData = MOB_SPRITES[currentZone] || LUTIN_SPRITE;
+        const mobTexture = createSpriteTexture(mobSpriteData, app, 4);
+        mob = new PIXI.Sprite(mobTexture);
+        mob.scale.x = -1;
+      }
       mob.anchor.set(0.5, 1);
       mob.x = 380; mob.y = 270;
-      mob.scale.x = -1;
       app.stage.addChild(mob);
       mobRef.current = mob;
 
       let mobTime = 0;
       app.ticker.add((t) => { mobTime += t.deltaTime * 0.05; mob.y = 270 + Math.sin(mobTime) * 3; });
 
-      if (onReady) onReady({ castSpell, hitMob, updateMobHp, setMobName, setZone });
+      if (onReady) onReady({ castSpell, hitMob, setMobName, setZone });
     };
 
     initPixi();
 
-    return () => { if (containerRef.current) containerRef.current.innerHTML = ''; appRef.current = null; };
-  }, [castSpell, hitMob, updateMobHp, setMobName, setZone, onReady, currentZone]);
+    return () => {
+      if (containerRef.current) containerRef.current.innerHTML = '';
+      appRef.current = null;
+      _particleTickerAdded = false;
+      _particles.length = 0;
+      _projectiles.length = 0;
+    };
+  }, [castSpell, hitMob, setMobName, setZone, onReady, currentZone]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', maxWidth: '500px', margin: '0 auto', borderRadius: '4px', overflow: 'hidden', border: '3px solid #1a1a2e', boxShadow: '0 0 20px rgba(0,0,0,0.8)', imageRendering: 'pixelated' }} />
