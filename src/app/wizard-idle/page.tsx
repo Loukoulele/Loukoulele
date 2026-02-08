@@ -699,15 +699,47 @@ body {
   transition:all 0.2s ease;
 }
 
-/* Spell-specific colors */
+/* Spell-specific colors — École Foudre */
 .spell-slot[data-spell="fulgur"] .spell-circle { border-color:rgba(100,180,255,0.6); }
 .spell-slot[data-spell="fulgur"].ready .spell-circle { border-color:#4fc3f7; box-shadow:0 0 15px rgba(79,195,247,0.5), inset 0 0 10px rgba(79,195,247,0.2); }
-.spell-slot[data-spell="aegis"] .spell-circle { border-color:rgba(200,200,220,0.6); }
-.spell-slot[data-spell="aegis"].ready .spell-circle { border-color:#e0e0e0; box-shadow:0 0 15px rgba(255,255,255,0.5), inset 0 0 10px rgba(255,255,255,0.2); }
+.spell-slot[data-spell="chain_lightning"] .spell-circle { border-color:rgba(66,165,245,0.6); }
+.spell-slot[data-spell="chain_lightning"].ready .spell-circle { border-color:#42a5f5; box-shadow:0 0 15px rgba(66,165,245,0.5), inset 0 0 10px rgba(66,165,245,0.2); }
+.spell-slot[data-spell="static_storm"] .spell-circle { border-color:rgba(30,136,229,0.6); }
+.spell-slot[data-spell="static_storm"].ready .spell-circle { border-color:#1e88e5; box-shadow:0 0 15px rgba(30,136,229,0.5), inset 0 0 10px rgba(30,136,229,0.2); }
+/* École Feu */
 .spell-slot[data-spell="ignis"] .spell-circle { border-color:rgba(255,140,60,0.6); }
 .spell-slot[data-spell="ignis"].ready .spell-circle { border-color:#ff9800; box-shadow:0 0 15px rgba(255,152,0,0.5), inset 0 0 10px rgba(255,152,0,0.2); }
+.spell-slot[data-spell="flame_nova"] .spell-circle { border-color:rgba(255,112,67,0.6); }
+.spell-slot[data-spell="flame_nova"].ready .spell-circle { border-color:#ff7043; box-shadow:0 0 15px rgba(255,112,67,0.5), inset 0 0 10px rgba(255,112,67,0.2); }
+.spell-slot[data-spell="meteor"] .spell-circle { border-color:rgba(216,67,21,0.6); }
+.spell-slot[data-spell="meteor"].ready .spell-circle { border-color:#d84315; box-shadow:0 0 18px rgba(216,67,21,0.6), inset 0 0 10px rgba(216,67,21,0.3); }
+/* École Ombre */
+.spell-slot[data-spell="aegis"] .spell-circle { border-color:rgba(200,200,220,0.6); }
+.spell-slot[data-spell="aegis"].ready .spell-circle { border-color:#e0e0e0; box-shadow:0 0 15px rgba(255,255,255,0.5), inset 0 0 10px rgba(255,255,255,0.2); }
+.spell-slot[data-spell="blood_pact"] .spell-circle { border-color:rgba(156,39,176,0.6); }
+.spell-slot[data-spell="blood_pact"].ready .spell-circle { border-color:#9c27b0; box-shadow:0 0 15px rgba(156,39,176,0.5), inset 0 0 10px rgba(156,39,176,0.2); }
 .spell-slot[data-spell="mortalis"] .spell-circle { border-color:rgba(100,255,100,0.6); }
 .spell-slot[data-spell="mortalis"].ready .spell-circle { border-color:#4caf50; box-shadow:0 0 20px rgba(76,175,80,0.6), inset 0 0 10px rgba(76,175,80,0.3); }
+
+/* Slot vide */
+.spell-slot.empty-slot .spell-circle { border-color:rgba(255,255,255,0.15); background:rgba(255,255,255,0.03); }
+.spell-slot.empty-slot .s-icon { font-size:1.5em; color:rgba(255,255,255,0.2); }
+
+/* Synergy bar */
+.synergy-bar { display:flex; gap:8px; justify-content:center; width:100%; margin-top:6px; }
+.synergy-badge { font-size:11px; padding:2px 8px; border:1px solid; border-radius:12px; background:rgba(0,0,0,0.3); }
+
+/* Grimoire */
+.grimoire-school { border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px; margin-bottom:10px; background:rgba(0,0,0,0.2); }
+.grimoire-school-header { font-size:14px; font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.grimoire-spell { display:flex; align-items:center; gap:10px; padding:8px; border-radius:8px; margin-bottom:4px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); transition:all 0.2s; }
+.grimoire-spell.equipped { background:rgba(105,240,174,0.06); border-color:rgba(105,240,174,0.2); }
+.grimoire-spell.locked { opacity:0.5; }
+.gs-icon { font-size:1.6em; min-width:32px; text-align:center; }
+.gs-info { flex:1; min-width:0; }
+.gs-name { font-size:13px; font-weight:500; color:#e0e0e0; }
+.gs-stats { font-size:11px; color:#888; margin-top:2px; }
+.gs-action { flex-shrink:0; }
 
 .spell-slot .s-icon { font-size:1.8em; z-index:2; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5)); transition:transform 0.15s; }
 .spell-slot.ready .s-icon { animation:spellPulse 1.5s ease-in-out infinite; }
@@ -1434,7 +1466,8 @@ body {
     border-top: 1px solid var(--panel-border);
     overflow-x: hidden;
     overflow-y: hidden;
-    z-index: 500;
+    z-index: 600;
+    touch-action: manipulation;
   }
   /* Hide secondary buttons and dividers on mobile */
   .sidebar .nav-btn:not(.nav-primary):not(.nav-more) { display: none !important; }
@@ -1444,9 +1477,11 @@ body {
   .nav-btn.nav-primary, .nav-btn.nav-more {
     flex: 1;
     min-width: 0;
-    padding: 6px 4px;
+    padding: 10px 4px;
     border-left: none;
     border-top: 3px solid transparent;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .nav-btn.nav-primary.active, .nav-btn.nav-more.active {
     border-left-color: transparent;
@@ -2599,8 +2634,11 @@ body {
 
   <div id="panel-spells" class="panel">
     <div class="card">
-      <div class="card-title">⚡ Amélioration des Sorts</div>
-      <p style="font-size:0.8em;color:#888;margin-bottom:12px;">Améliore tes sorts pour augmenter les dégâts. Le coût augmente à chaque niveau.</p>
+      <div id="grimoirePanel"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">⬆️ Amélioration des Sorts</div>
+      <p style="font-size:0.8em;color:#888;margin-bottom:12px;">Améliore tes sorts débloqués pour augmenter les dégâts. Le coût augmente à chaque niveau.</p>
       <div id="spellUpgradeList"></div>
     </div>
   </div>
@@ -3043,38 +3081,58 @@ const REBIRTH_TIERS = [
 // Requires zone 25. Resets rebirths too.
 const PRESTIGE_MULT_PER = 0.3;
 
-// ============ SPELLS ============
-// Ordre logique de puissance : Fulgur < Aegis < Ignis < Mortalis
-const BASE_SPELLS = [
-  { id: 'fulgur',  name: 'Fulgur',  icon: '⚡', baseDmg: 10, baseCD: 1.2, desc: 'Éclair rapide.' },
-  { id: 'aegis',  name: 'Aegis',  icon: '🦌', baseDmg: 15, baseCD: 1.5, desc: 'Lumière sacrée.' },
-  { id: 'ignis', name: 'Ignis', icon: '🔥', baseDmg: 24, baseCD: 2.0, desc: 'Explosion puissante.' },
+// ============ SPELLS — 9 Sorts / 3 Écoles ============
+const SCHOOLS = {
+  lightning: { name: 'Foudre',  icon: '⚡', color: '#4fc3f7' },
+  fire:      { name: 'Feu',     icon: '🔥', color: '#ff9800' },
+  shadow:    { name: 'Ombre',   icon: '🌑', color: '#9c27b0' },
+};
+
+const ALL_SPELLS = [
+  // École Foudre — Vitesse & Multi-hit
+  { id: 'fulgur',          name: 'Fulgur',             icon: '⚡', school: 'lightning', baseDmg: 10,  baseCD: 1.2, desc: 'Éclair rapide.',            unlockZone: 0 },
+  { id: 'chain_lightning', name: "Chaîne d'Éclairs",   icon: '⛓️', school: 'lightning', baseDmg: 18,  baseCD: 1.4, desc: 'Éclairs en chaîne.',         unlockZone: 8 },
+  { id: 'static_storm',   name: 'Orage Statique',     icon: '🌩️', school: 'lightning', baseDmg: 35,  baseCD: 1.8, desc: 'Tempête électrique.',        unlockZone: 15 },
+  // École Feu — Dégâts bruts & AoE
+  { id: 'ignis',           name: 'Ignis',              icon: '🔥', school: 'fire',      baseDmg: 15,  baseCD: 1.5, desc: 'Explosion puissante.',       unlockZone: 3 },
+  { id: 'flame_nova',      name: 'Nova de Flammes',    icon: '💥', school: 'fire',      baseDmg: 30,  baseCD: 2.0, desc: 'Nova brûlante.',             unlockZone: 12 },
+  { id: 'meteor',          name: 'Météore',            icon: '☄️', school: 'fire',      baseDmg: 80,  baseCD: 3.0, desc: 'Météore dévastateur.',       unlockZone: 22 },
+  // École Ombre — Utilitaire & Crit
+  { id: 'aegis',           name: 'Aegis',              icon: '🦌', school: 'shadow',    baseDmg: 12,  baseCD: 1.3, desc: 'Lumière spectrale.',          unlockZone: 1 },
+  { id: 'blood_pact',      name: 'Pacte de Sang',      icon: '🩸', school: 'shadow',    baseDmg: 50,  baseCD: 2.2, desc: 'Pacte obscur vampirique.',   unlockZone: 18 },
+  { id: 'mortalis',        name: 'Mortalis',           icon: '💀', school: 'shadow',    baseDmg: 100, baseCD: 2.5, desc: 'Le sort interdit.',          unlockZone: 20 },
 ];
-const SPELL4 = { id: 'mortalis', name: 'Mortalis', icon: '💀', baseDmg: 100, baseCD: 2.0, desc: 'Le sort interdit.' };
-function getSpells() { return hasShop('spell4') ? [...BASE_SPELLS, SPELL4] : BASE_SPELLS; }
-// Keep SPELLS as a getter for backward compat
-let SPELLS = BASE_SPELLS;
+const MAX_EQUIPPED = 4;
+
+function getUnlockedSpells() {
+  return ALL_SPELLS.filter(function(s) { return G.highestZone >= s.unlockZone || (G.spellLevels && G.spellLevels[s.id]); });
+}
+function getEquippedSpells() {
+  return (G.equippedSpells || []).filter(Boolean).map(function(id) { return ALL_SPELLS.find(function(s) { return s.id === id; }); }).filter(Boolean);
+}
+// Backward compat: getSpells() returns equipped spells (used in tickSpells, rebuildSpellBar, etc.)
+function getSpells() { return getEquippedSpells(); }
 
 function spellUpgradeCost(level) {
   return Math.floor(5 * Math.pow(1.07, level - 1));
 }
 
-// ============ TALENTS ============
+// ============ TALENTS (École-based) ============
 const TALENTS = [
-  { id: 'fulgur_dmg',  spell: 'fulgur',  name: 'Puissance Fulgur',  icon: '⚡', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'fulgur',  perLevel: 0.2 }},
-  { id: 'fulgur_cd',   spell: 'fulgur',  name: 'Vélocité Fulgur',   icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'fulgur',  perLevel: 0.05 }},
-  { id: 'ignis_dmg', spell: 'ignis', name: 'Puissance Ignis', icon: '🔥', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'ignis', perLevel: 0.2 }},
-  { id: 'ignis_cd',  spell: 'ignis', name: 'Vélocité Ignis',  icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'ignis', perLevel: 0.05 }},
-  { id: 'aegis_dmg',  spell: 'aegis',  name: 'Puissance Aegis',  icon: '🦌', desc: '+20% dmg', maxLvl: 20, costBase: 1, effect: { type: 'spell_dmg', spell: 'aegis',  perLevel: 0.2 }},
-  { id: 'aegis_cd',   spell: 'aegis',  name: 'Vélocité Aegis',   icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 2, effect: { type: 'spell_cd',  spell: 'aegis',  perLevel: 0.05 }},
-  { id: 'mortalis_dmg',  spell: 'mortalis',     name: 'Puissance Mortalis',     icon: '💀', desc: '+25% dmg', maxLvl: 20, costBase: 3, effect: { type: 'spell_dmg', spell: 'mortalis',     perLevel: 0.25 }},
-  { id: 'mortalis_cd',   spell: 'mortalis',     name: 'Vélocité Mortalis',      icon: '💨', desc: '-5% CD',   maxLvl: 15, costBase: 3, effect: { type: 'spell_cd',  spell: 'mortalis',     perLevel: 0.05 }},
-  { id: 'crit_chance', spell: null, name: 'Chance Critique',   icon: '🎯', desc: '+2% crit',       maxLvl: 25, costBase: 2, effect: { type: 'crit_chance', perLevel: 0.02 }},
-  { id: 'crit_dmg',    spell: null, name: 'Dégâts Critiques', icon: '💥', desc: '+15% dmg crit',  maxLvl: 20, costBase: 2, effect: { type: 'crit_dmg',    perLevel: 0.15 }},
-  { id: 'gold_bonus',  spell: null, name: 'Cupidité',         icon: '🪙', desc: '+10% gold/kill', maxLvl: 30, costBase: 1, effect: { type: 'gold_bonus',  perLevel: 0.10 }},
-  { id: 'multi_hit',   spell: null, name: 'Frappe Multiple',  icon: '✨', desc: '+5% double hit', maxLvl: 15, costBase: 3, effect: { type: 'multi_hit',   perLevel: 0.05 }},
-  { id: 'all_dmg',     spell: null, name: 'Maîtrise Absolue', icon: '🌟', desc: '+10% tous dmg',  maxLvl: 50, costBase: 3, effect: { type: 'all_dmg',     perLevel: 0.10 }},
-  { id: 'auto_speed',  spell: null, name: 'Rapidité',         icon: '⏩', desc: '-3% tous CD',    maxLvl: 20, costBase: 2, effect: { type: 'all_cd',      perLevel: 0.03 }},
+  // Talents d'école (remplace les anciens talents par sort)
+  { id: 'lightning_dmg', spell: null, school: 'lightning', name: 'Puissance Foudre',  icon: '⚡', desc: '+20% dmg Foudre',  maxLvl: 20, costBase: 1, effect: { type: 'school_dmg', school: 'lightning', perLevel: 0.2 }},
+  { id: 'lightning_cd',  spell: null, school: 'lightning', name: 'Vélocité Foudre',   icon: '💨', desc: '-5% CD Foudre',    maxLvl: 15, costBase: 2, effect: { type: 'school_cd',  school: 'lightning', perLevel: 0.05 }},
+  { id: 'fire_dmg',      spell: null, school: 'fire',      name: 'Puissance Feu',     icon: '🔥', desc: '+20% dmg Feu',     maxLvl: 20, costBase: 1, effect: { type: 'school_dmg', school: 'fire',      perLevel: 0.2 }},
+  { id: 'fire_cd',       spell: null, school: 'fire',      name: 'Vélocité Feu',      icon: '💨', desc: '-5% CD Feu',       maxLvl: 15, costBase: 2, effect: { type: 'school_cd',  school: 'fire',      perLevel: 0.05 }},
+  { id: 'shadow_dmg',    spell: null, school: 'shadow',    name: 'Puissance Ombre',   icon: '🌑', desc: '+20% dmg Ombre',   maxLvl: 20, costBase: 1, effect: { type: 'school_dmg', school: 'shadow',    perLevel: 0.2 }},
+  { id: 'shadow_cd',     spell: null, school: 'shadow',    name: 'Vélocité Ombre',    icon: '💨', desc: '-5% CD Ombre',     maxLvl: 15, costBase: 2, effect: { type: 'school_cd',  school: 'shadow',    perLevel: 0.05 }},
+  // Talents génériques (inchangés)
+  { id: 'crit_chance', spell: null, school: null, name: 'Chance Critique',   icon: '🎯', desc: '+2% crit',       maxLvl: 25, costBase: 2, effect: { type: 'crit_chance', perLevel: 0.02 }},
+  { id: 'crit_dmg',    spell: null, school: null, name: 'Dégâts Critiques', icon: '💥', desc: '+15% dmg crit',  maxLvl: 20, costBase: 2, effect: { type: 'crit_dmg',    perLevel: 0.15 }},
+  { id: 'gold_bonus',  spell: null, school: null, name: 'Cupidité',         icon: '🪙', desc: '+10% gold/kill', maxLvl: 30, costBase: 1, effect: { type: 'gold_bonus',  perLevel: 0.10 }},
+  { id: 'multi_hit',   spell: null, school: null, name: 'Frappe Multiple',  icon: '✨', desc: '+5% double hit', maxLvl: 15, costBase: 3, effect: { type: 'multi_hit',   perLevel: 0.05 }},
+  { id: 'all_dmg',     spell: null, school: null, name: 'Maîtrise Absolue', icon: '🌟', desc: '+10% tous dmg',  maxLvl: 50, costBase: 3, effect: { type: 'all_dmg',     perLevel: 0.10 }},
+  { id: 'auto_speed',  spell: null, school: null, name: 'Rapidité',         icon: '⏩', desc: '-3% tous CD',    maxLvl: 20, costBase: 2, effect: { type: 'all_cd',      perLevel: 0.03 }},
 ];
 
 // ============ PETS ============
@@ -3295,17 +3353,22 @@ const ACHIEVEMENTS = [
   { id: 'shiny_collector',category: 'collection', name: 'Brillant Amateur',      icon: '💫', desc: 'Obtenir 10 pets shiny',        target: 10, reward: { gems: 150, starDust: 200 }},
   { id: 'shiny_master',   category: 'collection', name: 'Maître Brillant',       icon: '🌟', desc: 'Obtenir 25 pets shiny',        target: 25, reward: { gems: 500, starDust: 1000 }},
 
-  // ===== SPELLS (10) =====
+  // ===== SPELLS (15) =====
   { id: 'first_spell',    category: 'spells', name: 'Premier Sort',      icon: '🪄', desc: 'Lancer 100 sorts',              target: 100,    reward: { gems: 10 }},
   { id: 'spellcaster',    category: 'spells', name: 'Lanceur de Sorts',  icon: '✨', desc: 'Lancer 1,000 sorts',            target: 1000,   reward: { gems: 25 }},
   { id: 'wizard',         category: 'spells', name: 'Sorcier',           icon: '🧙', desc: 'Lancer 10,000 sorts',           target: 10000,  reward: { gems: 50, starDust: 25 }},
   { id: 'archmage',       category: 'spells', name: 'Archimage',         icon: '🔮', desc: 'Lancer 100,000 sorts',          target: 100000, reward: { gems: 150, starDust: 150 }},
-  { id: 'pyromancer',     category: 'spells', name: 'Pyromane',          icon: '🔥', desc: 'Lancer 1,000 Ignis',        target: 1000,   reward: { gems: 25 }},
-  { id: 'electromancer',  category: 'spells', name: 'Électromancien',    icon: '⚡', desc: 'Lancer 1,000 Fulgur',         target: 1000,   reward: { gems: 25 }},
-  { id: 'lightbringer',   category: 'spells', name: 'Porteur de Lumière', icon: '☀️', desc: 'Lancer 1,000 Aegis',        target: 1000,   reward: { gems: 25 }},
-  { id: 'deathdealer',    category: 'spells', name: 'Marchand de Mort',  icon: '💀', desc: 'Lancer 1,000 Mortalis',    target: 1000,   reward: { gems: 50, starDust: 50 }},
+  { id: 'pyromancer',     category: 'spells', name: 'Pyromane',          icon: '🔥', desc: 'Lancer 1,000 Ignis',            target: 1000,   reward: { gems: 25 }},
+  { id: 'electromancer',  category: 'spells', name: 'Électromancien',    icon: '⚡', desc: 'Lancer 1,000 Fulgur',           target: 1000,   reward: { gems: 25 }},
+  { id: 'lightbringer',   category: 'spells', name: 'Porteur de Lumière', icon: '☀️', desc: 'Lancer 1,000 Aegis',           target: 1000,   reward: { gems: 25 }},
+  { id: 'deathdealer',    category: 'spells', name: 'Marchand de Mort',  icon: '💀', desc: 'Lancer 1,000 Mortalis',         target: 1000,   reward: { gems: 50, starDust: 50 }},
+  { id: 'chain_master',   category: 'spells', name: 'Maître des Chaînes', icon: '⛓️', desc: "Lancer 1,000 Chaîne d'Éclairs", target: 1000,  reward: { gems: 25 }},
+  { id: 'storm_caller',   category: 'spells', name: "Invocateur d'Orage", icon: '🌩️', desc: 'Lancer 1,000 Orage Statique',  target: 1000,   reward: { gems: 50, starDust: 25 }},
+  { id: 'nova_master',    category: 'spells', name: 'Maître Nova',       icon: '💥', desc: 'Lancer 1,000 Nova de Flammes',   target: 1000,   reward: { gems: 25 }},
+  { id: 'meteor_caller',  category: 'spells', name: 'Invocateur de Météore', icon: '☄️', desc: 'Lancer 1,000 Météore',      target: 1000,   reward: { gems: 50, starDust: 25 }},
+  { id: 'blood_ritualist', category: 'spells', name: 'Ritualiste de Sang', icon: '🩸', desc: 'Lancer 1,000 Pacte de Sang',   target: 1000,   reward: { gems: 50, starDust: 50 }},
   { id: 'spell_master',   category: 'spells', name: 'Maître des Sorts',  icon: '📖', desc: 'Un sort au niveau 50',          target: 50,     reward: { gems: 50, starDust: 50 }},
-  { id: 'spell_legend',   category: 'spells', name: 'Légende des Sorts', icon: '📚', desc: 'Tous les sorts au niveau 100',  target: 100,    reward: { gems: 200, starDust: 300 }},
+  { id: 'spell_legend',   category: 'spells', name: 'Légende des Sorts', icon: '📚', desc: 'Les 9 sorts au niveau 100',     target: 100,    reward: { gems: 500, starDust: 500 }},
 
   // ===== ECONOMY (10) =====
   { id: 'first_gold',     category: 'economy', name: 'Première Pièce',    icon: '🪙', desc: 'Gagner 1,000 or',               target: 1000,   reward: { gems: 5 }},
@@ -3385,6 +3448,32 @@ const SPELL_EVOLUTIONS = {
     { level: 50,  name: 'Malédiction',    color: '#43a047', bonusDmg: 0.50, icon: '🐍', desc: 'x3 crit dmg' },
     { level: 100, name: 'Néant Absolu',   color: '#1b5e20', bonusDmg: 1.00, icon: '⚫', desc: 'x5 crit dmg + reset CD si kill' },
   ],
+  // Nouveaux sorts
+  chain_lightning: [
+    { level: 25,  name: 'Éclairs Jumeaux',  color: '#42a5f5', bonusDmg: 0.15, icon: '⛓️', desc: '+2 cibles' },
+    { level: 50,  name: 'Tempête Chaînée',   color: '#1e88e5', bonusDmg: 0.35, icon: '🔗', desc: '+4 cibles + slow' },
+    { level: 100, name: 'Résonance',         color: '#0d47a1', bonusDmg: 0.70, icon: '💠', desc: 'Rebond infini' },
+  ],
+  static_storm: [
+    { level: 25,  name: 'Champ Statique',   color: '#64b5f6', bonusDmg: 0.20, icon: '🌩️', desc: 'Zone étendue' },
+    { level: 50,  name: 'Ionisation',        color: '#1565c0', bonusDmg: 0.45, icon: '🔵', desc: '-20% def zone' },
+    { level: 100, name: 'Supraconducteur',   color: '#0d47a1', bonusDmg: 0.90, icon: '💎', desc: 'x2 multi-hit' },
+  ],
+  flame_nova: [
+    { level: 25,  name: 'Nova Ardente',     color: '#ff7043', bonusDmg: 0.20, icon: '💥', desc: '+20% zone' },
+    { level: 50,  name: 'Déflagration',      color: '#e64a19', bonusDmg: 0.45, icon: '🔥', desc: 'Brûlure DoT' },
+    { level: 100, name: 'Explosion Solaire', color: '#bf360c', bonusDmg: 0.90, icon: '☀️', desc: 'Ignore défense' },
+  ],
+  meteor: [
+    { level: 25,  name: 'Pluie de Pierres',  color: '#ff8a65', bonusDmg: 0.25, icon: '☄️', desc: 'Multi-impact' },
+    { level: 50,  name: 'Astéroïde',          color: '#d84315', bonusDmg: 0.50, icon: '🌋', desc: 'Cratère DoT' },
+    { level: 100, name: 'Apocalypse',         color: '#b71c1c', bonusDmg: 1.00, icon: '🔴', desc: 'x3 dmg zone' },
+  ],
+  blood_pact: [
+    { level: 25,  name: 'Lien Sanguin',     color: '#ce93d8', bonusDmg: 0.20, icon: '🩸', desc: 'Vol de vie' },
+    { level: 50,  name: 'Sacrifice',         color: '#9c27b0', bonusDmg: 0.50, icon: '💜', desc: '+50% crit dmg' },
+    { level: 100, name: 'Pacte Éternel',     color: '#4a148c', bonusDmg: 1.00, icon: '⚫', desc: 'Drain total' },
+  ],
 };
 
 // ============ DAILY CHALLENGES ============
@@ -3404,7 +3493,7 @@ const SHOP_UNLOCKS = [
   { id: 'pet_magnet',    name: 'Aimant à Pets',   icon: '🧲', desc: 'Double le taux de drop de tous les pets.', cost: 15000 },
   { id: 'triple_hit',    name: 'Triple Frappe',    icon: '⚔️', desc: 'Les double hits peuvent devenir des triple hits (33% chance).', cost: 50000 },
   { id: 'gold_crit',     name: 'Gold Critique',    icon: '💰', desc: 'Les coups critiques donnent aussi x2 gold sur ce kill.', cost: 100000 },
-  { id: 'spell4',        name: 'Mortalis',    icon: '💀', desc: 'Débloque un 4ème sort : 40 dmg, 3.0s CD.', cost: 500000 },
+  // spell4 supprimé — Mortalis se débloque maintenant à la Zone 20
 ];
 // Consumables (repeatable, cost scales)
 const SHOP_CONSUMABLES = [
@@ -3428,12 +3517,12 @@ const GEM_SHOP_MEGA_BUFFS = [
 const SHINY_FY_COST = 8000;
 const DAILY_REROLL_COST = 200;
 const GEM_PACKS = [
-  { productId: 'gems_500',    gems: 500,    name: 'Poignée',     icon: '💎',  bonus: '' },
-  { productId: 'gems_2500',   gems: 2500,   name: 'Sac',         icon: '💎',  bonus: '' },
-  { productId: 'gems_6500',   gems: 6500,   name: 'Coffre',      icon: '💎',  bonus: '+8%' },
-  { productId: 'gems_15000',  gems: 15000,  name: 'Trésor',      icon: '💎',  bonus: '+15%' },
-  { productId: 'gems_40000',  gems: 40000,  name: 'Caverne',     icon: '💎',  bonus: '+25%' },
-  { productId: 'gems_100000', gems: 100000, name: 'Légendaire',  icon: '👑',  bonus: '+40%' },
+  { productId: 'gem_pack_1', gems: 500,    name: 'Pochette',    icon: '💎',  bonus: '' },
+  { productId: 'gem_pack_2', gems: 1500,   name: 'Bourse',      icon: '💎',  bonus: '' },
+  { productId: 'gem_pack_3', gems: 5000,   name: 'Coffret',     icon: '💎',  bonus: '+8%' },
+  { productId: 'gem_pack_4', gems: 15000,  name: 'Coffre',      icon: '💎',  bonus: '+15%' },
+  { productId: 'gem_pack_5', gems: 50000,  name: 'Trésor',      icon: '💎',  bonus: '+25%' },
+  { productId: 'gem_pack_6', gems: 100000, name: 'Trésor Royal', icon: '👑',  bonus: '+40%' },
 ];
 const ALL_BUFF_ITEMS = [...SHOP_CONSUMABLES, ...GEM_SHOP_MEGA_BUFFS];
 
@@ -3754,7 +3843,8 @@ function defaultState() {
     prestige: 0, prestigeMult: 1,
     highestZone: 0,
     talents: talents,
-    spellLevels: { fulgur: 1, ignis: 1, aegis: 1 },
+    spellLevels: { fulgur: 1 },  // seul Fulgur débloqué au départ
+    equippedSpells: ['fulgur'],  // slots équipés (max 4)
     ownedPets: [],  // array of pet ids
     activePet: null, // pet id or null
     petLevels: {},  // petId → level (starts at 1 when obtained)
@@ -3763,7 +3853,7 @@ function defaultState() {
     buffs: {},        // buffId → expiry timestamp
     autoAdvanceEnabled: true,  // toggle for auto-advance feature
     mobHp: 0, mobMaxHp: 0,
-    spellCDs: { fulgur: 0, ignis: 0, aegis: 0 },
+    spellCDs: { fulgur: 0 },
     lastTick: Date.now(),
     _saveTimer: 0,
     startTime: Date.now(),
@@ -3837,13 +3927,26 @@ function hasShop(id) { return G.shopUnlocks && G.shopUnlocks.includes(id); }
 function hasBuff(id) { return G.buffs && G.buffs[id] && G.buffs[id] > Date.now(); }
 function buffRemaining(id) { return hasBuff(id) ? Math.max(0, Math.ceil((G.buffs[id] - Date.now()) / 1000)) : 0; }
 
+// Synergies d'école : bonus si 2+ sorts de la même école équipés
+function getSchoolSynergy(school) {
+  var equipped = getEquippedSpells();
+  var count = equipped.filter(function(s) { return s.school === school; }).length;
+  if (count >= 3) return 0.40;
+  if (count >= 2) return 0.15;
+  return 0;
+}
+
 function getSpellDmg(spellId) {
-  const def = getSpells().find(s => s.id === spellId);
-  let dmg = def.baseDmg * G.spellLevels[spellId];
-  const t = TALENTS.find(t => t.effect.type === 'spell_dmg' && t.effect.spell === spellId);
-  if (t) dmg *= (1 + getTalent(t.id) * t.effect.perLevel);
+  const def = ALL_SPELLS.find(s => s.id === spellId);
+  if (!def) return 0;
+  let dmg = def.baseDmg * (G.spellLevels[spellId] || 1);
+  // School talent bonus (remplace anciens talents par sort)
+  const schoolT = TALENTS.find(t => t.effect.type === 'school_dmg' && t.effect.school === def.school);
+  if (schoolT) dmg *= (1 + getTalent(schoolT.id) * schoolT.effect.perLevel);
   const allDmg = TALENTS.find(t => t.effect.type === 'all_dmg');
   if (allDmg) dmg *= (1 + getTalent(allDmg.id) * allDmg.effect.perLevel);
+  // Synergie d'école
+  dmg *= (1 + getSchoolSynergy(def.school));
   // Multi-pet system bonus (replaces old single pet)
   dmg *= (1 + getMultiPetBonus('spell_dmg', spellId) + getMultiPetBonus('all_dmg'));
   // Spell evolution bonus
@@ -3863,10 +3966,12 @@ function getSpellDmg(spellId) {
 }
 
 function getSpellCD(spellId) {
-  const def = getSpells().find(s => s.id === spellId);
+  const def = ALL_SPELLS.find(s => s.id === spellId);
+  if (!def) return 1;
   let cd = def.baseCD;
-  const t = TALENTS.find(t => t.effect.type === 'spell_cd' && t.effect.spell === spellId);
-  if (t) cd *= (1 - getTalent(t.id) * t.effect.perLevel);
+  // School talent bonus
+  const schoolT = TALENTS.find(t => t.effect.type === 'school_cd' && t.effect.school === def.school);
+  if (schoolT) cd *= (1 - getTalent(schoolT.id) * schoolT.effect.perLevel);
   const allCd = TALENTS.find(t => t.effect.type === 'all_cd');
   if (allCd) cd *= (1 - getTalent(allCd.id) * allCd.effect.perLevel);
   // Multi-pet system bonus
@@ -4215,7 +4320,7 @@ let _lastBumpTime = {}; // timestamp of last visual bump per spell
 const MIN_BUMP_INTERVAL = 0.5; // minimum seconds between bumps
 function tickSpells(dt) {
   _spellCacheTimer += dt;
-  if (!_cachedSpells || _spellCacheTimer >= 1) { _cachedSpells = getSpells(); _spellCacheTimer = 0; }
+  if (!_cachedSpells || _spellCacheTimer >= 1) { _cachedSpells = getEquippedSpells(); _spellCacheTimer = 0; }
   _cachedSpells.forEach(spell => {
     const maxCd = getSpellCD(spell.id);
 
@@ -4233,10 +4338,9 @@ function tickSpells(dt) {
       checkAchievement('spellcaster', totalSpells);
       checkAchievement('wizard', totalSpells);
       checkAchievement('archmage', totalSpells);
-      if (spell.id === 'ignis') checkAchievement('pyromancer', G.spellsCast[spell.id]);
-      if (spell.id === 'fulgur') checkAchievement('electromancer', G.spellsCast[spell.id]);
-      if (spell.id === 'aegis') checkAchievement('lightbringer', G.spellsCast[spell.id]);
-      if (spell.id === 'mortalis') checkAchievement('deathdealer', G.spellsCast[spell.id]);
+      // Achievements par sort (originaux + nouveaux)
+      var _spellAchMap = { ignis:'pyromancer', fulgur:'electromancer', aegis:'lightbringer', mortalis:'deathdealer', chain_lightning:'chain_master', static_storm:'storm_caller', flame_nova:'nova_master', meteor:'meteor_caller', blood_pact:'blood_ritualist' };
+      if (_spellAchMap[spell.id]) checkAchievement(_spellAchMap[spell.id], G.spellsCast[spell.id]);
 
       // Visual bump (capped at MIN_BUMP_INTERVAL)
       var now = performance.now() / 1000;
@@ -4291,13 +4395,54 @@ function upgradeSpellMax(spellId) {
 }
 
 function checkSpellAchievements() {
-  // Check spell_master (any spell at level 50)
-  const maxSpellLevel = Math.max(...getSpells().map(s => G.spellLevels[s.id] || 1));
+  // Check spell_master (any unlocked spell at level 50)
+  var unlocked = getUnlockedSpells();
+  var maxSpellLevel = Math.max.apply(null, unlocked.map(function(s) { return G.spellLevels[s.id] || 1; }));
   checkAchievement('spell_master', maxSpellLevel);
 
-  // Check spell_legend (all spells at level 100)
-  const allAt100 = getSpells().every(s => (G.spellLevels[s.id] || 1) >= 100);
+  // Check spell_legend (ALL 9 spells at level 100)
+  var allAt100 = ALL_SPELLS.every(function(s) { return (G.spellLevels[s.id] || 0) >= 100; });
   if (allAt100) checkAchievement('spell_legend', 100);
+}
+
+// ============ SPELL EQUIP / UNEQUIP ============
+function equipSpell(spellId) {
+  if (!G.equippedSpells) G.equippedSpells = [];
+  if (G.equippedSpells.includes(spellId)) return;
+  if (!G.spellLevels[spellId]) { toast('Sort non débloqué !'); return; }
+  if (G.equippedSpells.filter(Boolean).length >= MAX_EQUIPPED) {
+    toast('4 sorts max ! Déséquipe un sort d\\'abord.'); return;
+  }
+  G.equippedSpells.push(spellId);
+  if (G.spellCDs[spellId] === undefined) G.spellCDs[spellId] = 0;
+  _cachedSpells = null; // invalider le cache tickSpells
+  save(); rebuildSpellBar(); rebuildGrimoire();
+}
+function unequipSpell(spellId) {
+  if (!G.equippedSpells) return;
+  // Empêcher de déséquiper le dernier sort
+  if (G.equippedSpells.filter(Boolean).length <= 1) { toast('Tu dois garder au moins 1 sort !'); return; }
+  G.equippedSpells = G.equippedSpells.filter(function(id) { return id !== spellId; });
+  _cachedSpells = null;
+  save(); rebuildSpellBar(); rebuildGrimoire();
+}
+
+// Vérifie et débloque les sorts quand on atteint une nouvelle zone
+function checkSpellUnlocks(zoneId) {
+  ALL_SPELLS.forEach(function(s) {
+    if (s.unlockZone === zoneId && !G.spellLevels[s.id]) {
+      G.spellLevels[s.id] = 1;
+      G.spellCDs[s.id] = 0;
+      toast('\\u{1F52E} Nouveau sort débloqué : ' + s.icon + ' ' + s.name + ' !');
+      // Auto-équip si slot disponible
+      if (!G.equippedSpells) G.equippedSpells = [];
+      if (G.equippedSpells.filter(Boolean).length < MAX_EQUIPPED) {
+        G.equippedSpells.push(s.id);
+        _cachedSpells = null;
+      }
+      rebuildSpellBar();
+    }
+  });
 }
 
 // ============ GATES ============
@@ -4341,6 +4486,9 @@ function unlockGate(zoneId) {
   G.bossKills = (G.bossKills || 0) + 1;
   checkAchievement('boss_slayer', G.bossKills);
   checkAchievement('boss_hunter', G.bossKills);
+
+  // Vérifier déblocage de nouveaux sorts
+  checkSpellUnlocks(zoneId);
 
   // Interstitial ad (every 3 zones, not for premium)
   tryShowInterstitial();
@@ -4448,7 +4596,7 @@ function doRebirth() {
     return;
   }
 
-  // Soft reset: keep talents, TP, gems, prestige, pets, eternals, achievements
+  // Soft reset: keep talents, TP, gems, prestige, pets, eternals, achievements, unlocked spells
   const keepTalents = JSON.parse(JSON.stringify(G.talents));
   const keepTP = G.talentPoints;
   const keepGems = G.gems;
@@ -4459,6 +4607,9 @@ function doRebirth() {
   const keepShinyPets = [...(G.shinyPets || [])];
   const keepShopUnlocks = [...(G.shopUnlocks || [])];
   const keepShopBuys = JSON.parse(JSON.stringify(G.shopBuys || {}));
+  // Sorts : garder les sorts débloqués (reset niv à 1) + équipement
+  const keepUnlockedSpellIds = Object.keys(G.spellLevels || {});
+  const keepEquippedSpells = [...(G.equippedSpells || [])];
   const keepPrestige = G.prestige;
   const keepPrestigeMult = G.prestigeMult;
   const keepTotalKills = G.totalKills;
@@ -4504,11 +4655,9 @@ function doRebirth() {
   G.shinyPets = keepShinyPets;
   G.shopUnlocks = keepShopUnlocks;
   G.shopBuys = keepShopBuys;
-  // Fix: initialiser mortalis si spell4 est débloqué
-  if (G.shopUnlocks && G.shopUnlocks.includes('spell4')) {
-    G.spellLevels['mortalis'] = 1;
-    G.spellCDs['mortalis'] = 0;
-  }
+  // Restaurer les sorts débloqués (niveau reset à 1) + équipement
+  keepUnlockedSpellIds.forEach(function(sid) { G.spellLevels[sid] = 1; G.spellCDs[sid] = 0; });
+  G.equippedSpells = keepEquippedSpells;
   G.totalKills = isNaN(keepTotalKills) ? 0 : keepTotalKills;
   G.totalGoldEarned = isNaN(keepTotalGold) ? 0 : keepTotalGold;
   G.startTime = keepStartTime || Date.now();
@@ -4864,12 +5013,12 @@ function refreshButtons() {
   for (let i = 0; i < _tpButtons.length; i++) {
     _tpButtons[i].disabled = tp < Number(_tpButtons[i].dataset.costTp);
   }
-  // Update cost text for spells (cost changes after upgrade)
-  const spells = _cachedSpells || getSpells();
-  for (let i = 0; i < spells.length; i++) {
-    const costEl = getEl('spell-cost-' + spells[i].id);
+  // Update cost text for all unlocked spells (cost changes after upgrade)
+  var _allUnlocked = getUnlockedSpells();
+  for (let i = 0; i < _allUnlocked.length; i++) {
+    const costEl = getEl('spell-cost-' + _allUnlocked[i].id);
     if (costEl) {
-      const cost = spellUpgradeCost(G.spellLevels[spells[i].id]);
+      const cost = spellUpgradeCost(G.spellLevels[_allUnlocked[i].id]);
       costEl.textContent = fmt(cost) + ' 🪙';
     }
   }
@@ -4929,7 +5078,7 @@ function switchPanel(id, btnEl) {
   _tpButtons = null;
   if (id === 'zone') { rebuildSpellBar(); rebuildHeroRecap(); }
   if (id === 'gates') rebuildGates();
-  if (id === 'spells') rebuildSpellUpgrades();
+  if (id === 'spells') { rebuildGrimoire(); rebuildSpellUpgrades(); }
   if (id === 'talents') rebuildTalents();
   if (id === 'shop') { rebuildShop(); rebuildGemShop(); }
   if (id === 'pets') { rebuildPets(); clearPetNotif(); }
@@ -5066,6 +5215,7 @@ function rebuildAll() {
   rebuildSpellBar();
   rebuildHeroRecap();
   rebuildGates();
+  rebuildGrimoire();
   rebuildSpellUpgrades();
   rebuildTalents();
   rebuildShop();
@@ -5109,72 +5259,139 @@ function rebuildSpellBar() {
   const bar = document.getElementById('spellBar');
   if (!bar) return;
   bar.innerHTML = '';
-  getSpells().forEach(spell => {
-    // Ensure spell is initialized
-    if (!G.spellLevels[spell.id] || isNaN(G.spellLevels[spell.id])) G.spellLevels[spell.id] = 1;
-    if (G.spellCDs[spell.id] === undefined) G.spellCDs[spell.id] = 0;
-    const curCd = G.spellCDs[spell.id] || 0;
-    const maxCd = getSpellCD(spell.id);
-    const cdPercent = curCd > 0 ? ((curCd / maxCd) * 100) : 0;
-    const isReady = curCd <= 0;
-    const stateClass = isReady ? 'ready' : 'on-cd';
+  var equipped = getEquippedSpells();
+  // Afficher les slots équipés (max 4)
+  for (var i = 0; i < MAX_EQUIPPED; i++) {
+    var spell = equipped[i];
+    if (spell) {
+      if (!G.spellLevels[spell.id] || isNaN(G.spellLevels[spell.id])) G.spellLevels[spell.id] = 1;
+      if (G.spellCDs[spell.id] === undefined) G.spellCDs[spell.id] = 0;
+      var curCd = G.spellCDs[spell.id] || 0;
+      var maxCd = getSpellCD(spell.id);
+      var cdPercent = curCd > 0 ? ((curCd / maxCd) * 100) : 0;
+      var isReady = curCd <= 0;
+      var stateClass = isReady ? 'ready' : 'on-cd';
+      var schoolColor = SCHOOLS[spell.school] ? SCHOOLS[spell.school].color : '#888';
 
-    bar.innerHTML += \`
-      <div class="spell-slot \${stateClass}" id="spell-slot-\${spell.id}" data-spell="\${spell.id}">
-        <div class="spell-circle">
-          <div class="s-icon">\${spell.icon}</div>
-          <div class="spell-cd-radial" id="spell-cd-\${spell.id}" style="--cd-percent:\${cdPercent}%"></div>
-        </div>
-        <div class="s-cd-text" id="spell-cdtext-\${spell.id}" style="\${isReady ? 'display:none' : ''}">\${getSpellCD(spell.id).toFixed(1)}s</div>
-        <div class="s-info">Niv.\${G.spellLevels[spell.id]}</div>
-        <div class="spell-tooltip">
-          <div class="tt-name">\${spell.name}</div>
-          <div class="tt-dmg">\${fmt(getSpellDmg(spell.id))} dmg</div>
-          <div class="tt-cd">\${getSpellCD(spell.id).toFixed(1)}s cooldown</div>
-        </div>
-      </div>
-    \`;
+      bar.innerHTML += '<div class="spell-slot ' + stateClass + '" id="spell-slot-' + spell.id + '" data-spell="' + spell.id + '">'
+        + '<div class="spell-circle">'
+        + '<div class="s-icon">' + spell.icon + '</div>'
+        + '<div class="spell-cd-radial" id="spell-cd-' + spell.id + '" style="--cd-percent:' + cdPercent + '%"></div>'
+        + '</div>'
+        + '<div class="s-cd-text" id="spell-cdtext-' + spell.id + '" style="' + (isReady ? 'display:none' : '') + '">' + getSpellCD(spell.id).toFixed(1) + 's</div>'
+        + '<div class="s-info">Niv.' + G.spellLevels[spell.id] + '</div>'
+        + '<div class="spell-tooltip">'
+        + '<div class="tt-name">' + spell.name + ' <span style="color:' + schoolColor + ';font-size:10px">' + SCHOOLS[spell.school].name + '</span></div>'
+        + '<div class="tt-dmg">' + fmt(getSpellDmg(spell.id)) + ' dmg</div>'
+        + '<div class="tt-cd">' + getSpellCD(spell.id).toFixed(1) + 's cooldown</div>'
+        + '</div></div>';
+    } else {
+      bar.innerHTML += '<div class="spell-slot empty-slot"><div class="spell-circle"><div class="s-icon" style="opacity:0.3">+</div></div><div class="s-info" style="opacity:0.4">Vide</div></div>';
+    }
+  }
+  // Synergies actives
+  var synHtml = '';
+  Object.keys(SCHOOLS).forEach(function(sk) {
+    var syn = getSchoolSynergy(sk);
+    if (syn > 0) synHtml += '<span class="synergy-badge" style="border-color:' + SCHOOLS[sk].color + ';color:' + SCHOOLS[sk].color + '">' + SCHOOLS[sk].icon + ' +' + Math.round(syn * 100) + '%</span>';
   });
+  if (synHtml) bar.innerHTML += '<div class="synergy-bar">' + synHtml + '</div>';
 }
 
 function rebuildSpellUpgrades() {
-  _goldButtons = null; // Invalidate cache when rebuilding
+  _goldButtons = null;
   const el = document.getElementById('spellUpgradeList');
   if (!el) return;
-  el.innerHTML = '';
-  getSpells().forEach(spell => {
-    // Ensure spell level is initialized
+  var html = '';
+  // Afficher TOUS les sorts débloqués (pas seulement équipés)
+  var unlocked = getUnlockedSpells();
+  unlocked.forEach(function(spell) {
     if (!G.spellLevels[spell.id] || isNaN(G.spellLevels[spell.id])) G.spellLevels[spell.id] = 1;
     if (G.spellCDs[spell.id] === undefined) G.spellCDs[spell.id] = 0;
-    const lvl = G.spellLevels[spell.id];
-    const cost = spellUpgradeCost(lvl);
-    const dmg = getSpellDmg(spell.id);
-    const cd = getSpellCD(spell.id);
-    const old = G.spellLevels[spell.id];
+    var lvl = G.spellLevels[spell.id];
+    var cost = spellUpgradeCost(lvl);
+    var dmg = getSpellDmg(spell.id);
+    var cd = getSpellCD(spell.id);
+    var old = G.spellLevels[spell.id];
     G.spellLevels[spell.id] = lvl + 1;
-    const nextDmg = getSpellDmg(spell.id);
+    var nextDmg = getSpellDmg(spell.id);
     G.spellLevels[spell.id] = old;
+    var schoolColor = SCHOOLS[spell.school] ? SCHOOLS[spell.school].color : '#888';
+    var isEquipped = (G.equippedSpells || []).includes(spell.id);
 
-    el.innerHTML += \`
-      <div class="spell-upgrade-card">
-        <div class="su-icon">\${spell.icon}</div>
-        <div class="su-info">
-          <div class="su-name">\${spell.name}</div>
-          <div class="su-desc">\${spell.desc}</div>
-          <div class="su-stats">
-            <div class="su-stat">⚔️ <span>\${fmt(dmg)}</span> → <span style="color:#69f0ae">\${fmt(nextDmg)}</span></div>
-            <div class="su-stat">⏱️ <span>\${cd.toFixed(2)}s</span></div>
-            <div class="su-stat">📈 DPS <span>\${fmt(dmg / cd)}</span></div>
-          </div>
-        </div>
-        <div class="su-actions">
-          <div class="su-level">Niv. \${lvl}</div>
-          <button class="btn btn-sm" data-cost-gold="\${cost}" onclick="upgradeSpell('\${spell.id}')" \${G.gold < cost ? 'disabled' : ''}>+1 (<span id="spell-cost-\${spell.id}">\${fmt(cost)} 🪙</span>)</button>
-          <button class="btn btn-sm" data-cost-gold="\${cost}" onclick="upgradeSpellMax('\${spell.id}')" style="margin-top:4px;">MAX</button>
-        </div>
-      </div>
-    \`;
+    html += '<div class="spell-upgrade-card" style="border-left:3px solid ' + schoolColor + '">'
+      + '<div class="su-icon">' + spell.icon + '</div>'
+      + '<div class="su-info">'
+      + '<div class="su-name">' + spell.name + ' <span style="font-size:10px;color:' + schoolColor + '">' + SCHOOLS[spell.school].name + '</span>' + (isEquipped ? ' <span style="color:#69f0ae;font-size:10px">ÉQUIPÉ</span>' : '') + '</div>'
+      + '<div class="su-desc">' + spell.desc + '</div>'
+      + '<div class="su-stats">'
+      + '<div class="su-stat">⚔️ <span>' + fmt(dmg) + '</span> → <span style="color:#69f0ae">' + fmt(nextDmg) + '</span></div>'
+      + '<div class="su-stat">⏱️ <span>' + cd.toFixed(2) + 's</span></div>'
+      + '<div class="su-stat">📈 DPS <span>' + fmt(dmg / cd) + '</span></div>'
+      + '</div></div>'
+      + '<div class="su-actions">'
+      + '<div class="su-level">Niv. ' + lvl + '</div>'
+      + '<button class="btn btn-sm" data-cost-gold="' + cost + '" onclick="upgradeSpell(\\'' + spell.id + '\\')" ' + (G.gold < cost ? 'disabled' : '') + '>+1 (<span id="spell-cost-' + spell.id + '">' + fmt(cost) + ' 🪙</span>)</button>'
+      + '<button class="btn btn-sm" data-cost-gold="' + cost + '" onclick="upgradeSpellMax(\\'' + spell.id + '\\')" style="margin-top:4px;">MAX</button>'
+      + '</div></div>';
   });
+  el.innerHTML = html;
+}
+
+// ============ GRIMOIRE (gestion sorts / écoles) ============
+function rebuildGrimoire() {
+  var el = document.getElementById('grimoirePanel');
+  if (!el) return;
+  var html = '<h3 style="text-align:center;margin:8px 0;color:#e0e0e0">Grimoire — Écoles de Magie</h3>';
+  var equipped = G.equippedSpells || [];
+  var equipCount = equipped.filter(Boolean).length;
+
+  Object.keys(SCHOOLS).forEach(function(schoolKey) {
+    var school = SCHOOLS[schoolKey];
+    var spells = ALL_SPELLS.filter(function(s) { return s.school === schoolKey; });
+    var syn = getSchoolSynergy(schoolKey);
+    html += '<div class="grimoire-school" style="border-color:' + school.color + '">';
+    html += '<div class="grimoire-school-header" style="color:' + school.color + '">';
+    html += school.icon + ' ' + school.name;
+    if (syn > 0) html += ' <span class="synergy-badge" style="border-color:' + school.color + ';color:' + school.color + '">+' + Math.round(syn * 100) + '% dmg</span>';
+    html += '</div>';
+
+    spells.forEach(function(spell) {
+      var unlocked = G.spellLevels && G.spellLevels[spell.id];
+      var isEquipped = equipped.includes(spell.id);
+
+      if (unlocked) {
+        var lvl = G.spellLevels[spell.id] || 1;
+        var dmg = getSpellDmg(spell.id);
+        var cd = getSpellCD(spell.id);
+        html += '<div class="grimoire-spell' + (isEquipped ? ' equipped' : '') + '" style="border-color:' + school.color + '">';
+        html += '<div class="gs-icon">' + spell.icon + '</div>';
+        html += '<div class="gs-info">';
+        html += '<div class="gs-name">' + spell.name + ' <span style="opacity:0.6">Niv.' + lvl + '</span></div>';
+        html += '<div class="gs-stats">' + fmt(dmg) + ' dmg | ' + cd.toFixed(1) + 's CD | ' + fmt(dmg / cd) + ' DPS</div>';
+        html += '</div>';
+        html += '<div class="gs-action">';
+        if (isEquipped) {
+          html += '<button class="btn btn-sm" onclick="unequipSpell(\\'' + spell.id + '\\')" style="background:rgba(244,67,54,0.2);border-color:rgba(244,67,54,0.5)">Retirer</button>';
+        } else if (equipCount < MAX_EQUIPPED) {
+          html += '<button class="btn btn-sm" onclick="equipSpell(\\'' + spell.id + '\\')" style="background:rgba(76,175,80,0.2);border-color:rgba(76,175,80,0.5)">Équiper</button>';
+        } else {
+          html += '<button class="btn btn-sm" disabled>4/4</button>';
+        }
+        html += '</div></div>';
+      } else {
+        html += '<div class="grimoire-spell locked">';
+        html += '<div class="gs-icon" style="opacity:0.3">' + spell.icon + '</div>';
+        html += '<div class="gs-info"><div class="gs-name" style="opacity:0.4">' + spell.name + '</div>';
+        html += '<div class="gs-stats" style="opacity:0.4">🔒 Zone ' + (spell.unlockZone + 1) + ' requise</div></div>';
+        html += '</div>';
+      }
+    });
+    html += '</div>';
+  });
+
+  html += '<div style="text-align:center;margin-top:8px;font-size:11px;opacity:0.5">Équipe max ' + MAX_EQUIPPED + ' sorts — Les synergies d\\'école boost les dégâts</div>';
+  el.innerHTML = html;
 }
 
 function rebuildGates() {
@@ -5225,13 +5442,16 @@ function rebuildGates() {
 function rebuildTalents() {
   const el = document.getElementById('talentSections');
   if (!el) return;
-  const spellTalents = TALENTS.filter(t => t.spell !== null);
-  const globalTalents = TALENTS.filter(t => t.spell === null);
+  const schoolTalents = TALENTS.filter(t => t.school !== null && t.school !== undefined);
+  const globalTalents = TALENTS.filter(t => !t.school);
   let html = '';
 
-  getSpells().forEach(spell => {
-    const sts = spellTalents.filter(t => t.spell === spell.id);
-    html += \`<div class="talent-section"><div class="talent-section-title">\${spell.icon} \${spell.name}</div><div class="talent-grid">\`;
+  // Grouper par école
+  Object.keys(SCHOOLS).forEach(function(sk) {
+    var school = SCHOOLS[sk];
+    var sts = schoolTalents.filter(function(t) { return t.school === sk; });
+    if (sts.length === 0) return;
+    html += \`<div class="talent-section"><div class="talent-section-title" style="color:\${school.color}">\${school.icon} \${school.name}</div><div class="talent-grid">\`;
     sts.forEach(t => {
       const lvl = G.talents[t.id] || 0; const cost = t.costBase + lvl; const isMax = lvl >= t.maxLvl;
       html += \`<div class="talent-node \${isMax?'maxed':''}" id="talent-node-\${t.id}">
@@ -5275,11 +5495,6 @@ function buyShopUnlock(id) {
   if (G.gold < item.cost) { toast('Pas assez de gold !'); return; }
   G.gold -= item.cost;
   G.shopUnlocks.push(id);
-  if (id === 'spell4') {
-    if (!G.spellLevels['mortalis']) G.spellLevels['mortalis'] = 1;
-    if (G.spellCDs['mortalis'] === undefined) G.spellCDs['mortalis'] = 0;
-    checkAchievement('mortalis_unlock', 1);
-  }
   // Shop achievements
   checkAchievement('first_purchase', G.shopUnlocks.length);
   checkAchievement('shopper', G.shopUnlocks.length);
@@ -6011,16 +6226,18 @@ function rebuildStats() {
       <div class="stat-card"><div class="sc-value">\${G.prestige}</div><div class="sc-label">Prestige (x\${G.prestigeMult.toFixed(1)})</div></div>
     </div>
 
-    <div class="stat-section-title">Sorts</div>
-    \${getSpells().map(s => {
+    <div class="stat-section-title">Sorts (\${getUnlockedSpells().length}/\${ALL_SPELLS.length} débloqués)</div>
+    \${getUnlockedSpells().map(s => {
       const maxLvl = 50;
       const lvl = G.spellLevels[s.id] || 1;
       const lvlPct = Math.min(100, lvl / maxLvl * 100);
+      const schoolColor = SCHOOLS[s.school] ? SCHOOLS[s.school].color : '#4fc3f7';
+      const isEquip = (G.equippedSpells || []).includes(s.id);
       return '<div class="spell-stat-card">' +
         '<div class="ssc-icon">' + s.icon + '</div>' +
-        '<div class="ssc-info"><div class="ssc-name">' + s.name + ' Niv.' + lvl + '</div>' +
+        '<div class="ssc-info"><div class="ssc-name">' + s.name + ' Niv.' + lvl + (isEquip ? ' ✅' : '') + '</div>' +
         '<div class="ssc-details">' + fmt(getSpellDmg(s.id)) + ' dmg &mdash; ' + getSpellCD(s.id).toFixed(2) + 's</div></div>' +
-        '<div class="ssc-bar">' + bar(lvlPct, '#4fc3f7', '#81d4fa') + '</div></div>';
+        '<div class="ssc-bar">' + bar(lvlPct, schoolColor, schoolColor + '80') + '</div></div>';
     }).join('')}
 
     <div class="stat-section-title">Session</div>
@@ -8225,8 +8442,8 @@ function calcOffline() {
 
 // ============ INIT ============
 if (load()) {
-  if (!G.spellCDs) G.spellCDs = { fulgur: 0, ignis: 0, aegis: 0 };
-  if (!G.spellLevels) G.spellLevels = { fulgur: 1, ignis: 1, aegis: 1 };
+  if (!G.spellCDs) G.spellCDs = { fulgur: 0 };
+  if (!G.spellLevels) G.spellLevels = { fulgur: 1 };
   if (G.highestZone === undefined) G.highestZone = G.currentZone;
   if (!G.startTime) G.startTime = Date.now();
   if (G.totalPlayTime === undefined) G.totalPlayTime = 0;  // Reset play time tracking (now tracks actual time played)
@@ -8247,15 +8464,47 @@ if (load()) {
   if (!G.shopBuys) G.shopBuys = {};
   if (!G.buffs) G.buffs = {};
   if (G.autoAdvanceEnabled === undefined) G.autoAdvanceEnabled = true;
-  // Fix: réparer TOUS les sorts (base + mortalis si débloqué)
-  ['fulgur', 'ignis', 'aegis'].forEach(id => {
-    if (!G.spellLevels[id] || isNaN(G.spellLevels[id])) G.spellLevels[id] = 1;
+  // Fix: assurer Fulgur débloqué + réparer les NaN
+  if (!G.spellLevels['fulgur'] || isNaN(G.spellLevels['fulgur'])) G.spellLevels['fulgur'] = 1;
+  if (G.spellCDs['fulgur'] === undefined || isNaN(G.spellCDs['fulgur'])) G.spellCDs['fulgur'] = 0;
+  // Réparer tous les sorts existants dans spellLevels
+  Object.keys(G.spellLevels).forEach(function(id) {
+    if (isNaN(G.spellLevels[id])) G.spellLevels[id] = 1;
     if (G.spellCDs[id] === undefined || isNaN(G.spellCDs[id])) G.spellCDs[id] = 0;
   });
-  if (G.shopUnlocks.includes('spell4')) {
-    if (!G.spellLevels['mortalis'] || isNaN(G.spellLevels['mortalis'])) G.spellLevels['mortalis'] = 1;
-    if (G.spellCDs['mortalis'] === undefined || isNaN(G.spellCDs['mortalis'])) G.spellCDs['mortalis'] = 0;
+  // Migration ancienne save avec spell4 : Mortalis déjà débloqué via shop → garder
+  if (G.shopUnlocks && G.shopUnlocks.includes('spell4') && !G.spellLevels['mortalis']) {
+    G.spellLevels['mortalis'] = 1;
+    G.spellCDs['mortalis'] = 0;
   }
+  // Migration 9-sorts : equippedSpells
+  if (!G.equippedSpells) {
+    G.equippedSpells = [];
+    if (G.spellLevels['fulgur']) G.equippedSpells.push('fulgur');
+    if (G.spellLevels['aegis'])  G.equippedSpells.push('aegis');
+    if (G.spellLevels['ignis'])  G.equippedSpells.push('ignis');
+    if (G.spellLevels['mortalis']) G.equippedSpells.push('mortalis');
+  }
+  // Migration talents : anciens talents par sort → talents d'école
+  if (G.talents && G.talents['fulgur_dmg'] !== undefined) {
+    G.talents['lightning_dmg'] = Math.max(G.talents['fulgur_dmg'] || 0, G.talents['lightning_dmg'] || 0);
+    G.talents['lightning_cd']  = Math.max(G.talents['fulgur_cd'] || 0, G.talents['lightning_cd'] || 0);
+    G.talents['fire_dmg']      = Math.max(G.talents['ignis_dmg'] || 0, G.talents['fire_dmg'] || 0);
+    G.talents['fire_cd']       = Math.max(G.talents['ignis_cd'] || 0, G.talents['fire_cd'] || 0);
+    G.talents['shadow_dmg']    = Math.max(G.talents['aegis_dmg'] || 0, G.talents['mortalis_dmg'] || 0, G.talents['shadow_dmg'] || 0);
+    G.talents['shadow_cd']     = Math.max(G.talents['aegis_cd'] || 0, G.talents['mortalis_cd'] || 0, G.talents['shadow_cd'] || 0);
+    delete G.talents['fulgur_dmg']; delete G.talents['fulgur_cd'];
+    delete G.talents['ignis_dmg'];  delete G.talents['ignis_cd'];
+    delete G.talents['aegis_dmg'];  delete G.talents['aegis_cd'];
+    delete G.talents['mortalis_dmg']; delete G.talents['mortalis_cd'];
+  }
+  // Débloquer les sorts selon la zone la plus haute atteinte
+  ALL_SPELLS.forEach(function(s) {
+    if ((G.highestZone || 0) >= s.unlockZone && !G.spellLevels[s.id]) {
+      G.spellLevels[s.id] = 1;
+      G.spellCDs[s.id] = 0;
+    }
+  });
   // Fix: réparer gold/gems/etc si NaN
   if (isNaN(G.gold) || G.gold === undefined || G.gold === null) G.gold = 0;
   if (isNaN(G.gems) || G.gems === undefined || G.gems === null) G.gems = 0;

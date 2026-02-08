@@ -3,8 +3,8 @@ import type { CustomerInfo, PurchasesOfferings } from '@revenuecat/purchases-cap
 import { Capacitor } from '@capacitor/core';
 
 // Replace with your actual RevenueCat API keys from https://app.revenuecat.com
-const REVENUECAT_IOS_KEY = 'appl_YOUR_IOS_API_KEY';
-const REVENUECAT_ANDROID_KEY = 'goog_YOUR_ANDROID_API_KEY';
+const REVENUECAT_IOS_KEY = 'test_zqidkwAyhOcpTtwKQxmWEoJBfSc';
+const REVENUECAT_ANDROID_KEY = 'goog_JdbEqBBsvjHgzSyQmhiHouUZxwI';
 
 let initialized = false;
 

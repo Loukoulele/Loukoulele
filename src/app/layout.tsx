@@ -33,6 +33,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
+      <head>
+{/* Capacitor redirect handled in post-build */}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
