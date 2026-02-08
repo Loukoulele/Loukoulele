@@ -6974,16 +6974,6 @@ function useCloudSave() {
     G = { ...fresh, ...cloudData };
     delete G.cloudSaveTime;
 
-    // Apply pet reset migration to cloud data too
-    if (!G.petResetV3) {
-      G.ownedPets = [];
-      G.petLevels = {};
-      G.shinyPets = [];
-      G.activePets = [];
-      G.activePet = null;
-      G.petResetV3 = true;
-    }
-
     localStorage.setItem('wandIdle', JSON.stringify(G));
     toast('☁️ Sauvegarde cloud chargée !');
     setTimeout(() => location.reload(), 500);
@@ -8528,16 +8518,6 @@ if (load()) {
   if (G.infinityMult === undefined) G.infinityMult = 1;
   // Shiny Pets
   if (!G.shinyPets) G.shinyPets = [];
-
-  // MIGRATION v3: Reset ALL pets including secrets (new hardcore drop rates)
-  if (!G.petResetV3) {
-    G.ownedPets = [];
-    G.petLevels = {};
-    G.shinyPets = [];
-    G.activePets = [];
-    G.activePet = null;
-    G.petResetV3 = true;
-  }
 
   // Multi-pets: migrate old activePet to new activePets array
   if (!G.activePets) {
