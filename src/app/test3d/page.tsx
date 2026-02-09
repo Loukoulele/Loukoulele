@@ -455,7 +455,7 @@ export default function Test3D() {
 
     // ============ SPELL SYSTEM ============
 
-    // Harry Potter style laser spells
+    // Magic style laser spells
     interface LaserSpell {
       beam: THREE.Mesh;
       glow: THREE.Mesh;
@@ -469,13 +469,13 @@ export default function Test3D() {
 
     const activeSpells: LaserSpell[] = [];
 
-    // Spell colors - Harry Potter style
+    // Spell colors
     const SPELL_COLORS: Record<string, { main: number; glow: number; name: string }> = {
-      stupefix: { main: 0xff0000, glow: 0xff4444, name: 'Stupefix' },      // Rouge
-      expelliarmus: { main: 0xff0000, glow: 0xff6666, name: 'Expelliarmus' }, // Rouge
-      avadakedavra: { main: 0x00ff00, glow: 0x44ff44, name: 'Avada Kedavra' }, // Vert
-      patronus: { main: 0x88ccff, glow: 0xaaddff, name: 'Patronus' },      // Bleu clair
-      confringo: { main: 0xff6600, glow: 0xff9944, name: 'Confringo' },    // Orange
+      fulgur: { main: 0xff0000, glow: 0xff4444, name: 'Fulgur' },          // Rouge
+      expulso: { main: 0xff0000, glow: 0xff6666, name: 'Expulso' },        // Rouge
+      mortalis: { main: 0x00ff00, glow: 0x44ff44, name: 'Mortalis' },      // Vert
+      aegis: { main: 0x88ccff, glow: 0xaaddff, name: 'Aegis' },            // Bleu clair
+      ignis: { main: 0xff6600, glow: 0xff9944, name: 'Ignis' },            // Orange
     };
 
     function castSpell(type: string) {
@@ -571,7 +571,7 @@ export default function Test3D() {
     }
 
     function createImpact(type: string) {
-      const spell = SPELL_COLORS[type] || SPELL_COLORS.stupefix;
+      const spell = SPELL_COLORS[type] || SPELL_COLORS.fulgur;
       const impactColor = spell.main;
 
       // Particle burst
@@ -657,7 +657,7 @@ export default function Test3D() {
       shake();
     }
 
-    // Auto-cast Harry Potter spells
+    // Auto-cast magic spells
     const castInterval = setInterval(() => {
       castSpell('random'); // Le sort est choisi aléatoirement dans castSpell
     }, 1200); // Un peu plus rapide

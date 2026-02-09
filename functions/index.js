@@ -13,11 +13,11 @@ const WORLD_BOSS_CONFIG = {
 };
 
 const WORLD_BOSSES = [
-  { id: 'voldemort', name: 'Lord Voldemort', icon: '🐍', hpMult: 1.0 },
-  { id: 'grindelwald', name: 'Grindelwald', icon: '⚡', hpMult: 1.2 },
-  { id: 'basilisk', name: 'Basilic', icon: '🐉', hpMult: 0.8 },
-  { id: 'dementor_king', name: 'Roi Détraqueur', icon: '👻', hpMult: 1.5 },
-  { id: 'dragon', name: 'Magyar à Pointes', icon: '🔥', hpMult: 1.3 },
+  { id: 'ombral', name: 'Seigneur Ombral', icon: '🐍', hpMult: 1.0 },
+  { id: 'malachar', name: 'Malachar', icon: '⚡', hpMult: 1.2 },
+  { id: 'serpent', name: 'Grand Serpent', icon: '🐉', hpMult: 0.8 },
+  { id: 'spectral_king', name: 'Roi Spectral', icon: '👻', hpMult: 1.5 },
+  { id: 'dragon', name: 'Dragon Cornu', icon: '🔥', hpMult: 1.3 },
 ];
 
 /**

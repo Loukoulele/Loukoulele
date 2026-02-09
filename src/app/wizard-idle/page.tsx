@@ -44,6 +44,10 @@ export default function WandIdle() {
             hasEntitlement: rc.hasEntitlement,
             identifyUser: rc.identifyUser,
           };
+          // Signal inline script that RevenueCat bridge is ready
+          if (typeof (window as any)._revenueCatReady === 'function') {
+            (window as any)._revenueCatReady();
+          }
         } catch (e) {
           console.log('RevenueCat not available:', e);
         }
@@ -115,9 +119,12 @@ export default function WandIdle() {
     const container = containerRef.current;
     if (!container) return;
 
-    // Inject styles
-    const style = document.createElement('style');
-    style.textContent = `
+    // Inject styles (use id to survive React Strict Mode double-mount)
+    let style = document.getElementById('wizardIdleStyles') as HTMLStyleElement | null;
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'wizardIdleStyles';
+      style.textContent = `
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
 
 :root {
@@ -2506,7 +2513,8 @@ body {
 }
 .boss-alert-close:hover { color: #fff; }
 `;
-    document.head.appendChild(style);
+      document.head.appendChild(style);
+    }
 
     // Load Firebase SDK from CDN
     const firebaseScript1 = document.createElement('script');
@@ -2588,6 +2596,7 @@ body {
         <button class="more-drawer-item" data-panel="stats" onclick="switchFromDrawer('stats')"><span class="more-icon">📊</span><span class="more-label">Stats</span></button>
       </div>
       <div class="more-drawer-footer">
+        <button onclick="handleRestore();closeMoreDrawer();" class="btn btn-sm" style="width:calc(100% - 24px);margin:0 12px 12px;opacity:0.6;font-size:0.75em;padding:8px;">🔄 Restaurer les achats</button>
         <div class="drawer-profile" id="drawerProfile" onclick="handleLogin()">
           <img id="drawerAvatar" src="" class="drawer-profile-avatar" style="display:none;" />
           <div class="drawer-profile-placeholder" id="drawerAvatarPlaceholder">👤</div>
@@ -3653,12 +3662,13 @@ async function renderPremiumShop() {
 
   try {
     const offerings = await window.RevenueCat.getOfferings();
-    if (!offerings || !offerings.current) {
-      container.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">Chargement des offres...</p>';
+    const offering = offerings && (offerings.current || (offerings.all && Object.values(offerings.all)[0]));
+    if (!offering || !offering.availablePackages || offering.availablePackages.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:20px;"><p style="color:#888;font-size:0.85em;margin-bottom:10px;">Impossible de charger les offres.</p><button onclick="renderPremiumShop()" class="btn btn-sm" style="font-size:0.8em;padding:8px 16px;">Réessayer</button></div>';
       return;
     }
 
-    const packages = offerings.current.availablePackages;
+    const packages = offering.availablePackages;
     let html = '';
 
     // Premium subscription section
@@ -3680,26 +3690,9 @@ async function renderPremiumShop() {
     }
     html += '</div>';
 
-    // Special packs
-    html += '<div style="margin-bottom:15px;">';
-    html += '<div style="font-family:\\'Cinzel\\',serif;color:var(--gold);font-size:0.95em;margin-bottom:10px;">🎁 Packs Spéciaux</div>';
-    packages.forEach((pkg, i) => {
-      const id = pkg.product.identifier;
-      if (id === 'starter_pack' || id === 'pet_pack') {
-        const owned = (id === 'starter_pack' && ownedPacks.starter) || (id === 'pet_pack' && ownedPacks.pet);
-        html += '<button onclick="' + (owned ? '' : 'handlePurchase(' + i + ')') + '" class="btn btn-sm" style="width:100%;margin-bottom:6px;padding:10px;' + (owned ? 'opacity:0.5;' : '') + '">';
-        html += pkg.product.title + ' — ' + (owned ? '✅ Acheté' : pkg.product.priceString);
-        html += '</button>';
-      }
-    });
-    html += '</div>';
-
-    // Restore button
-    html += '<button onclick="handleRestore()" class="btn btn-sm" style="width:100%;opacity:0.6;font-size:0.8em;">Restaurer les achats</button>';
-
     container.innerHTML = html;
   } catch (e) {
-    container.innerHTML = '<p style="color:#f55;font-size:0.85em;text-align:center;padding:20px;">Erreur de chargement du shop.</p>';
+    container.innerHTML = '<div style="text-align:center;padding:20px;"><p style="color:#f55;font-size:0.85em;margin-bottom:10px;">Erreur de chargement du shop.</p><button onclick="renderPremiumShop()" class="btn btn-sm" style="font-size:0.8em;padding:8px 16px;">Réessayer</button></div>';
     console.error('Premium shop error:', e);
   }
 }
@@ -3707,9 +3700,10 @@ async function renderPremiumShop() {
 async function handlePurchase(packageIndex) {
   try {
     const offerings = await window.RevenueCat.getOfferings();
-    if (!offerings || !offerings.current) return;
+    const offering = offerings && (offerings.current || (offerings.all && Object.values(offerings.all)[0]));
+    if (!offering) return;
 
-    const pkg = offerings.current.availablePackages[packageIndex];
+    const pkg = offering.availablePackages[packageIndex];
     if (!pkg) return;
 
     toast('⏳ Achat en cours...');
@@ -3762,12 +3756,19 @@ async function handleRestore() {
 // ============ GEM PACK IAP ============
 var _gemPackPrices = {};
 
-async function loadGemPackPrices() {
+async function loadGemPackPrices(retries) {
+  retries = retries || 0;
   if (!window.RevenueCat) return;
   try {
     var offerings = await window.RevenueCat.getOfferings();
-    if (!offerings || !offerings.current) return;
-    offerings.current.availablePackages.forEach(function(pkg) {
+    var offering = offerings && (offerings.current || (offerings.all && Object.values(offerings.all)[0]));
+    if (!offering || !offering.availablePackages) {
+      if (retries < 3) {
+        setTimeout(function() { loadGemPackPrices(retries + 1).then(function() { rebuildGemShop(); }); }, 3000);
+      }
+      return;
+    }
+    offering.availablePackages.forEach(function(pkg) {
       _gemPackPrices[pkg.product.identifier] = pkg.product.priceString;
     });
   } catch(e) { console.error('loadGemPackPrices:', e); }
@@ -3777,8 +3778,9 @@ async function handleGemPackPurchase(productId) {
   if (!window.RevenueCat) { toast('Disponible uniquement dans l\\'app mobile'); return; }
   try {
     var offerings = await window.RevenueCat.getOfferings();
-    if (!offerings || !offerings.current) return;
-    var pkg = offerings.current.availablePackages.find(function(p) { return p.product.identifier === productId; });
+    var offering = offerings && (offerings.current || (offerings.all && Object.values(offerings.all)[0]));
+    if (!offering) return;
+    var pkg = offering.availablePackages.find(function(p) { return p.product.identifier === productId; });
     if (!pkg) { toast('Pack introuvable'); return; }
     toast('⏳ Achat en cours...');
     var info = await window.RevenueCat.purchasePackage(pkg);
@@ -8566,12 +8568,23 @@ checkPatchNotes();
 initFirebase();
 
 // Initialize Premium Shop (RevenueCat) + Gem Pack prices
-setTimeout(async function() {
+var _shopInitDone = false;
+function _initShop() {
+  if (_shopInitDone) return;
+  _shopInitDone = true;
   checkPremiumStatus();
   renderPremiumShop();
-  await loadGemPackPrices();
-  rebuildGemShop();
-}, 500);
+  loadGemPackPrices().then(function() { rebuildGemShop(); });
+}
+// Signal callback: called by Capacitor bridge when RevenueCat is ready
+// Must reset _shopInitDone so shop re-renders with actual RevenueCat data
+window._revenueCatReady = function() {
+  _shopInitDone = false;
+  _initShop();
+};
+// Fallback: try after 500ms (web) and 3s (slow mobile bridge)
+setTimeout(_initShop, 500);
+setTimeout(function() { if (!_shopInitDone) _initShop(); }, 3000);
 
 // Request notification permission for boss alerts (web only, native handled by Capacitor bridge)
 if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
@@ -8595,10 +8608,8 @@ requestAnimationFrame(tick);
 `;
     document.body.appendChild(script);
 
-    return () => {
-      style.remove();
-      script.remove();
-    };
+    // No cleanup: CSS must survive React Strict Mode double-mount,
+    // and script.remove() is a no-op (code already executed).
   }, []);
 
   return (

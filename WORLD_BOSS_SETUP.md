@@ -114,11 +114,11 @@ This will deploy:
 | Participation | 1 | 10,000 |
 
 ### Boss Types
-- Lord Voldemort (🐍) - 500M HP
-- Grindelwald (⚡) - 600M HP
-- Basilic (🐉) - 400M HP
-- Roi Détraqueur (👻) - 750M HP
-- Magyar à Pointes (🔥) - 650M HP
+- Seigneur Ombral (🐍) - 500M HP
+- Malachar (⚡) - 600M HP
+- Grand Serpent (🐉) - 400M HP
+- Roi Spectral (👻) - 750M HP
+- Dragon Cornu (🔥) - 650M HP
 
 ## Troubleshooting
 

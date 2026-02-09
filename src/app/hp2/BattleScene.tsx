@@ -171,7 +171,7 @@ const TROLL_SPRITE = {
   ]
 };
 
-const STRANGULOT_SPRITE = {
+const KRAKEN_SPRITE = {
   palette: ['#00000000','#1a4a6a','#2a6a8a','#3a8aaa','#4aaacc','#22ff66'],
   pixels: [
     [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
@@ -851,7 +851,7 @@ const MOB_SPRITES: { [key: number]: typeof LUTIN_SPRITE } = {
   1: ARAIGNEE_SPRITE,
   2: LOUP_SPRITE,
   3: TROLL_SPRITE,
-  4: STRANGULOT_SPRITE,
+  4: KRAKEN_SPRITE,
   5: GOULE_SPRITE,
   6: SPECTRE_SPRITE,
   7: SQUELETTE_SPRITE,
@@ -995,7 +995,7 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
   const particlesRef = useRef<PIXI.Container | null>(null);
   const currentZoneRef = useRef<number>(currentZone);
 
-  const castSpell = useCallback((spellType: string = 'stupefix') => {
+  const castSpell = useCallback((spellType: string = 'fulgur') => {
     const app = appRef.current;
     const particles = particlesRef.current;
     const wizard = wizardRef.current;
@@ -1010,8 +1010,8 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
     wizard.x = wizardBaseX + 5;
     setTimeout(() => { wizard.x = wizardBaseX; }, 150);
 
-    // ============ STUPEFIX - Lightning Bolt ============
-    if (spellType === 'stupefix') {
+    // ============ FULGUR - Lightning Bolt ============
+    if (spellType === 'fulgur') {
       const lightning = new PIXI.Graphics();
       const points: {x: number, y: number}[] = [];
       const segments = 8;
@@ -1072,52 +1072,52 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
       setTimeout(fadeLightning, 100);
     }
 
-    // ============ PATRONUS - Silver Deer ============
-    else if (spellType === 'patronus') {
-      const patronus = new PIXI.Graphics();
+    // ============ AEGIS - Silver Deer ============
+    else if (spellType === 'aegis') {
+      const aegis = new PIXI.Graphics();
 
       // Simple deer silhouette
-      patronus.moveTo(0, 0);
-      patronus.lineTo(15, -5);
-      patronus.lineTo(20, -15); // antler
-      patronus.moveTo(15, -5);
-      patronus.lineTo(25, -12); // antler 2
-      patronus.moveTo(15, -5);
-      patronus.lineTo(25, 0);
-      patronus.lineTo(30, 10);
-      patronus.lineTo(25, 10);
-      patronus.lineTo(20, 5);
-      patronus.lineTo(10, 5);
-      patronus.lineTo(5, 10);
-      patronus.lineTo(0, 10);
-      patronus.lineTo(0, 0);
-      patronus.stroke({ width: 3, color: 0xffffff, alpha: 0.9 });
-      patronus.fill({ color: 0xe0e0e0, alpha: 0.4 });
+      aegis.moveTo(0, 0);
+      aegis.lineTo(15, -5);
+      aegis.lineTo(20, -15); // antler
+      aegis.moveTo(15, -5);
+      aegis.lineTo(25, -12); // antler 2
+      aegis.moveTo(15, -5);
+      aegis.lineTo(25, 0);
+      aegis.lineTo(30, 10);
+      aegis.lineTo(25, 10);
+      aegis.lineTo(20, 5);
+      aegis.lineTo(10, 5);
+      aegis.lineTo(5, 10);
+      aegis.lineTo(0, 10);
+      aegis.lineTo(0, 0);
+      aegis.stroke({ width: 3, color: 0xffffff, alpha: 0.9 });
+      aegis.fill({ color: 0xe0e0e0, alpha: 0.4 });
 
       // Outer glow
-      patronus.circle(15, 0, 25);
-      patronus.fill({ color: 0xffffff, alpha: 0.2 });
+      aegis.circle(15, 0, 25);
+      aegis.fill({ color: 0xffffff, alpha: 0.2 });
 
-      patronus.x = startX;
-      patronus.y = startY;
-      particles.addChild(patronus);
+      aegis.x = startX;
+      aegis.y = startY;
+      particles.addChild(aegis);
 
       const duration = 250;
       const startTime = Date.now();
 
-      const animPatronus = () => {
+      const animAegis = () => {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        patronus.x = startX + (endX - startX) * progress;
-        patronus.y = startY + (endY - startY) * progress;
+        aegis.x = startX + (endX - startX) * progress;
+        aegis.y = startY + (endY - startY) * progress;
 
         // Light trail
         if (Math.random() > 0.4) {
           const trail = new PIXI.Graphics();
           trail.circle(0, 0, 4 + Math.random() * 4);
           trail.fill({ color: 0xffffff, alpha: 0.6 });
-          trail.x = patronus.x + Math.random() * 10 - 5;
-          trail.y = patronus.y + Math.random() * 10 - 5;
+          trail.x = aegis.x + Math.random() * 10 - 5;
+          trail.y = aegis.y + Math.random() * 10 - 5;
           particles.addChild(trail);
           const fadeTrail = () => {
             trail.alpha -= 0.08;
@@ -1128,7 +1128,7 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
           fadeTrail();
         }
 
-        if (progress < 1) requestAnimationFrame(animPatronus);
+        if (progress < 1) requestAnimationFrame(animAegis);
         else {
           // Impact burst of light
           for (let i = 0; i < 15; i++) {
@@ -1147,14 +1147,14 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
             };
             animLight();
           }
-          particles.removeChild(patronus);
+          particles.removeChild(aegis);
         }
       };
-      animPatronus();
+      animAegis();
     }
 
-    // ============ CONFRINGO - Fireball ============
-    else if (spellType === 'confringo') {
+    // ============ IGNIS - Fireball ============
+    else if (spellType === 'ignis') {
       const fireball = new PIXI.Graphics();
 
       // Core
@@ -1237,8 +1237,8 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
       animFireball();
     }
 
-    // ============ AVADA KEDAVRA - Death Ray ============
-    else if (spellType === 'avada') {
+    // ============ MORTALIS - Death Ray ============
+    else if (spellType === 'mortalis') {
       // Green death beam
       const beam = new PIXI.Graphics();
       beam.moveTo(startX, startY);

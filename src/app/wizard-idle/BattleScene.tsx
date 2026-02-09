@@ -7,7 +7,7 @@ import * as PIXI from 'pixi.js';
 
 // Module-level singleton to prevent multiple PIXI instances
 let globalPixiApp: PIXI.Application | null = null;
-let globalInitialized = false;
+let globalInitPromise: Promise<void> | null = null;
 
 // ===== WIZARD SPRITE (dark mage casting) =====
 const WIZARD_SPRITE = {
@@ -1109,7 +1109,8 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
   const wizardRef = useRef<PIXI.Sprite | null>(null);
   const particlesRef = useRef<PIXI.Container | null>(null);
   const currentZoneRef = useRef<number>(currentZone);
-  // HP bar uses module-level _hpBarFill (no ref needed)
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   const castSpell = useCallback((spellType: string = 'fulgur') => {
     const app = appRef.current;
@@ -1391,7 +1392,7 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
     if (parent) parent.removeChild(mob);
 
     let newMob: PIXI.AnimatedSprite | PIXI.Sprite;
-    if (zone === 0 && goblinFrames) {
+    if (zone === 0 && goblinFrames && goblinFrames.length > 0) {
       const animMob = new PIXI.AnimatedSprite(goblinFrames);
       animMob.animationSpeed = 0.08;
       animMob.scale.set(0.45);
@@ -1411,16 +1412,18 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
 
   useEffect(() => {
     if (!containerRef.current) return;
-    if (globalInitialized) {
-      if (globalPixiApp && containerRef.current.children.length === 0) {
-        globalPixiApp.canvas.style.width = '100%';
-        globalPixiApp.canvas.style.height = 'auto';
-        containerRef.current.appendChild(globalPixiApp.canvas);
-        appRef.current = globalPixiApp;
+    let cancelled = false;
+
+    const attachCanvas = (app: PIXI.Application) => {
+      if (cancelled || !containerRef.current) return;
+      app.canvas.style.width = '100%';
+      app.canvas.style.height = 'auto';
+      if (containerRef.current.children.length === 0) {
+        containerRef.current.appendChild(app.canvas);
       }
-      return;
-    }
-    globalInitialized = true;
+      appRef.current = app;
+      onReadyRef.current?.({ castSpell, hitMob, setMobName, setZone });
+    };
 
     const initPixi = async () => {
       if (containerRef.current) containerRef.current.innerHTML = '';
@@ -1429,10 +1432,12 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
       await app.init({ width: 500, height: 300, backgroundColor: 0x0a0a12, antialias: false, resolution: Math.min(window.devicePixelRatio || 1, 2), autoDensity: true, powerPreference: 'high-performance' });
 
       globalPixiApp = app;
-      app.canvas.style.width = '100%';
-      app.canvas.style.height = 'auto';
-      containerRef.current!.appendChild(app.canvas);
-      appRef.current = app;
+      if (containerRef.current) {
+        app.canvas.style.width = '100%';
+        app.canvas.style.height = 'auto';
+        containerRef.current.appendChild(app.canvas);
+        appRef.current = app;
+      }
 
       const background = drawDungeonBackground(app);
       app.stage.addChild(background);
@@ -1440,8 +1445,10 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
       // Load wizard individual frames (pre-split by Python script)
       const wizardFrames: PIXI.Texture[] = [];
       for (let i = 1; i <= 8; i++) {
-        const tex = await PIXI.Assets.load(`/sprites/wizard_${i}.png`);
-        wizardFrames.push(tex);
+        try {
+          const tex = await PIXI.Assets.load(`/sprites/wizard_${i}.png`);
+          wizardFrames.push(tex);
+        } catch (e) { console.warn(`[BattleScene] Failed to load wizard_${i}.png`, e); }
       }
 
       // Idle frames: 1-6, Cast frames: 7-8
@@ -1474,13 +1481,15 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
       // Load goblin frames for zone 0
       const goblinFrames: PIXI.Texture[] = [];
       for (let i = 1; i <= 9; i++) {
-        const tex = await PIXI.Assets.load(`/sprites/goblin_${i}.png`);
-        goblinFrames.push(tex);
+        try {
+          const tex = await PIXI.Assets.load(`/sprites/goblin_${i}.png`);
+          goblinFrames.push(tex);
+        } catch (e) { console.warn(`[BattleScene] Failed to load goblin_${i}.png`, e); }
       }
       (app as unknown as Record<string, unknown>)._goblinFrames = goblinFrames;
 
       let mob: PIXI.AnimatedSprite | PIXI.Sprite;
-      if (currentZone === 0) {
+      if (currentZone === 0 && goblinFrames.length > 0) {
         const animMob = new PIXI.AnimatedSprite(goblinFrames);
         animMob.animationSpeed = 0.08;
         animMob.scale.set(0.45);
@@ -1500,19 +1509,40 @@ export default function BattleScene({ onReady, currentZone = 0 }: BattleScenePro
       let mobTime = 0;
       app.ticker.add((t) => { mobTime += t.deltaTime * 0.05; mob.y = 270 + Math.sin(mobTime) * 3; });
 
-      if (onReady) onReady({ castSpell, hitMob, setMobName, setZone });
     };
 
-    initPixi();
+    const setup = async () => {
+      // Already initialized - just re-attach canvas
+      if (globalPixiApp) {
+        attachCanvas(globalPixiApp);
+        return;
+      }
+      // Init in progress (Strict Mode re-mount) - wait for it
+      if (globalInitPromise) {
+        await globalInitPromise;
+        if (!cancelled && globalPixiApp) attachCanvas(globalPixiApp);
+        return;
+      }
+      // Fresh initialization
+      globalInitPromise = initPixi().catch((err) => {
+        console.error('[BattleScene] Failed to initialize:', err);
+        globalPixiApp = null;
+        globalInitPromise = null;
+      });
+      await globalInitPromise;
+      if (!cancelled && globalPixiApp) attachCanvas(globalPixiApp);
+    };
+
+    setup();
 
     return () => {
+      cancelled = true;
       if (containerRef.current) containerRef.current.innerHTML = '';
       appRef.current = null;
-      _particleTickerAdded = false;
       _particles.length = 0;
       _projectiles.length = 0;
     };
-  }, [castSpell, hitMob, setMobName, setZone, onReady, currentZone]);
+  }, [castSpell, hitMob, setMobName, setZone]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', maxWidth: '500px', margin: '0 auto', borderRadius: '4px', overflow: 'hidden', border: '3px solid #1a1a2e', boxShadow: '0 0 20px rgba(0,0,0,0.8)', imageRendering: 'pixelated' }} />
