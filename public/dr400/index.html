@@ -3003,27 +3003,6 @@ document.querySelectorAll('.procedure-header').forEach(header => {
     });
 });
 
-// ============================================================
-// NAV SCROLL SPY (enhanced)
-// ============================================================
-const navBtns = document.querySelectorAll('.nav-btn');
-const allSections = document.querySelectorAll('[id^="chap"], #centrage');
-
-window.addEventListener('scroll', () => {
-    let current = '';
-    allSections.forEach(s => {
-        if (window.scrollY >= s.offsetTop - 120) {
-            current = s.id;
-        }
-    });
-    navBtns.forEach(btn => {
-        btn.classList.remove('active');
-        const onclick = btn.getAttribute('onclick');
-        if (onclick && onclick.includes(current)) {
-            btn.classList.add('active');
-        }
-    });
-});
 </script>
 
 </body>
