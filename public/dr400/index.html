@@ -1,0 +1,2958 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DR400/120 F-GLDT - Manuel de Vol Interactif</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+        :root {
+            --bg: #0a0e1a;
+            --bg2: #111827;
+            --bg3: #1a2236;
+            --card: #1e2a3f;
+            --card-hover: #243248;
+            --border: #2a3a52;
+            --accent: #3b82f6;
+            --accent2: #60a5fa;
+            --accent-glow: rgba(59, 130, 246, 0.3);
+            --green: #22c55e;
+            --green-dim: rgba(34, 197, 94, 0.15);
+            --yellow: #eab308;
+            --yellow-dim: rgba(234, 179, 8, 0.15);
+            --red: #ef4444;
+            --red-dim: rgba(239, 68, 68, 0.15);
+            --orange: #f97316;
+            --orange-dim: rgba(249, 115, 22, 0.15);
+            --cyan: #06b6d4;
+            --purple: #a855f7;
+            --text: #e2e8f0;
+            --text2: #94a3b8;
+            --text3: #64748b;
+            --white: #f8fafc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* HERO */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0a0e1a 0%, #0f172a 50%, #1e1b4b 100%);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 50%, rgba(59,130,246,0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 50%, rgba(168,85,247,0.06) 0%, transparent 50%);
+            animation: heroGlow 15s ease-in-out infinite;
+        }
+
+        @keyframes heroGlow {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-3%, 2%); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 100px;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            color: var(--accent2);
+            margin-bottom: 2rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 7rem);
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, #60a5fa 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            font-weight: 300;
+            color: var(--text2);
+            margin-bottom: 1rem;
+        }
+
+        .hero-reg {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            display: inline-block;
+            padding: 6px 24px;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background: rgba(59,130,246,0.05);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+        }
+
+        .hero-stat { text-align: center; }
+
+        .hero-stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--white);
+        }
+
+        .hero-stat-label {
+            font-size: 0.8rem;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            color: var(--text3);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .scroll-indicator svg { display: block; margin: 8px auto 0; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* NAV */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 14, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0;
+        }
+
+        .nav-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .nav-inner::-webkit-scrollbar { display: none; }
+
+        .nav-btn {
+            flex-shrink: 0;
+            padding: 14px 20px;
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            color: var(--accent2);
+            border-bottom-color: var(--accent);
+            background: rgba(59,130,246,0.05);
+        }
+
+        /* SECTIONS */
+        .section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-header { margin-bottom: 3rem; }
+
+        .section-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.02em;
+        }
+
+        .section-desc {
+            color: var(--text2);
+            margin-top: 0.5rem;
+            max-width: 600px;
+        }
+
+        /* CARDS */
+        .grid { display: grid; gap: 1.5rem; }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            background: var(--card-hover);
+            border-color: rgba(59,130,246,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-label {
+            font-size: 0.8rem;
+            color: var(--text3);
+        }
+
+        /* SPEEDOMETER */
+        .speed-section {
+            background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+            padding: 4rem 0;
+        }
+
+        .speed-bar-container {
+            position: relative;
+            margin: 2rem 0;
+            padding: 0 1rem;
+        }
+
+        .speed-bar {
+            position: relative;
+            height: 60px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg3);
+            display: flex;
+        }
+
+        .speed-segment {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.9);
+            cursor: pointer;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .speed-segment:hover {
+            filter: brightness(1.3);
+            transform: scaleY(1.1);
+        }
+
+        .speed-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .speed-marker {
+            text-align: center;
+            padding: 12px 16px;
+            background: var(--card);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .speed-marker-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .speed-marker-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--white);
+            margin: 4px 0;
+        }
+
+        .speed-marker-desc {
+            font-size: 0.7rem;
+            color: var(--text3);
+        }
+
+        /* ENGINE GAUGES */
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .gauge-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .gauge {
+            width: 140px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+
+        .gauge-arc {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+        }
+
+        .gauge-bg { stroke: var(--bg3); }
+        .gauge-fill { transition: stroke-dashoffset 1s ease; }
+        .gauge-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .gauge-label {
+            font-size: 0.75rem;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .gauge-unit {
+            font-size: 0.7rem;
+            color: var(--text2);
+        }
+
+        /* TABLE */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .data-table th {
+            background: var(--bg3);
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(42,58,82,0.5);
+        }
+
+        .data-table tr:last-child td { border-bottom: none; }
+
+        .data-table tr:hover td {
+            background: rgba(59,130,246,0.05);
+        }
+
+        .data-table .mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        /* PROCEDURES */
+        .procedure-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .procedure-header {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .procedure-header:hover { background: var(--card-hover); }
+
+        .procedure-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .procedure-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--white);
+            flex: 1;
+        }
+
+        .procedure-chevron {
+            color: var(--text3);
+            transition: transform 0.3s;
+            font-size: 1.2rem;
+        }
+
+        .procedure-card.open .procedure-chevron { transform: rotate(180deg); }
+
+        .procedure-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .procedure-card.open .procedure-body { max-height: 3000px; }
+
+        .procedure-content {
+            padding: 0 1.5rem 1.5rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1.25rem;
+        }
+
+        .step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            background: var(--bg3);
+            color: var(--accent2);
+            border: 1px solid var(--border);
+        }
+
+        .step-text {
+            font-size: 0.9rem;
+            padding-top: 3px;
+        }
+
+        .step-text strong { color: var(--white); }
+
+        .warning-box {
+            background: var(--red-dim);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .note-box {
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+        }
+
+        /* STALL TABLE */
+        .stall-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stall-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .stall-config {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stall-values { display: flex; gap: 1rem; }
+
+        .stall-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: var(--bg3);
+            border-radius: 10px;
+        }
+
+        .stall-angle {
+            font-size: 0.7rem;
+            color: var(--text3);
+            margin-bottom: 4px;
+        }
+
+        .stall-speed {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .stall-unit {
+            font-size: 0.65rem;
+            color: var(--text3);
+        }
+
+        /* PERF CALCULATOR */
+        .calc-container {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .calc-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .calc-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text3);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .calc-group select, .calc-group input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .calc-group select:focus, .calc-group input:focus {
+            border-color: var(--accent);
+        }
+
+        .calc-result {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .calc-result-card {
+            background: var(--bg3);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .calc-result-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent2);
+        }
+
+        .calc-result-label {
+            font-size: 0.75rem;
+            color: var(--text3);
+            margin-top: 4px;
+        }
+
+        /* CG CANVAS */
+        .cg-canvas {
+            width: 100%;
+            height: 350px;
+            margin-top: 1.5rem;
+        }
+
+        /* TABS */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            background: var(--bg3);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: var(--text3);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* FINESSE VISUAL */
+        .glide-visual {
+            position: relative;
+            background: linear-gradient(180deg, #1a2744 0%, #0f1729 60%, #1a3a1a 95%, #2d4a2d 100%);
+            border-radius: 16px;
+            height: 300px;
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+
+        .glide-plane {
+            position: absolute;
+            top: 15%;
+            left: 10%;
+            font-size: 2rem;
+            animation: glideAnim 6s ease-in-out infinite;
+        }
+
+        @keyframes glideAnim {
+            0% { top: 15%; left: 10%; }
+            100% { top: 75%; left: 80%; }
+        }
+
+        .glide-line {
+            position: absolute;
+            top: 18%;
+            left: 12%;
+            width: 75%;
+            height: 65%;
+            border-bottom: 2px dashed rgba(59,130,246,0.4);
+            transform: rotate(30deg);
+            transform-origin: top left;
+        }
+
+        .glide-label {
+            position: absolute;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+        }
+
+        .glide-label.altitude { top: 10%; right: 10%; }
+        .glide-label.distance { bottom: 10%; right: 10%; }
+        .glide-label.speed { top: 50%; left: 50%; transform: translate(-50%,-50%); color: var(--accent2); }
+
+        /* PDF IMAGE */
+        .pdf-img {
+            width: 100%;
+            max-width: 700px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 1.5rem auto;
+            display: block;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .pdf-img:hover { transform: scale(1.02); }
+
+        .pdf-img-full {
+            max-width: 100%;
+        }
+
+        .img-caption {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text3);
+            font-style: italic;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* LIGHTBOX */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+        }
+
+        .lightbox.active { display: flex; }
+
+        .lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+            border-radius: 8px;
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text3);
+            font-size: 0.8rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+            .section { padding: 2rem 1rem; }
+            .hero-stats { gap: 1.5rem; }
+            .speed-markers { flex-direction: column; }
+            .calc-inputs { grid-template-columns: 1fr; }
+        }
+
+        /* HERO VIDEO */
+        .hero-video {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(180deg, rgba(10,14,26,0.5) 0%, rgba(10,14,26,0.7) 50%, rgba(10,14,26,0.95) 100%);
+            z-index: 1;
+        }
+
+        /* COUNTER ANIMATION */
+        .counter { display: inline-block; min-width: 2ch; }
+
+        /* HERO TICKER */
+        .hero-ticker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 2.5rem;
+            padding: 12px 28px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .ticker-item { display: flex; align-items: baseline; gap: 4px; }
+        .ticker-label { font-size: 0.65rem; color: var(--text3); margin-right: 4px; letter-spacing: 0.1em; }
+        .ticker-val { font-size: 1.1rem; font-weight: 700; color: var(--green); min-width: 3ch; text-align: right; }
+        .ticker-unit { font-size: 0.65rem; color: var(--text3); }
+        .ticker-sep { color: var(--border); font-size: 1.2rem; }
+
+        /* INTERACTIVE ROUND GAUGE */
+        .round-gauge-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 1rem;
+        }
+        .round-gauge-svg { width: 100%; height: 100%; }
+        .round-gauge-bg { fill: none; stroke: var(--bg3); stroke-width: 14; stroke-linecap: round; }
+        .round-gauge-green { fill: none; stroke: var(--green); stroke-width: 14; stroke-linecap: round; }
+        .round-gauge-yellow { fill: none; stroke: var(--yellow); stroke-width: 14; stroke-linecap: round; }
+        .round-gauge-red { fill: none; stroke: var(--red); stroke-width: 14; stroke-linecap: round; }
+        .round-gauge-needle {
+            fill: var(--red);
+            transform-origin: 90px 90px;
+            transition: transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .round-gauge-center { fill: var(--bg3); stroke: var(--border); stroke-width: 2; }
+        .round-gauge-label {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+        .round-gauge-value-display {
+            position: absolute;
+            top: 58%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+        .round-gauge-interactive {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .round-gauge-interactive:hover {
+            transform: scale(1.05);
+        }
+
+        /* CLIMB CHART */
+        .chart-container {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+        }
+        .chart-container canvas {
+            width: 100%;
+            height: 300px;
+        }
+        .chart-tooltip {
+            position: absolute;
+            background: var(--bg3);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .chart-tooltip.show { opacity: 1; }
+
+        /* Animations on scroll */
+        .fade-in {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.6s, transform 0.6s;
+        }
+        .fade-in.animate {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        .fade-in.animate.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Color utilities */
+        .c-green { color: var(--green); }
+        .c-yellow { color: var(--yellow); }
+        .c-red { color: var(--red); }
+        .c-orange { color: var(--orange); }
+        .c-cyan { color: var(--cyan); }
+        .c-purple { color: var(--purple); }
+        .c-accent { color: var(--accent2); }
+
+        .bg-green { background: var(--green-dim); }
+        .bg-yellow { background: var(--yellow-dim); }
+        .bg-red { background: var(--red-dim); }
+        .bg-orange { background: var(--orange-dim); }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 4rem 0;
+        }
+
+        .tooltip { position: relative; }
+        .tooltip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg3);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        .chapter-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            background: var(--accent);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .plaquette-box {
+            background: rgba(234, 179, 8, 0.08);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .subsection-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--white);
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('active')">
+    <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- HERO WITH VIDEO -->
+<div class="hero">
+    <video class="hero-video" autoplay muted loop playsinline>
+        <source src="https://cdn.pixabay.com/video/2020/05/25/39831-424930997_large.mp4" type="video/mp4">
+    </video>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-badge">
+            <span>&#9992;</span> Manuel de Vol Approuve &mdash; Edition interactive
+        </div>
+        <h1 class="hero-title">DR400/120</h1>
+        <p class="hero-subtitle">Avions Pierre Robin &mdash; "Dauphin"</p>
+        <div class="hero-reg">F-GLDT</div>
+        <p style="color:var(--text3);font-size:0.85rem;margin-bottom:1rem">Certificat de type N&deg;45 du 11/02/1975 &mdash; Certificat nuisance N&deg;45 du 06/03/1980</p>
+        <div class="hero-stats">
+            <div class="hero-stat" id="stat-cv">
+                <div class="hero-stat-value"><span class="counter" data-target="118">0</span><span style="font-size:1.2rem;color:var(--text2)">cv</span></div>
+                <div class="hero-stat-label">Puissance reelle</div>
+            </div>
+            <div class="hero-stat" id="stat-mtow">
+                <div class="hero-stat-value"><span class="counter" data-target="900">0</span><span style="font-size:1.2rem;color:var(--text2)">kg</span></div>
+                <div class="hero-stat-label">MTOW</div>
+            </div>
+            <div class="hero-stat" id="stat-vne">
+                <div class="hero-stat-value"><span class="counter" data-target="308">0</span><span style="font-size:1.2rem;color:var(--text2)">km/h</span></div>
+                <div class="hero-stat-label">VNE</div>
+            </div>
+            <div class="hero-stat" id="stat-auto">
+                <div class="hero-stat-value"><span class="counter" data-target="4">0</span><span style="font-size:1.2rem;color:var(--text2)">h</span></div>
+                <div class="hero-stat-label">Autonomie</div>
+            </div>
+        </div>
+        <!-- Mini altitude/speed ticker -->
+        <div class="hero-ticker">
+            <div class="ticker-item"><span class="ticker-label">ALT</span><span class="ticker-val" id="ticker-alt">0</span><span class="ticker-unit">ft</span></div>
+            <div class="ticker-sep">|</div>
+            <div class="ticker-item"><span class="ticker-label">IAS</span><span class="ticker-val" id="ticker-ias">0</span><span class="ticker-unit">km/h</span></div>
+            <div class="ticker-sep">|</div>
+            <div class="ticker-item"><span class="ticker-label">HDG</span><span class="ticker-val" id="ticker-hdg">000</span><span class="ticker-unit">&deg;</span></div>
+            <div class="ticker-sep">|</div>
+            <div class="ticker-item"><span class="ticker-label">RPM</span><span class="ticker-val" id="ticker-rpm">0</span><span class="ticker-unit">t/mn</span></div>
+        </div>
+    </div>
+    <div class="scroll-indicator">
+        Decouvrir le manuel
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+    <div class="nav-inner">
+        <button class="nav-btn active" onclick="scrollToSection('chap1')"><span class="chapter-num">I</span>Generalites</button>
+        <button class="nav-btn" onclick="scrollToSection('chap2')"><span class="chapter-num">II</span>Limites</button>
+        <button class="nav-btn" onclick="scrollToSection('chap3')"><span class="chapter-num">III</span>Urgences</button>
+        <button class="nav-btn" onclick="scrollToSection('chap4')"><span class="chapter-num">IV</span>Procedures</button>
+        <button class="nav-btn" onclick="scrollToSection('chap5')"><span class="chapter-num">V</span>Performances</button>
+        <button class="nav-btn" onclick="scrollToSection('chap6')"><span class="chapter-num">VI</span>Entretien</button>
+        <button class="nav-btn" onclick="scrollToSection('chap7')"><span class="chapter-num">VII</span>Additifs</button>
+        <button class="nav-btn" onclick="scrollToSection('centrage')">Masse &amp; CG</button>
+    </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- CHAPITRE I : GENERALITES -->
+<!-- ============================================================ -->
+<div class="section fade-in" id="chap1">
+    <div class="section-header">
+        <div class="section-tag">Chapitre I</div>
+        <h2 class="section-title">Generalites</h2>
+        <p class="section-desc">Description, caracteristiques, circuits et plan 3 vues du DR400/120 F-GLDT</p>
+    </div>
+
+    <!-- DIMENSIONS -->
+    <div class="subsection-title">1.1 &mdash; Dimensions &amp; Structure</div>
+    <p style="color:var(--text2);margin-bottom:1.5rem">Avion monomoteur a aile basse, structure bois et toile, voilure type Jodel, monolongeron, revetement Dacron.</p>
+
+    <div class="grid grid-4">
+        <div class="card">
+            <div class="card-icon" style="background:rgba(59,130,246,0.1);color:var(--accent2)">&#8596;</div>
+            <div class="card-value c-accent">8,72<span style="font-size:1rem">m</span></div>
+            <div class="card-label">Envergure</div>
+        </div>
+        <div class="card">
+            <div class="card-icon" style="background:rgba(59,130,246,0.1);color:var(--accent2)">&#8594;</div>
+            <div class="card-value c-accent">6,96<span style="font-size:1rem">m</span></div>
+            <div class="card-label">Longueur totale</div>
+        </div>
+        <div class="card">
+            <div class="card-icon" style="background:rgba(59,130,246,0.1);color:var(--accent2)">&#8597;</div>
+            <div class="card-value c-accent">2,23<span style="font-size:1rem">m</span></div>
+            <div class="card-label">Hauteur</div>
+        </div>
+        <div class="card">
+            <div class="card-icon" style="background:rgba(59,130,246,0.1);color:var(--accent2)">&#11021;</div>
+            <div class="card-value c-accent">0,28<span style="font-size:1rem">m</span></div>
+            <div class="card-label">Garde helice au sol</div>
+        </div>
+        <div class="card">
+            <div class="card-icon" style="background:rgba(168,85,247,0.1);color:var(--purple)">&#9633;</div>
+            <div class="card-value c-purple">13,6<span style="font-size:1rem">m&sup2;</span></div>
+            <div class="card-label">Surface alaire</div>
+        </div>
+        <div class="card">
+            <div class="card-icon" style="background:rgba(6,182,212,0.1);color:var(--cyan)">&#9650;</div>
+            <div class="card-value c-cyan">5,35</div>
+            <div class="card-label">Allongement</div>
+        </div>
+        <div class="card">
+            <div class="card-icon" style="background:rgba(6,182,212,0.1);color:var(--cyan)">&#9711;</div>
+            <div class="card-value c-cyan" style="font-size:1.2rem">43012 mod.</div>
+            <div class="card-label">Profil NACA</div>
+        </div>
+        <div class="card">
+            <div class="card-icon" style="background:rgba(6,182,212,0.1);color:var(--cyan)">&#8599;</div>
+            <div class="card-value c-cyan">14&deg;</div>
+            <div class="card-label">Diedre bout d'aile (intrados)</div>
+        </div>
+    </div>
+
+    <div style="margin-top:2rem" class="grid grid-3">
+        <div class="card">
+            <div class="card-title">Voilure</div>
+            <p class="card-label" style="line-height:1.8">Type Jodel, monolongeron, revetement Dacron.<br>
+            Corde partie rectangulaire : <strong style="color:var(--white)">1,71 m</strong><br>
+            Surface ailerons : 1,15 m&sup2;<br>
+            Volets de courbure metalliques : 0,669 m&sup2;<br>
+            <strong style="color:var(--white)">3 positions :</strong> Lisse / 1er cran 15&deg;&plusmn;0&deg; (decollage) / 2e cran 60&deg;&plusmn;5&deg; (atterrissage)</p>
+        </div>
+        <div class="card">
+            <div class="card-title">Empennage &amp; Gouvernes</div>
+            <p class="card-label" style="line-height:1.8">Empennage horizontal : <strong style="color:var(--white)">2,88 m&sup2;</strong>, monobloc<br>
+            Anti-tab : 0,26 m&sup2;<br>
+            Tab : commande entre sieges AV, index 0 (plein pique) a 10 (plein cabre)<br>
+            Gouverne direction : 0,63 m&sup2;, commande palonniers et cables</p>
+        </div>
+        <div class="card">
+            <div class="card-title">Cabine</div>
+            <p class="card-label" style="line-height:1.8">Dimensions : <strong style="color:var(--white)">1,62 &times; 1,10 &times; 1,23 m</strong><br>
+            Verriere coulissante largable<br>
+            2 sieges AV (6 positions)<br>
+            Ceintures a debouclage rapide<br>
+            Banquette arriere</p>
+        </div>
+    </div>
+
+    <!-- TRAIN -->
+    <div class="subsection-title">1.2 &mdash; Train d'atterrissage</div>
+    <div class="grid grid-2">
+        <div class="card">
+            <div class="card-title">Caracteristiques</div>
+            <p class="card-label" style="line-height:1.8">Train fixe tricycle carene, 3 roues 380&times;150<br>
+            Suspension oleo-pneumatique<br>
+            Voie : <strong style="color:var(--white)">2,58 m</strong> / Empattement : <strong style="color:var(--white)">1,65 m</strong><br>
+            Train AV conjugue au palonnier (biellettes a ressorts), verrouillage auto<br>
+            Freins hydrauliques a disques, circuit independant<br>
+            Huile freins : MIL.H.5606-A</p>
+        </div>
+        <div class="card">
+            <div class="card-title">Pressions de gonflage</div>
+            <table class="data-table" style="margin-top:0.5rem">
+                <thead><tr><th></th><th>Avant</th><th>Arriere</th></tr></thead>
+                <tbody>
+                    <tr><td>Pneus</td><td class="mono">1,6 bar</td><td class="mono">1,8 bar</td></tr>
+                    <tr><td>Amortisseurs</td><td class="mono">4 bars</td><td class="mono">4,5 bars</td></tr>
+                    <tr><td>Course amortisseurs</td><td class="mono">160 mm</td><td class="mono">180 mm</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MOTEUR -->
+    <div class="subsection-title">1.3 &mdash; Groupe Motopropulseur</div>
+    <p style="color:var(--text2);margin-bottom:1rem">Lycoming O-235-L2A &mdash; 4 cylindres opposes a plat, prise directe, refroidissement par air.<br>
+    <strong style="color:var(--yellow)">Nota :</strong> Cet appareil est equipe d'un moteur de <strong style="color:var(--white)">118 CV</strong> (plaquette page 7.8c). La designation commerciale reste DR400/120.</p>
+
+    <div class="gauge-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <!-- RPM Gauge - Interactive round -->
+        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('rpm-needle', -130, 0.5)" title="Cliquez pour simuler">
+            <div class="round-gauge-container">
+                <svg class="round-gauge-svg" viewBox="0 0 180 180">
+                    <!-- Background arc -->
+                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
+                    <!-- Green arc (2000-2700) -->
+                    <path d="M 25 145 A 72 72 0 0 1 148 60" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="80"/>
+                    <!-- Red arc (2700-2800) -->
+                    <path d="M 148 60 A 72 72 0 0 1 155 145" class="round-gauge-red" stroke-dasharray="340" stroke-dashoffset="290"/>
+                    <!-- Tick marks -->
+                    <text x="18" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">0</text>
+                    <text x="14" y="80" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">1400</text>
+                    <text x="75" y="22" fill="var(--green)" font-size="9" font-family="JetBrains Mono" font-weight="700">2700</text>
+                    <text x="148" y="80" fill="var(--red)" font-size="9" font-family="JetBrains Mono" font-weight="700">2800</text>
+                    <!-- Needle -->
+                    <polygon id="rpm-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
+                    <!-- Center -->
+                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
+                </svg>
+                <div class="round-gauge-value-display" id="rpm-display">2700</div>
+                <div class="round-gauge-label">TACHYMETRE (t/mn)</div>
+            </div>
+        </div>
+
+        <!-- CHT Gauge -->
+        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('cht-needle', -60, 0.7)" title="Cliquez pour simuler">
+            <div class="round-gauge-container">
+                <svg class="round-gauge-svg" viewBox="0 0 180 180">
+                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
+                    <path d="M 25 145 A 72 72 0 0 1 130 35" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="100"/>
+                    <path d="M 130 35 A 72 72 0 0 1 155 145" class="round-gauge-red" stroke-dasharray="340" stroke-dashoffset="260"/>
+                    <text x="20" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">50</text>
+                    <text x="60" y="22" fill="var(--green)" font-size="9" font-family="JetBrains Mono" font-weight="700">200</text>
+                    <text x="140" y="90" fill="var(--red)" font-size="9" font-family="JetBrains Mono" font-weight="700">260</text>
+                    <polygon id="cht-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
+                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
+                </svg>
+                <div class="round-gauge-value-display">260&deg;C</div>
+                <div class="round-gauge-label">TEMP CULASSES</div>
+            </div>
+        </div>
+
+        <!-- Oil Pressure Gauge -->
+        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('oil-p-needle', -40, 0.6)" title="Cliquez pour simuler">
+            <div class="round-gauge-container">
+                <svg class="round-gauge-svg" viewBox="0 0 180 180">
+                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
+                    <path d="M 65 30 A 72 72 0 0 1 140 42" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="230"/>
+                    <text x="20" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">0</text>
+                    <text x="55" y="22" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">4,5</text>
+                    <text x="118" y="22" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">6,3</text>
+                    <text x="150" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">10</text>
+                    <polygon id="oil-p-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
+                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
+                </svg>
+                <div class="round-gauge-value-display c-green">5,4</div>
+                <div class="round-gauge-label">PRESSION HUILE (bar)</div>
+            </div>
+        </div>
+
+        <!-- Oil Temp Gauge -->
+        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('oil-t-needle', -50, 0.65)" title="Cliquez pour simuler">
+            <div class="round-gauge-container">
+                <svg class="round-gauge-svg" viewBox="0 0 180 180">
+                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
+                    <path d="M 25 145 A 72 72 0 0 1 120 32" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="110"/>
+                    <path d="M 120 32 A 72 72 0 0 1 155 145" class="round-gauge-red" stroke-dasharray="340" stroke-dashoffset="250"/>
+                    <text x="20" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">0</text>
+                    <text x="75" y="22" fill="var(--green)" font-size="9" font-family="JetBrains Mono">90</text>
+                    <text x="140" y="80" fill="var(--red)" font-size="10" font-family="JetBrains Mono" font-weight="700">118</text>
+                    <polygon id="oil-t-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
+                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
+                </svg>
+                <div class="round-gauge-value-display c-orange">118&deg;C</div>
+                <div class="round-gauge-label">TEMP HUILE (max)</div>
+            </div>
+        </div>
+
+        <!-- Fuel Pressure -->
+        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('fuel-p-needle', -70, 0.5)" title="Cliquez pour simuler">
+            <div class="round-gauge-container">
+                <svg class="round-gauge-svg" viewBox="0 0 180 180">
+                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
+                    <path d="M 45 45 A 72 72 0 0 1 90 18" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="260"/>
+                    <text x="20" y="155" fill="var(--red)" font-size="9" font-family="JetBrains Mono" font-weight="700">0,035</text>
+                    <text x="65" y="22" fill="var(--green)" font-size="9" font-family="JetBrains Mono" font-weight="700">0,210</text>
+                    <text x="140" y="100" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">0,560</text>
+                    <polygon id="fuel-p-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
+                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
+                </svg>
+                <div class="round-gauge-value-display c-cyan">0,210</div>
+                <div class="round-gauge-label">PRESSION ESSENCE (bar)</div>
+            </div>
+        </div>
+
+        <!-- Fuel Quantity -->
+        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('fuel-q-needle', -20, 0.8)" title="Cliquez pour simuler">
+            <div class="round-gauge-container">
+                <svg class="round-gauge-svg" viewBox="0 0 180 180">
+                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
+                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="50"/>
+                    <text x="15" y="155" fill="var(--red)" font-size="10" font-family="JetBrains Mono" font-weight="700">E</text>
+                    <text x="85" y="20" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">55L</text>
+                    <text x="150" y="155" fill="var(--green)" font-size="10" font-family="JetBrains Mono" font-weight="700">F</text>
+                    <polygon id="fuel-q-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
+                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
+                </svg>
+                <div class="round-gauge-value-display">110<span style="font-size:0.8rem">L</span></div>
+                <div class="round-gauge-label">RESERVOIR PRINCIPAL</div>
+            </div>
+        </div>
+    </div>
+    <p style="text-align:center;color:var(--text3);font-size:0.75rem;margin-top:0.5rem">&#9432; Cliquez sur les jauges pour simuler une mise en route</p>
+
+    <div style="margin-top:1rem" class="grid grid-2">
+        <div class="card">
+            <div class="card-title">Huile moteur</div>
+            <p class="card-label" style="line-height:1.8">
+                SAE 50 au-dessus de 15&deg;C<br>
+                SAE 40 de -20&deg;C a 30&deg;C<br>
+                Pression ralenti : 1,75 bar<br>
+                Pression normale : 4,5 a 6,3 bars (arc vert)<br>
+                Temperature max : 118&deg;C (trait rouge)
+            </p>
+        </div>
+        <div class="card">
+            <div class="card-title">Donnees moteur</div>
+            <p class="card-label" style="line-height:1.8">
+                Regime max continu : <strong style="color:var(--red)">2800 RPM</strong> (trait rouge)<br>
+                Regime max utilisation normale : <strong style="color:var(--green)">2700 RPM</strong> (avions apres 1.1.1980)<br>
+                Puissance : 118 CV<br>
+                Sens de rotation : horaire<br>
+                Ordre d'allumage : 1.3.2.4
+            </p>
+        </div>
+    </div>
+
+    <!-- HELICES -->
+    <div class="subsection-title">1.4 &mdash; Helices autorisees</div>
+    <table class="data-table">
+        <thead><tr><th>Marque</th><th>Type</th><th>Diametre</th><th>Pas</th><th>Regime mini PG</th><th>Regime max</th><th>Max util. normale*</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Mac Cauley</strong></td><td class="mono">1A.135</td><td class="mono">1,80 m</td><td class="mono">1,19 m</td><td class="mono">2200</td><td class="mono c-red">2800</td><td class="mono">&mdash;</td></tr>
+            <tr><td><strong>Hoffmann</strong></td><td class="mono">HO-14-178/115</td><td class="mono">1,78 m</td><td class="mono">1,15 m</td><td class="mono">2250</td><td class="mono c-red">2800</td><td class="mono">&mdash;</td></tr>
+            <tr><td><strong>Sensenich</strong></td><td class="mono">72 CK S6-0-56</td><td class="mono">1,83 m</td><td class="mono">1,42 m</td><td class="mono">2220</td><td class="mono c-red">2800</td><td class="mono c-green">2700</td></tr>
+        </tbody>
+    </table>
+    <p style="font-size:0.75rem;color:var(--text3);margin-top:0.5rem">* Avions apres le 1.1.1980. Eviter utilisation continue entre 2025-2325 t/mn (helice Mac Cauley).</p>
+
+    <!-- ESSENCE -->
+    <div class="subsection-title">1.5 &mdash; Essence &amp; Circuit carburant</div>
+    <div class="grid grid-2">
+        <div class="card">
+            <div class="card-title">Specifications carburant</div>
+            <div style="margin-top:0.5rem">
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+                    <span>Type</span><span class="mono">AVGAS 100/130</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+                    <span>Indice octane mini</span><span class="mono">100/130</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+                    <span>Reservoir principal (AR)</span><span class="mono c-accent">110 L</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+                    <span>Pression max</span><span class="mono">0,560 bar</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+                    <span>Pression desiree</span><span class="mono">0,210 bar</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0">
+                    <span>Pression mini</span><span class="mono c-red">0,035 bar</span>
+                </div>
+            </div>
+            <div class="warning-box" style="margin-top:1rem">
+                <span>&#9888;</span>
+                <span>Les 10 derniers litres ne sont consommables qu'en vol horizontal.</span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">Schema circuit essence</div>
+            <div style="margin-top:0.75rem;font-size:0.9rem;color:var(--text2);line-height:2">
+                <div style="padding:6px 12px;background:var(--bg3);border-radius:8px;margin-bottom:4px">&#9981; Reservoir AR 110 L</div>
+                <div style="text-align:center;color:var(--text3)">&#8595;</div>
+                <div style="padding:6px 12px;background:var(--bg3);border-radius:8px;margin-bottom:4px">Robinet selecteur 2 voies (ON/OFF)</div>
+                <div style="text-align:center;color:var(--text3)">&#8595;</div>
+                <div style="padding:6px 12px;background:var(--bg3);border-radius:8px;margin-bottom:4px">Filtre-decanteur et purge</div>
+                <div style="text-align:center;color:var(--text3)">&#8595;</div>
+                <div style="padding:6px 12px;background:var(--bg3);border-radius:8px;margin-bottom:4px">Pompe electrique de secours</div>
+                <div style="text-align:center;color:var(--text3)">&#8595;</div>
+                <div style="padding:6px 12px;background:var(--bg3);border-radius:8px;margin-bottom:4px">Pompe mecanique (moteur)</div>
+                <div style="text-align:center;color:var(--text3)">&#8595;</div>
+                <div style="padding:6px 12px;background:var(--bg3);border-radius:8px">Carburateur</div>
+            </div>
+            <p style="margin-top:0.75rem;color:var(--text3);font-size:0.8rem">
+                Mise a l'air libre sur dos de fuselage. Rechauffage carbu : tirette jaune a blocage, tout ou rien. Commande richesse (etouffoir en fin de course).
+            </p>
+        </div>
+    </div>
+
+    <!-- IMAGES PLANS -->
+    <div class="subsection-title">1.6 &mdash; Plans, instruments &amp; circuits</div>
+
+    <img src="/dr400/plan-3-vues.webp" alt="Plan 3 vues DR400/120" class="pdf-img pdf-img-full" onclick="openLightbox(this)">
+    <div class="img-caption">Plan 3 vues &mdash; page 1.9 du manuel</div>
+
+    <img src="/dr400/plan-3-vues.webp" alt="Plan 3 vues (suite)" class="pdf-img pdf-img-full" onclick="openLightbox(this)">
+    <div class="img-caption">Plan 3 vues (suite) &mdash; page 1.10</div>
+
+    <img src="/dr400/debattements.webp" alt="Debattements gouvernes" class="pdf-img pdf-img-full" onclick="openLightbox(this)">
+    <div class="img-caption">Debattements des gouvernes &mdash; page 1.11</div>
+
+    <div class="grid grid-2" style="margin-top:2rem">
+        <div>
+            <img src="/dr400/planche-bord-88.webp" alt="Planche de bord modele 88" class="pdf-img" style="max-width:100%" onclick="openLightbox(this)">
+            <div class="img-caption">Planche de bord "modele 88"</div>
+        </div>
+        <div>
+            <img src="/dr400/planche-bord-rev7.webp" alt="Planche de bord edition 7" class="pdf-img" style="max-width:100%" onclick="openLightbox(this)">
+            <div class="img-caption">Planche de bord edition 7</div>
+        </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:1rem">
+        <div>
+            <img src="/dr400/circuit-essence.webp" alt="Circuit d'essence" class="pdf-img" style="max-width:100%" onclick="openLightbox(this)">
+            <div class="img-caption">Schema circuit d'essence &mdash; page 1.14</div>
+        </div>
+        <div>
+            <img src="/dr400/circuit-electrique.webp" alt="Circuit electrique" class="pdf-img" style="max-width:100%" onclick="openLightbox(this)">
+            <div class="img-caption">Schema circuit electrique &mdash; page 1.15</div>
+        </div>
+    </div>
+
+    <!-- DEBATTEMENTS SUMMARY -->
+    <div class="subsection-title">1.7 &mdash; Debattements des gouvernes</div>
+    <table class="data-table">
+        <thead><tr><th>Gouverne</th><th>Debattement</th></tr></thead>
+        <tbody>
+            <tr><td>Ailerons</td><td class="mono">Surface : 1,15 m&sup2;</td></tr>
+            <tr><td>Volets de courbure</td><td class="mono">Surface : 0,669 m&sup2; &mdash; Lisse / 15&deg; / 60&deg;&plusmn;5&deg;</td></tr>
+            <tr><td>Empennage horizontal (monobloc)</td><td class="mono">Surface : 2,88 m&sup2; &mdash; Anti-tab : 0,26 m&sup2;</td></tr>
+            <tr><td>Tab de profondeur</td><td class="mono">Index 0 (plein pique) a 10 (plein cabre)</td></tr>
+            <tr><td>Gouverne de direction</td><td class="mono">Surface : 0,63 m&sup2;</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- CHAPITRE II : LIMITES D'EMPLOI -->
+<!-- ============================================================ -->
+<div class="section fade-in" id="chap2">
+    <div class="section-header">
+        <div class="section-tag">Chapitre II</div>
+        <h2 class="section-title">Limites d'Emploi</h2>
+        <p class="section-desc">Certification, vitesses limites, facteurs de charge, centrage, plaquettes et interdictions</p>
+    </div>
+
+    <!-- VITESSES -->
+    <div class="subsection-title">2.1 &mdash; Vitesses limites</div>
+    <div class="speed-bar-container">
+        <div class="speed-bar">
+            <div class="speed-segment" style="width:27%;background:linear-gradient(90deg,#fff 0%,#e2e8f0 100%)" title="Arc blanc : zone volets (85-170 km/h)">
+                <span style="color:#333;font-weight:700">ARC BLANC<br>85-170</span>
+            </div>
+            <div class="speed-segment" style="width:30%;background:linear-gradient(90deg,#22c55e 0%,#16a34a 100%)" title="Arc vert : utilisation normale (95-260 km/h)">
+                <span>ARC VERT<br>95-260</span>
+            </div>
+            <div class="speed-segment" style="width:15%;background:linear-gradient(90deg,#eab308 0%,#ca8a04 100%)" title="Arc jaune : precaution (260-308 km/h)">
+                <span>JAUNE<br>260-308</span>
+            </div>
+            <div class="speed-segment" style="width:3%;background:var(--red)" title="Trait rouge VNE : 308 km/h">
+                <span style="font-size:0.6rem">VNE</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="speed-markers">
+        <div class="speed-marker">
+            <div class="speed-marker-code c-red">VNE</div>
+            <div class="speed-marker-value">308</div>
+            <div class="speed-marker-desc">Ne jamais depasser (trait radial rouge)</div>
+        </div>
+        <div class="speed-marker">
+            <div class="speed-marker-code c-yellow">VNO / Vc</div>
+            <div class="speed-marker-value">260</div>
+            <div class="speed-marker-desc">Max utilisation normale / croisiere</div>
+        </div>
+        <div class="speed-marker">
+            <div class="speed-marker-code c-orange">VA</div>
+            <div class="speed-marker-value">215</div>
+            <div class="speed-marker-desc">Vitesse de manoeuvre</div>
+        </div>
+        <div class="speed-marker">
+            <div class="speed-marker-code" style="color:#fff">VFE</div>
+            <div class="speed-marker-value">170</div>
+            <div class="speed-marker-desc">Max volets sortis</div>
+        </div>
+        <div class="speed-marker">
+            <div class="speed-marker-code c-green">VS1</div>
+            <div class="speed-marker-value">94</div>
+            <div class="speed-marker-desc">Decrochage lisse (900 kg)</div>
+        </div>
+        <div class="speed-marker">
+            <div class="speed-marker-code c-green">VS0</div>
+            <div class="speed-marker-value">83</div>
+            <div class="speed-marker-desc">Decrochage full flaps (900 kg)</div>
+        </div>
+    </div>
+    <p style="text-align:center;color:var(--text3);font-size:0.8rem;margin-top:1rem">Toutes les vitesses en km/h (Vi = V conventionnelle). Avertisseur de decrochage : 10-15 km/h avant.</p>
+
+    <!-- FACTEURS DE CHARGE -->
+    <div class="subsection-title">2.2 &mdash; Facteurs de charge</div>
+    <div class="grid grid-2">
+        <div class="card">
+            <div class="card-title">Facteurs de charge &mdash; Volets rentres</div>
+            <div style="display:flex;gap:1rem;margin-top:1rem">
+                <div style="flex:1;text-align:center;padding:1rem;background:var(--bg3);border-radius:10px">
+                    <div style="font-size:0.7rem;color:var(--text3)">Cat. Normale (N)</div>
+                    <div class="mono" style="font-size:1.5rem"><span class="c-green">+3,8</span> / <span class="c-red">-1,9</span></div>
+                </div>
+                <div style="flex:1;text-align:center;padding:1rem;background:var(--bg3);border-radius:10px">
+                    <div style="font-size:0.7rem;color:var(--text3)">Cat. Utilitaire (U)</div>
+                    <div class="mono" style="font-size:1.5rem"><span class="c-green">+4,4</span> / <span class="c-red">-2,2</span></div>
+                </div>
+            </div>
+            <div style="text-align:center;padding:0.75rem;background:var(--bg3);border-radius:10px;margin-top:0.75rem">
+                <div style="font-size:0.7rem;color:var(--text3)">Volets sortis (toute cat.)</div>
+                <div class="mono" style="font-size:1.5rem"><span class="c-yellow">+2,0</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Masses maximales</div>
+            <div style="margin-top:1rem">
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+                    <span>Decollage / Atterrissage / Cat. U</span><span class="mono c-accent" style="font-size:1.2rem">900 kg</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+                    <span>Avion a vide (F-GLDT)</span><span class="mono" style="font-size:1.2rem">541 kg</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+                    <span>Centrage a vide</span><span class="mono" style="font-size:1.2rem">0,309 m (18%)</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+                    <span>Charge utile max</span><span class="mono c-green" style="font-size:1.2rem">359 kg</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0">
+                    <span>Bagages max (soute)</span><span class="mono c-yellow" style="font-size:1.2rem">40 kg</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CENTRAGE -->
+    <div class="subsection-title">2.3 &mdash; Centrage</div>
+    <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-title">Limites de centrage</div>
+        <p style="font-size:0.85rem;color:var(--text2);margin-bottom:1rem">Mise a niveau : longeron superieur fuselage. Reference : bord d'attaque partie rectangulaire aile. Corde de reference : 1,71 m.</p>
+        <table class="data-table">
+            <thead><tr><th>Limite</th><th>Position (m)</th><th>% Corde</th><th>Conditions</th></tr></thead>
+            <tbody>
+                <tr><td><strong class="c-accent">Avant</strong></td><td class="mono">0,205</td><td class="mono">12%</td><td>A 750 kg et en dessous</td></tr>
+                <tr><td><strong class="c-accent">Avant</strong></td><td class="mono">0,428</td><td class="mono">25%</td><td>A 900 kg</td></tr>
+                <tr><td><strong class="c-red">Arriere</strong></td><td class="mono">0,564</td><td class="mono">33%</td><td>Toute masse</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:0.8rem;color:var(--text3);margin-top:0.5rem">Interpolation lineaire entre 750 et 900 kg pour la limite avant.</p>
+    </div>
+
+    <!-- PLAQUETTES -->
+    <div class="subsection-title">2.4 &mdash; Plaquettes obligatoires</div>
+    <div class="plaquette-box"><span style="font-size:1.2rem">&#128247;</span> <span>Soute bagages : <strong>40 kg maximum</strong></span></div>
+    <div class="plaquette-box"><span style="font-size:1.2rem">&#128682;</span> <span>Ne pas FUMER</span></div>
+    <div class="plaquette-box"><span style="font-size:1.2rem">&#9788;</span> <span><strong>VFR de jour</strong>, zone non givrante</span></div>
+    <div class="plaquette-box"><span style="font-size:1.2rem">&#128260;</span> <span>Eviter utilisation continue entre <strong>2025-2325 t/mn</strong> (helice Mac Cauley)</span></div>
+
+    <div class="grid grid-2" style="margin-top:1.5rem">
+        <div>
+            <img src="/dr400/plaquettes-1.webp" alt="Plaquettes obligatoires" class="pdf-img" style="max-width:100%" onclick="openLightbox(this)">
+            <div class="img-caption">Plaquettes obligatoires &mdash; page 7.8b</div>
+        </div>
+        <div>
+            <img src="/dr400/plaquettes-2.webp" alt="Plaquettes suite" class="pdf-img" style="max-width:100%" onclick="openLightbox(this)">
+            <div class="img-caption">Plaquettes (suite) &mdash; page 7.8c</div>
+        </div>
+    </div>
+
+    <!-- LIMITATIONS GMP -->
+    <div class="subsection-title">2.5 &mdash; Limitations GMP (avions apres 1.1.1980)</div>
+    <div class="grid grid-2">
+        <div class="card">
+            <div class="card-title">Tachymetre &mdash; Helice Mac Cauley</div>
+            <div style="margin-top:0.5rem;font-size:0.9rem;line-height:2">
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+                    <span>Trait rouge</span><span class="mono c-red">2800 RPM</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+                    <span>Arc vert</span><span class="mono c-green">2000-2800 RPM</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0">
+                    <span>Arc jaune (eviter)</span><span class="mono c-yellow">2025-2325 RPM</span>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">Tachymetre &mdash; Helice Sensenich</div>
+            <div style="margin-top:0.5rem;font-size:0.9rem;line-height:2">
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+                    <span>Trait rouge</span><span class="mono c-red">2800 RPM</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:4px 0">
+                    <span>Arc vert</span><span class="mono c-green">2000-2700 RPM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARBURANT SECTION IN CH2 -->
+    <div class="subsection-title">2.6 &mdash; Carburant &amp; Lubrifiant</div>
+    <div class="grid grid-3">
+        <div class="card" style="text-align:center">
+            <div style="font-size:3rem;margin-bottom:0.5rem">&#9981;</div>
+            <div class="card-value c-accent" style="font-size:2.5rem">110<span style="font-size:1rem">L</span></div>
+            <div class="card-label">Reservoir principal (AR)</div>
+        </div>
+        <div class="card" style="text-align:center">
+            <div style="font-size:3rem;margin-bottom:0.5rem">&#128167;</div>
+            <div class="card-value c-cyan" style="font-size:2.5rem">5,67<span style="font-size:1rem">L</span></div>
+            <div class="card-label">Lubrifiant (capacite)</div>
+            <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text3)">Jauge min : 1,9 L &mdash; Jauge max : 5,67 L</div>
+        </div>
+        <div class="card" style="text-align:center">
+            <div style="font-size:3rem;margin-bottom:0.5rem">&#128293;</div>
+            <div class="card-value c-orange" style="font-size:2.5rem">25<span style="font-size:1rem">L/h</span></div>
+            <div class="card-label">Conso a 75%</div>
+            <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text3)">~21 L/h a 10 000 ft</div>
+        </div>
+    </div>
+
+    <!-- VENT TRAVERS -->
+    <div class="subsection-title">2.7 &mdash; Vent de travers &amp; Interdictions</div>
+    <div class="grid grid-2">
+        <div class="card">
+            <div class="card-title">Limitations diverses</div>
+            <div style="margin-top:0.5rem">
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+                    <span>Vent de travers max demontre</span><span class="mono c-yellow">40 km/h = 25 MPH = 22 kt</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+                    <span>Conditions de vol</span><span class="mono">VFR jour</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+                    <span>Givrage</span><span class="mono c-red">Zone non givrante</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0">
+                    <span>Limitation acoustique</span><span class="mono">72 dB(A) a 900 kg</span>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">Interdictions</div>
+            <div class="warning-box" style="margin-top:0.5rem">
+                <span>&#9888;</span>
+                <span><strong>Cat. N :</strong> Aucune manoeuvre acrobatique. Vrilles INTERDITES.</span>
+            </div>
+            <div class="note-box">
+                <strong>Cat. U :</strong> Virages serres, huit lent, virage en montee dynamique, decrochages de mise en garde. <strong>Sieges AR inoccupes obligatoirement.</strong> Vitesses dans le domaine normal uniquement.
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- CHAPITRE III : PROCEDURES D'URGENCE -->
+<!-- ============================================================ -->
+<div class="section fade-in" id="chap3">
+    <div class="section-header">
+        <div class="section-tag">Chapitre III</div>
+        <h2 class="section-title">Procedures d'Urgence</h2>
+        <p class="section-desc">Cliquez pour developper chaque procedure</p>
+    </div>
+
+    <div class="procedure-card open" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:var(--red-dim);color:var(--red)">&#128293;</div>
+            <div class="procedure-title">3.1 &mdash; Feu de moteur en vol</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Fermer l'essence</strong> (robinet)</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text">Mettre <strong>plein gaz</strong> jusqu'a epuisement du combustible dans le circuit</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text">Couper les <strong>contacts allumage</strong> (magnetos)</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text">Couper <strong>batterie et excitation alternateur</strong> avant l'atterrissage</div></div>
+                <div class="warning-box">
+                    <span>&#9888;</span>
+                    <span>NOTA : La coupure batterie supprime aussi l'avertisseur de decrochage !</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:var(--red-dim);color:var(--red)">&#128293;</div>
+            <div class="procedure-title">3.2 &mdash; Feu de moteur au sol</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div class="step"><div class="step-num">1</div><div class="step-text"><strong>NE PAS enlever les capots</strong></div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text">Diriger le jet de l'extincteur dans la <strong>prise dynamique</strong> ou par le trou des echappements</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:var(--yellow-dim);color:var(--yellow)">&#9889;</div>
+            <div class="procedure-title">3.3 &mdash; Panne alternateur</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div class="step"><div class="step-num">1</div><div class="step-text">Constat : amperemetre indique <strong>"decharge" (-)</strong></div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Couper l'excitation</strong> de l'alternateur</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Reduire</strong> les consommations electriques au minimum</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text">La batterie seule fournit le courant. Rejoindre le terrain le plus proche.</div></div>
+                <div class="note-box">Aucune anomalie moteur a craindre. Le moteur fonctionne normalement sans alternateur.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(6,182,212,0.15);color:var(--cyan)">&#10052;</div>
+            <div class="procedure-title">3.4 &mdash; Givrage carburateur</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div class="step"><div class="step-num">1</div><div class="step-text">Symptome : le regime diminue sans changement de parametres</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text">Tirer le <strong>rechauffage carburateur A FOND</strong> (tout ou rien)</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text">Le regime augmentera progressivement une fois la glace fondue</div></div>
+                <div class="note-box">Chute normale de ~150 t/mn a la mise en rechauffage. Si givrage brutal : rechauffage carbu + plein gaz simultanement.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:var(--orange-dim);color:var(--orange)">&#9888;</div>
+            <div class="procedure-title">3.5 &mdash; Atterrissage de fortune</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div class="step"><div class="step-num">1</div><div class="step-text">Verifier les <strong>ceintures de securite</strong></div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Fermer l'essence</strong></div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Couper le circuit electrique</strong> avant l'atterrissage</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text">Vitesse de meilleur plane : <strong class="c-accent">135 km/h</strong></div></div>
+                <div class="note-box">Si la verriere est bloquee apres impact : soulever les <strong>2 anneaux rouges de largage</strong> + ouvrir le verrou central.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(168,85,247,0.15);color:var(--purple)">&#8635;</div>
+            <div class="procedure-title">3.6 &mdash; Vrille involontaire</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Manche aux neutres</strong></div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Pied contraire</strong> (oppose au sens de la vrille)</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Volets rentres</strong> imperativement</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- CHAPITRE IV : PROCEDURES NORMALES -->
+<!-- ============================================================ -->
+<div class="section fade-in" id="chap4">
+    <div class="section-header">
+        <div class="section-tag">Chapitre IV</div>
+        <h2 class="section-title">Procedures Normales</h2>
+        <p class="section-desc">De la preparation du vol a l'amarrage, toutes les procedures detaillees</p>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(59,130,246,0.15);color:var(--accent2)">&#128221;</div>
+            <div class="procedure-title">4.1 &mdash; Preparation des vols (Masse &amp; Centrage)</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <p style="color:var(--text2);margin-bottom:1rem">Bras de levier pour le calcul de centrage :</p>
+                <table class="data-table">
+                    <thead><tr><th>Element</th><th>Bras (m)</th></tr></thead>
+                    <tbody>
+                        <tr><td>Avion a vide (F-GLDT)</td><td class="mono">0,309 (masse 541 kg)</td></tr>
+                        <tr><td>Passagers AV</td><td class="mono">+0,41</td></tr>
+                        <tr><td>Banquette AR</td><td class="mono">+1,19</td></tr>
+                        <tr><td>Essence (reservoir AR)</td><td class="mono">+1,12</td></tr>
+                        <tr><td>Bagages (soute)</td><td class="mono">+1,9</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(34,197,94,0.15);color:var(--green)">&#128270;</div>
+            <div class="procedure-title">4.2 &mdash; Visite prevol (8 points)</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div class="step"><div class="step-num">1</div><div class="step-text">Etat general de l'appareil, fuselage, verriere</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text">Ailes : bords d'attaque, saumons, ailerons, volets</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text">Empennage : plan fixe, gouverne de direction, profondeur</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text">Train : pneus (usure, pression), amortisseurs (course restante min 70 mm), freins</div></div>
+                <div class="step"><div class="step-num">5</div><div class="step-text">Moteur : niveau huile (min 1,9 L), capots, echappements</div></div>
+                <div class="step"><div class="step-num">6</div><div class="step-text">Helice : etat, fixation</div></div>
+                <div class="step"><div class="step-num">7</div><div class="step-text">Essence : niveau, purge decanteur, absence d'eau, bouchon</div></div>
+                <div class="step"><div class="step-num">8</div><div class="step-text">Pitot : degage, prise statique libre</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(234,179,8,0.15);color:var(--yellow)">&#128273;</div>
+            <div class="procedure-title">4.3 &mdash; Avant mise en marche &amp; Mise en marche</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <p style="color:var(--white);font-weight:700;margin-bottom:0.75rem">Mise en marche :</p>
+                <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Pompe electrique</strong> en marche</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Injection :</strong> gaz pleine course 2 fois (pour amorcer)</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Reduire les gaz</strong></div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Batterie ON</strong>, excitation alternateur ON</div></div>
+                <div class="step"><div class="step-num">5</div><div class="step-text">Magnetos sur <strong>"Left"</strong></div></div>
+                <div class="step"><div class="step-num">6</div><div class="step-text"><strong>Demarrage</strong></div></div>
+                <div class="step"><div class="step-num">7</div><div class="step-text">Des que le moteur tourne : passer sur <strong>"Both"</strong></div></div>
+                <div class="step"><div class="step-num">8</div><div class="step-text">Stabiliser au <strong>ralenti</strong></div></div>
+                <div class="note-box" style="margin-top:1rem">
+                    <strong>Moteur noye :</strong> couper magnetos, gaz a fond, faire tourner l'helice au demarreur ~10 tours, puis reprendre la procedure normale.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(59,130,246,0.15);color:var(--accent2)">&#128690;</div>
+            <div class="procedure-title">4.4 &mdash; Roulage &amp; Avant decollage</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <p style="color:var(--white);font-weight:700;margin-bottom:0.5rem">Roulage :</p>
+                <div class="step"><div class="step-num">&#8226;</div><div class="step-text">Regime de roulage : <strong class="c-accent">1200 t/mn</strong> (parking)</div></div>
+
+                <p style="color:var(--white);font-weight:700;margin:1rem 0 0.5rem">Point fixe / Avant decollage :</p>
+                <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Chauffer le moteur</strong> a 1200 t/mn</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Essai magnetos a 1800 t/mn :</strong> chute max 125 t/mn entre les 2 magnetos</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text">Coupure d'une magneto a <strong>1000 t/mn</strong> = le moteur doit continuer de tourner</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text">Mnemotechnique : <strong>A.C.H.E.V.E.R.</strong></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHASES DE VOL CARTES -->
+    <div style="margin-top:2rem" class="grid grid-2">
+        <div class="card" style="border-left:4px solid var(--green)">
+            <div class="card-title">&#9992; Decollage</div>
+            <div style="margin-top:1rem;font-size:0.9rem">
+                <div style="padding:6px 0"><strong>Rechauffage carbu :</strong> pousse (froid)</div>
+                <div style="padding:6px 0"><strong>Richesse :</strong> poussee (plein riche)</div>
+                <div style="padding:6px 0"><strong>Plein gaz :</strong> progressivement &rarr; mini <span class="mono c-accent">2200 t/mn</span></div>
+                <div style="padding:6px 0"><strong>Rotation :</strong> <span class="mono c-accent">90-100 km/h</span></div>
+                <div style="padding:6px 0"><strong>Montee initiale :</strong> <span class="mono c-accent">120 km/h</span></div>
+            </div>
+        </div>
+        <div class="card" style="border-left:4px solid var(--cyan)">
+            <div class="card-title">&#9650; Montee</div>
+            <div style="margin-top:1rem;font-size:0.9rem">
+                <div style="padding:6px 0"><strong>Obstacles (Vx) :</strong> <span class="mono c-accent">130 km/h</span> &mdash; 1er cran volets</div>
+                <div style="padding:6px 0"><strong>Normale (Vy) :</strong> <span class="mono c-accent">140-150 km/h</span> &mdash; volets rentres</div>
+                <div style="padding:6px 0"><strong>Tab :</strong> ajuster pour le confort</div>
+                <div style="padding:6px 0"><strong>Pompe electrique :</strong> couper</div>
+                <div style="padding:6px 0;color:var(--yellow)">Les 10 derniers litres ne sont <strong>pas consommables en montee</strong></div>
+            </div>
+        </div>
+        <div class="card" style="border-left:4px solid var(--accent)">
+            <div class="card-title">&#9992; Croisiere</div>
+            <div style="margin-top:1rem;font-size:0.9rem">
+                <div style="padding:6px 0"><strong>Vitesse :</strong> <span class="mono c-accent">195-210 km/h</span></div>
+                <div style="padding:6px 0"><strong>Regime 75% :</strong> <span class="mono">2600-2700 t/mn</span> (Mac Cauley)</div>
+                <div style="padding:6px 0"><strong>Richesse :</strong> appauvrir jusqu'a irregularite puis enrichir legerement</div>
+                <div style="padding:6px 0"><strong>Reajuster :</strong> apres chaque changement regime/altitude</div>
+            </div>
+        </div>
+        <div class="card" style="border-left:4px solid var(--orange)">
+            <div class="card-title">&#9660; Descente &amp; Approche</div>
+            <div style="margin-top:1rem;font-size:0.9rem">
+                <div style="padding:6px 0"><strong>Rechauffage carbu :</strong> <span class="c-red">TIRE systematiquement</span></div>
+                <div style="padding:6px 0"><strong>Pompe electrique :</strong> en marche</div>
+                <div style="padding:6px 0"><strong>Volets :</strong> sous <span class="mono">170 km/h</span> (VFE)</div>
+                <div style="padding:6px 0"><strong>Vi approche :</strong> <span class="mono c-accent">110 km/h</span> (1,3&times;Vs a 900 kg)</div>
+                <div style="padding:6px 0"><strong>Richesse :</strong> plein riche</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" style="margin-top:1.5rem" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(34,197,94,0.15);color:var(--green)">&#128747;</div>
+            <div class="procedure-title">4.5 &mdash; Atterrissage &amp; Apres atterrissage</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <p style="color:var(--white);font-weight:700;margin-bottom:0.5rem">Atterrissage :</p>
+                <div class="step"><div class="step-num">&#8226;</div><div class="step-text">Vi = 1,3 &times; Vs = <strong class="c-accent">110 km/h</strong> a 900 kg</div></div>
+                <div class="step"><div class="step-num">&#8226;</div><div class="step-text">Remise de gaz possible en <strong>toute configuration</strong></div></div>
+
+                <p style="color:var(--white);font-weight:700;margin:1rem 0 0.5rem">Apres atterrissage :</p>
+                <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Rentrer les volets</strong> au roulage</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text">Frein de parc</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text">Regime : <strong>1200 t/mn</strong></div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text">Magnetos OFF</div></div>
+                <div class="step"><div class="step-num">5</div><div class="step-text"><strong>Richesse tiree</strong> (etouffoir) &rarr; moteur s'arrete</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(168,85,247,0.15);color:var(--purple)">&#9875;</div>
+            <div class="procedure-title">4.6 &mdash; Amarrage &amp; Precautions d'entrepot</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div class="step"><div class="step-num">1</div><div class="step-text">Orienter l'avion <strong>vent arriere</strong></div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text">Bloquer le manche avec les <strong>ceintures</strong></div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text">Amarrer par les <strong>anneaux d'ailes</strong> et l'<strong>anneau arriere</strong></div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text"><strong>NE PAS bloquer le frein de parc</strong></div></div>
+                <div class="step"><div class="step-num">5</div><div class="step-text"><strong>Caler</strong> les roues</div></div>
+                <div class="step"><div class="step-num">6</div><div class="step-text">Mettre la <strong>housse</strong></div></div>
+                <div class="note-box">Brasser l'helice quelques tours toutes les 2 semaines. Le plein d'essence empeche la condensation.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- CHAPITRE V : PERFORMANCES -->
+<!-- ============================================================ -->
+<div class="section fade-in" id="chap5">
+    <div class="section-header">
+        <div class="section-tag">Chapitre V</div>
+        <h2 class="section-title">Performances</h2>
+        <p class="section-desc">Acoustique, decrochage, etalonnage, decollage, montee, croisiere, atterrissage et plane</p>
+    </div>
+
+    <!-- ACOUSTIQUE -->
+    <div class="subsection-title">5.0 &mdash; Limitation acoustique</div>
+    <div class="card" style="margin-bottom:2rem">
+        <div class="card-title">Certificat nuisance N&deg;45 &mdash; 6 mars 1980</div>
+        <div style="margin-top:0.75rem;display:flex;gap:2rem;flex-wrap:wrap">
+            <div>
+                <span class="card-label">Niveau admissible</span>
+                <div class="mono" style="font-size:1.5rem;color:var(--white)">72 dB(A)</div>
+            </div>
+            <div>
+                <span class="card-label">Niveau mesure</span>
+                <div class="mono" style="font-size:1.5rem;color:var(--green)">71,6 dB(A)</div>
+            </div>
+            <div>
+                <span class="card-label">Helice requise</span>
+                <div class="mono" style="font-size:1rem;color:var(--text)">Sensenich 72 CK S6-0-56</div>
+            </div>
+            <div>
+                <span class="card-label">Regime max util. normale</span>
+                <div class="mono" style="font-size:1.5rem;color:var(--green)">2700 RPM</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DECROCHAGE -->
+    <div class="subsection-title">5.1 &mdash; Vitesses de decrochage</div>
+    <p style="color:var(--text2);margin-bottom:1rem">Au poids total 900 kg, Vi en km/h. Avertisseur : 10-15 km/h avant le decrochage. Vent de travers limite demontre : <strong style="color:var(--white)">40 km/h = 25 MPH = 22 kt</strong>.</p>
+
+    <div class="stall-grid">
+        <div class="stall-card">
+            <div class="stall-config"><span style="font-size:1.5rem">&#9634;</span> Volets rentres (lisse)</div>
+            <div class="stall-values">
+                <div class="stall-item"><div class="stall-angle">0&deg;</div><div class="stall-speed c-green">94</div><div class="stall-unit">km/h</div></div>
+                <div class="stall-item"><div class="stall-angle">30&deg;</div><div class="stall-speed c-yellow">101</div><div class="stall-unit">km/h</div></div>
+                <div class="stall-item"><div class="stall-angle">60&deg;</div><div class="stall-speed c-red">133</div><div class="stall-unit">km/h</div></div>
+            </div>
+        </div>
+        <div class="stall-card">
+            <div class="stall-config"><span style="font-size:1.5rem">&#9655;</span> 1er cran &mdash; Decollage (15&deg;)</div>
+            <div class="stall-values">
+                <div class="stall-item"><div class="stall-angle">0&deg;</div><div class="stall-speed c-green">88</div><div class="stall-unit">km/h</div></div>
+                <div class="stall-item"><div class="stall-angle">30&deg;</div><div class="stall-speed c-yellow">95</div><div class="stall-unit">km/h</div></div>
+                <div class="stall-item"><div class="stall-angle">60&deg;</div><div class="stall-speed c-red">124</div><div class="stall-unit">km/h</div></div>
+            </div>
+        </div>
+        <div class="stall-card">
+            <div class="stall-config"><span style="font-size:1.5rem">&#9660;</span> 2e cran &mdash; Atterrissage (60&deg;)</div>
+            <div class="stall-values">
+                <div class="stall-item"><div class="stall-angle">0&deg;</div><div class="stall-speed c-green">83</div><div class="stall-unit">km/h</div></div>
+                <div class="stall-item"><div class="stall-angle">30&deg;</div><div class="stall-speed c-yellow">89</div><div class="stall-unit">km/h</div></div>
+                <div class="stall-item"><div class="stall-angle">60&deg;</div><div class="stall-speed c-red">117</div><div class="stall-unit">km/h</div></div>
+            </div>
+        </div>
+    </div>
+    <p style="text-align:center;color:var(--text3);font-size:0.8rem;margin-top:1rem">Vi = V conventionnelle (etalonnage anemometrique OK)</p>
+
+    <!-- PERFORMANCES TABS -->
+    <div class="subsection-title">5.2-5.6 &mdash; Performances de vol</div>
+
+    <div class="tab-bar" id="perfTabs">
+        <button class="tab-btn active" onclick="showTab('perf','croisiere-mc')">Croisiere Mac Cauley</button>
+        <button class="tab-btn" onclick="showTab('perf','croisiere-ss')">Croisiere Sensenich</button>
+        <button class="tab-btn" onclick="showTab('perf','decollage')">Decollage</button>
+        <button class="tab-btn" onclick="showTab('perf','atterrissage')">Atterrissage</button>
+        <button class="tab-btn" onclick="showTab('perf','montee')">Montee</button>
+        <button class="tab-btn" onclick="showTab('perf','plane')">Plane</button>
+    </div>
+
+    <!-- CROISIERE MAC CAULEY -->
+    <div class="tab-content active" id="perf-croisiere-mc">
+        <p style="color:var(--text2);margin-bottom:1rem">Helice Mac Cauley 1A.135 &mdash; 75% de puissance (page 5.5)</p>
+        <table class="data-table">
+            <thead><tr><th>Altitude (ft)</th><th>Regime (t/mn)</th><th>Vi (km/h)</th><th>Consommation</th></tr></thead>
+            <tbody>
+                <tr><td class="mono">0</td><td class="mono">2600</td><td class="mono c-accent">195</td><td class="mono">25 L/h</td></tr>
+                <tr><td class="mono">3 000</td><td class="mono">2650</td><td class="mono c-accent">200</td><td class="mono">25 L/h</td></tr>
+                <tr><td class="mono">5 000</td><td class="mono">2700</td><td class="mono c-accent">205</td><td class="mono">25 L/h</td></tr>
+                <tr><td class="mono">7 000</td><td class="mono">2800</td><td class="mono c-accent">210</td><td class="mono">25 L/h</td></tr>
+                <tr><td class="mono">10 000</td><td class="mono">2800</td><td class="mono c-accent">205</td><td class="mono c-green">21 L/h</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- CROISIERE SENSENICH -->
+    <div class="tab-content" id="perf-croisiere-ss">
+        <p style="color:var(--text2);margin-bottom:1rem">Helice Sensenich 72 CK S6-0-56 &mdash; 75% de puissance (page 7.12)</p>
+        <table class="data-table">
+            <thead><tr><th>Altitude (ft)</th><th>Regime (t/mn)</th><th>Vi (km/h)</th><th>Consommation</th></tr></thead>
+            <tbody>
+                <tr><td class="mono">0</td><td class="mono">2420</td><td class="mono c-accent">192</td><td class="mono">25 L/h</td></tr>
+                <tr><td class="mono">3 000</td><td class="mono">2520</td><td class="mono c-accent">202</td><td class="mono">25 L/h</td></tr>
+                <tr><td class="mono">5 000</td><td class="mono">2560</td><td class="mono c-accent">208</td><td class="mono">25 L/h</td></tr>
+                <tr><td class="mono">7 500</td><td class="mono">2650</td><td class="mono c-accent">216</td><td class="mono">25 L/h</td></tr>
+                <tr><td class="mono">10 000</td><td class="mono">2500 <span style="font-size:0.75rem;color:var(--text3)">(65%)</span></td><td class="mono c-accent">195</td><td class="mono c-green">21 L/h</td></tr>
+            </tbody>
+        </table>
+        <div class="note-box" style="margin-top:1rem">
+            A noter : la Sensenich tourne a des regimes plus bas pour la meme puissance grâce a son pas plus long (1,42 m vs 1,19 m).
+        </div>
+    </div>
+
+    <!-- DECOLLAGE -->
+    <div class="tab-content" id="perf-decollage">
+        <p style="color:var(--text2);margin-bottom:1rem">Vent nul, volets 1er cran. Distance totale (roulement) en metres pour passer 15 m a V=1,3 Vs1. Helice Mac Cauley 71-47 / Sensenich (valeurs identiques).</p>
+        <table class="data-table">
+            <thead><tr><th>Alt (ft)</th><th>Temp</th><th>900 kg Beton</th><th>900 kg Herbe</th><th>700 kg Beton</th><th>700 kg Herbe</th></tr></thead>
+            <tbody>
+                <tr><td class="mono">0</td><td>ISA-20</td><td class="mono">480 (225)</td><td class="mono">570 (315)</td><td class="mono">285 (130)</td><td class="mono">320 (165)</td></tr>
+                <tr><td class="mono">0</td><td>ISA=15&deg;C</td><td class="mono">535 (255)</td><td class="mono">640 (360)</td><td class="mono">315 (145)</td><td class="mono">355 (185)</td></tr>
+                <tr><td class="mono">0</td><td>ISA+20</td><td class="mono">590 (285)</td><td class="mono">715 (410)</td><td class="mono">345 (165)</td><td class="mono">395 (215)</td></tr>
+                <tr><td class="mono">4 000</td><td>ISA-20</td><td class="mono">645 (305)</td><td class="mono">800 (460)</td><td class="mono">375 (175)</td><td class="mono">430 (230)</td></tr>
+                <tr><td class="mono">4 000</td><td>ISA=7&deg;C</td><td class="mono">720 (345)</td><td class="mono">905 (530)</td><td class="mono">415 (195)</td><td class="mono">485 (265)</td></tr>
+                <tr><td class="mono">4 000</td><td>ISA+20</td><td class="mono">800 (390)</td><td class="mono">1025 (615)</td><td class="mono">460 (220)</td><td class="mono">540 (300)</td></tr>
+                <tr><td class="mono">8 000</td><td>ISA-20</td><td class="mono">890 (425)</td><td class="mono">1165 (700)</td><td class="mono">500 (235)</td><td class="mono">595 (330)</td></tr>
+                <tr><td class="mono">8 000</td><td>ISA=-1&deg;C</td><td class="mono">1000 (475)</td><td class="mono">1350 (820)</td><td class="mono">560 (265)</td><td class="mono">675 (380)</td></tr>
+                <tr><td class="mono">8 000</td><td>ISA+20</td><td class="mono c-red">1125 (535)</td><td class="mono c-red">1550 (960)</td><td class="mono">675 (300)</td><td class="mono">760 (440)</td></tr>
+            </tbody>
+        </table>
+        <div class="note-box" style="margin-top:1rem">
+            <strong>Correction vent :</strong> 10 kt &rarr; &times;0,78 | 20 kt &rarr; &times;0,63 | 30 kt &rarr; &times;0,52<br>
+            Longueur de roulement pour atteindre 1,1 Vs1.
+        </div>
+    </div>
+
+    <!-- ATTERRISSAGE -->
+    <div class="tab-content" id="perf-atterrissage">
+        <p style="color:var(--text2);margin-bottom:1rem">Vent nul, volets 2e cran. Distance depuis passage 15 m a V=1,3 Vs0. Roulement apres impact a Vs0.</p>
+
+        <p style="color:var(--white);font-weight:700;margin-bottom:0.5rem">Freinage modere &mdash; piste dur ou herbe</p>
+        <table class="data-table" style="margin-bottom:2rem">
+            <thead><tr><th>Alt (ft)</th><th>Temp</th><th>900 kg</th><th>700 kg</th></tr></thead>
+            <tbody>
+                <tr><td class="mono">0</td><td>ISA-20</td><td class="mono">435 (185)</td><td class="mono">365 (145)</td></tr>
+                <tr><td class="mono">0</td><td>ISA=15&deg;C</td><td class="mono">460 (200)</td><td class="mono">385 (155)</td></tr>
+                <tr><td class="mono">0</td><td>ISA+20</td><td class="mono">485 (210)</td><td class="mono">400 (165)</td></tr>
+                <tr><td class="mono">4 000</td><td>ISA-20</td><td class="mono">475 (205)</td><td class="mono">395 (160)</td></tr>
+                <tr><td class="mono">4 000</td><td>ISA+20</td><td class="mono">525 (240)</td><td class="mono">440 (185)</td></tr>
+                <tr><td class="mono">8 000</td><td>ISA=-1&deg;C</td><td class="mono">555 (250)</td><td class="mono">460 (195)</td></tr>
+                <tr><td class="mono">8 000</td><td>ISA+20</td><td class="mono">590 (270)</td><td class="mono">485 (210)</td></tr>
+            </tbody>
+        </table>
+
+        <p style="color:var(--white);font-weight:700;margin-bottom:0.5rem">Sans frein sur herbe</p>
+        <table class="data-table">
+            <thead><tr><th>Alt (ft)</th><th>Temp</th><th>900 kg</th><th>700 kg</th></tr></thead>
+            <tbody>
+                <tr><td class="mono">0</td><td>ISA-20</td><td class="mono">530 (280)</td><td class="mono">435 (215)</td></tr>
+                <tr><td class="mono">0</td><td>ISA=0&deg;C</td><td class="mono">560 (300)</td><td class="mono">460 (230)</td></tr>
+                <tr><td class="mono">0</td><td>ISA+20</td><td class="mono">590 (325)</td><td class="mono">485 (250)</td></tr>
+                <tr><td class="mono">4 000</td><td>ISA-20</td><td class="mono">580 (310)</td><td class="mono">475 (240)</td></tr>
+                <tr><td class="mono">4 000</td><td>ISA+20</td><td class="mono">655 (360)</td><td class="mono">530 (285)</td></tr>
+                <tr><td class="mono">8 000</td><td>ISA=-1&deg;C</td><td class="mono">680 (375)</td><td class="mono">555 (290)</td></tr>
+                <tr><td class="mono">8 000</td><td>ISA+20</td><td class="mono">725 (405)</td><td class="mono">590 (315)</td></tr>
+            </tbody>
+        </table>
+        <div class="note-box" style="margin-top:1rem">
+            <strong>Correction vent :</strong> identique au decollage. 10 kt &rarr; &times;0,78 | 20 kt &rarr; &times;0,63 | 30 kt &rarr; &times;0,52
+        </div>
+    </div>
+
+    <!-- MONTEE -->
+    <div class="tab-content" id="perf-montee">
+        <div class="grid grid-2" style="margin-bottom:1.5rem">
+            <div class="card">
+                <div class="card-title">Helice Mac Cauley (page 5.3)</div>
+                <div style="margin-top:1rem;font-size:0.9rem;line-height:2">
+                    <div>Vi montee : <span class="mono c-accent">140 km/h</span> a 0 ft</div>
+                    <div>Plein gaz, mixture optimale, volets rentres</div>
+                    <div>Correction temperature : &plusmn;3,5% pour &plusmn;10&deg;C</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Helice Sensenich (page 7.11)</div>
+                <div style="margin-top:1rem;font-size:0.9rem;line-height:2">
+                    <div>Vi montee : <span class="mono c-accent">145 km/h</span> a 0 ft</div>
+                    <div>Plein gaz, mixture optimale, helice Sensenich 56"</div>
+                    <div>Plafond ~6000 ft a 900 kg / ~11000 ft a 800 kg</div>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-3">
+            <div class="card" style="text-align:center">
+                <div class="card-title">Meilleur angle (Vx)</div>
+                <div class="card-value c-accent" style="font-size:2.5rem">130</div>
+                <div class="card-label">km/h &mdash; 1er cran volets</div>
+                <p style="font-size:0.8rem;color:var(--text3);margin-top:0.5rem">Passage d'obstacles</p>
+            </div>
+            <div class="card" style="text-align:center">
+                <div class="card-title">Meilleur taux (Vy)</div>
+                <div class="card-value c-green" style="font-size:2.5rem">140-150</div>
+                <div class="card-label">km/h &mdash; volets rentres, plein gaz</div>
+                <p style="font-size:0.8rem;color:var(--text3);margin-top:0.5rem">Montee normale</p>
+            </div>
+            <div class="card" style="text-align:center">
+                <div class="card-title">Plafond pratique</div>
+                <div class="card-value c-purple" style="font-size:2.5rem">~11 800</div>
+                <div class="card-label">ft (~3 600 m)</div>
+            </div>
+        </div>
+        <div class="note-box" style="margin-top:1rem">
+            Les 10 derniers litres du reservoir ne sont <strong>pas consommables en montee</strong>. Montee au plus grand angle = courte duree (refroidissement moteur).
+        </div>
+    </div>
+
+    <!-- PLANE -->
+    <div class="tab-content" id="perf-plane">
+        <div class="glide-visual">
+            <div class="glide-plane">&#9992;&#65039;</div>
+            <div class="glide-line"></div>
+            <div class="glide-label altitude">&#9650; 1000 ft = 300 m</div>
+            <div class="glide-label distance">&#8594; ~3 km de plane</div>
+            <div class="glide-label speed">Vi = 135 km/h &mdash; Finesse ~10</div>
+        </div>
+
+        <div class="grid grid-3">
+            <div class="card" style="text-align:center">
+                <div class="card-value c-accent" style="font-size:3rem">~10</div>
+                <div class="card-label">Finesse max</div>
+                <p style="font-size:0.8rem;color:var(--text3);margin-top:0.5rem">L'avion plane 10 fois sa hauteur</p>
+            </div>
+            <div class="card" style="text-align:center">
+                <div class="card-value c-green" style="font-size:3rem">135</div>
+                <div class="card-label">km/h &mdash; Vi meilleure finesse</div>
+                <p style="font-size:0.8rem;color:var(--text3);margin-top:0.5rem">Vitesse a maintenir panne moteur</p>
+            </div>
+            <div class="card" style="text-align:center">
+                <div class="card-value c-cyan" style="font-size:3rem">~3 km</div>
+                <div class="card-label">Depuis 1000 ft AGL</div>
+                <p style="font-size:0.8rem;color:var(--text3);margin-top:0.5rem">Sans vent. L'altitude et la temperature n'ont pas d'influence sensible.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- CHAPITRE VI : ENTRETIEN COURANT -->
+<!-- ============================================================ -->
+<div class="section fade-in" id="chap6">
+    <div class="section-header">
+        <div class="section-tag">Chapitre VI</div>
+        <h2 class="section-title">Entretien Courant</h2>
+        <p class="section-desc">Nettoyage et vidange</p>
+    </div>
+
+    <div class="grid grid-2">
+        <div class="card">
+            <div class="card-title">Nettoyage</div>
+            <div style="margin-top:0.75rem;font-size:0.9rem;line-height:2">
+                <div style="padding:4px 0;border-bottom:1px solid var(--border)">Eau + savon, rincer a l'eau claire</div>
+                <div style="padding:4px 0;border-bottom:1px solid var(--border)"><strong class="c-red">Jamais au jet</strong></div>
+                <div style="padding:4px 0;border-bottom:1px solid var(--border)">Lustrer les peintures avec un produit legerement abrasif</div>
+                <div style="padding:4px 0;border-bottom:1px solid var(--border)">Pas de silicone</div>
+                <div style="padding:4px 0">Verriere : <strong>produit special plexiglass uniquement</strong></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">Vidange &amp; Inspections</div>
+            <div style="margin-top:0.75rem;font-size:0.9rem;line-height:2">
+                <div style="padding:4px 0;border-bottom:1px solid var(--border)">Vidange huile moteur : toutes les <strong class="c-accent">50 heures</strong></div>
+                <div style="padding:4px 0;border-bottom:1px solid var(--border)">Inspections 50 h et 100 h : se referer au manuel d'entretien</div>
+                <div style="padding:4px 0;border-bottom:1px solid var(--border)">Huile : SAE 50 (&gt;15&deg;C) ou SAE 40 (-20&deg; a 30&deg;C)</div>
+                <div style="padding:4px 0">Huile freins : MIL.H.5606-A</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+        <div class="card-title">Pressions de gonflage &mdash; Rappel</div>
+        <table class="data-table" style="margin-top:0.75rem">
+            <thead><tr><th></th><th>Avant</th><th>Arriere</th></tr></thead>
+            <tbody>
+                <tr><td>Pneus</td><td class="mono">1,6 bar</td><td class="mono">1,8 bar</td></tr>
+                <tr><td>Amortisseurs</td><td class="mono">4 bars</td><td class="mono">4,5 bars</td></tr>
+                <tr><td>Course amortisseurs</td><td class="mono">160 mm</td><td class="mono">180 mm</td></tr>
+                <tr><td>Course mini restante</td><td class="mono" colspan="2">70 mm</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- CHAPITRE VII : ADDITIFS -->
+<!-- ============================================================ -->
+<div class="section fade-in" id="chap7">
+    <div class="section-header">
+        <div class="section-tag">Chapitre VII</div>
+        <h2 class="section-title">Additifs</h2>
+        <p class="section-desc">Reservoir supplementaire, stabilisateur de roulis, helice Sensenich, VFR nuit</p>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(59,130,246,0.15);color:var(--accent2)">&#9981;</div>
+            <div class="procedure-title">7.1 &mdash; Reservoir supplementaire (option)</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div style="font-size:0.9rem;line-height:2">
+                    <div style="padding:4px 0;border-bottom:1px solid var(--border)">Capacite : <strong class="c-accent">50 L</strong></div>
+                    <div style="padding:4px 0;border-bottom:1px solid var(--border)">Bras de levier : <strong>1,61 m</strong></div>
+                    <div style="padding:4px 0;border-bottom:1px solid var(--border)">Emplacement : dans le coffre a bagages</div>
+                    <div style="padding:4px 0">Utilisation : consommer d'abord le reservoir AR, puis vidanger le supplementaire dans le principal via la tirette dediee.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(168,85,247,0.15);color:var(--purple)">&#127906;</div>
+            <div class="procedure-title">7.2 &mdash; Stabilisateur de roulis (option)</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div style="font-size:0.9rem;line-height:2">
+                    <div style="padding:4px 0;border-bottom:1px solid var(--border)">Type : <strong>EDO-AIRE-MITCHELL CENTURY 1-AK</strong></div>
+                    <div style="padding:4px 0;border-bottom:1px solid var(--border)"><strong class="c-red">Ne pas utiliser au decollage et a l'atterrissage</strong></div>
+                    <div style="padding:4px 0">Peut etre surpasse manuellement a tout moment.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(34,197,94,0.15);color:var(--green)">&#128296;</div>
+            <div class="procedure-title">7.3 &mdash; Helice Sensenich 72 CK S6-0-56</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <div style="font-size:0.9rem;line-height:2">
+                    <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+                        <span>Diametre</span><span class="mono">1,83 m (56")</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+                        <span>Pas</span><span class="mono">1,42 m</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+                        <span>Regime max</span><span class="mono c-red">2800 RPM</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+                        <span>Regime max utilisation normale</span><span class="mono c-green">2700 RPM</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:4px 0">
+                        <span>Regime mini plein gaz mer</span><span class="mono">2220 RPM</span>
+                    </div>
+                </div>
+                <div class="note-box" style="margin-top:1rem">
+                    L'helice Sensenich est requise pour la conformite acoustique (72 dB(A)). Les performances de croisiere different legerement (regimes plus bas). Voir l'onglet "Croisiere Sensenich" dans les performances.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="procedure-card" onclick="toggleProcedure(this)">
+        <div class="procedure-header">
+            <div class="procedure-icon" style="background:rgba(234,179,8,0.15);color:var(--yellow)">&#127769;</div>
+            <div class="procedure-title">7.4 &mdash; VFR Nuit &mdash; Equipements supplementaires requis</div>
+            <div class="procedure-chevron">&#9660;</div>
+        </div>
+        <div class="procedure-body">
+            <div class="procedure-content">
+                <p style="color:var(--text2);margin-bottom:1rem">13 equipements supplementaires requis pour la qualification VFR de nuit :</p>
+                <table class="data-table">
+                    <thead><tr><th>#</th><th>Equipement</th></tr></thead>
+                    <tbody>
+                        <tr><td class="mono">1</td><td>Horizon artificiel</td></tr>
+                        <tr><td class="mono">2</td><td>Bille-aiguille (coordinateur de virage)</td></tr>
+                        <tr><td class="mono">3</td><td>Conservateur de direction (directionnel)</td></tr>
+                        <tr><td class="mono">4</td><td>Variometre</td></tr>
+                        <tr><td class="mono">5</td><td>Feux de position (navigation)</td></tr>
+                        <tr><td class="mono">6</td><td>Feu anti-collision</td></tr>
+                        <tr><td class="mono">7</td><td>2 feux d'atterrissage</td></tr>
+                        <tr><td class="mono">8</td><td>Eclairage du tableau de bord</td></tr>
+                        <tr><td class="mono">9</td><td>Torche electrique</td></tr>
+                        <tr><td class="mono">10</td><td>VHF categorie 2</td></tr>
+                        <tr><td class="mono">11</td><td>VOR categorie 2 ou radio-compas categorie 2</td></tr>
+                        <tr><td class="mono">12</td><td>Plaquette VFR nuit</td></tr>
+                        <tr><td class="mono">13</td><td>Fusibles de rechange</td></tr>
+                    </tbody>
+                </table>
+                <div class="warning-box" style="margin-top:1rem">
+                    <span>&#9888;</span>
+                    <span>Le F-GLDT est certifie <strong>VFR de jour uniquement</strong> en configuration standard. La qualification VFR nuit necessite l'installation de tous les equipements ci-dessus.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="divider">
+
+<!-- ============================================================ -->
+<!-- CALCULATEUR MASSE & CENTRAGE -->
+<!-- ============================================================ -->
+<div class="section fade-in" id="centrage">
+    <div class="section-header">
+        <div class="section-tag">Outil interactif</div>
+        <h2 class="section-title">Calculateur Masse &amp; Centrage</h2>
+        <p class="section-desc">Verifiez que votre chargement est dans l'enveloppe autorisee (donnees specifiques F-GLDT)</p>
+    </div>
+
+    <div class="calc-container">
+        <div class="calc-inputs">
+            <div class="calc-group">
+                <label>Passagers AV (kg)</label>
+                <input type="number" id="cg-pax-av" value="80" min="0" max="200" oninput="calcCG()">
+                <span style="font-size:0.7rem;color:var(--text3)">Bras : +0,41 m</span>
+            </div>
+            <div class="calc-group">
+                <label>Passagers AR (kg)</label>
+                <input type="number" id="cg-pax-ar" value="0" min="0" max="200" oninput="calcCG()">
+                <span style="font-size:0.7rem;color:var(--text3)">Bras : +1,19 m</span>
+            </div>
+            <div class="calc-group">
+                <label>Essence (litres)</label>
+                <input type="number" id="cg-fuel" value="80" min="0" max="110" oninput="calcCG()">
+                <span style="font-size:0.7rem;color:var(--text3)">Bras : +1,12 m | 1 L = 0,72 kg</span>
+            </div>
+            <div class="calc-group">
+                <label>Bagages (kg)</label>
+                <input type="number" id="cg-bag" value="5" min="0" max="40" oninput="calcCG()">
+                <span style="font-size:0.7rem;color:var(--text3)">Bras : +1,9 m | Max 40 kg</span>
+            </div>
+        </div>
+        <div class="calc-result" id="cg-results">
+            <div class="calc-result-card">
+                <div class="calc-result-value" id="cg-total-mass">--</div>
+                <div class="calc-result-label">Masse totale (kg)</div>
+            </div>
+            <div class="calc-result-card">
+                <div class="calc-result-value" id="cg-position">--</div>
+                <div class="calc-result-label">Position CG (m)</div>
+            </div>
+            <div class="calc-result-card">
+                <div class="calc-result-value" id="cg-percent">--</div>
+                <div class="calc-result-label">CG en % corde</div>
+            </div>
+            <div class="calc-result-card">
+                <div class="calc-result-value" id="cg-status">--</div>
+                <div class="calc-result-label">Statut</div>
+            </div>
+        </div>
+
+        <!-- CG ENVELOPE CANVAS -->
+        <canvas id="cgCanvas" class="cg-canvas"></canvas>
+    </div>
+
+    <div style="margin-top:2rem">
+        <div class="card-title" style="margin-bottom:1rem">Limites de centrage &mdash; Reference</div>
+        <table class="data-table">
+            <thead><tr><th>Limite</th><th>Position (m)</th><th>% Corde</th><th>Conditions</th></tr></thead>
+            <tbody>
+                <tr><td><strong class="c-accent">Avant</strong></td><td class="mono">0,205</td><td class="mono">12%</td><td>A 750 kg et en dessous</td></tr>
+                <tr><td><strong class="c-accent">Avant</strong></td><td class="mono">0,428</td><td class="mono">25%</td><td>A 900 kg</td></tr>
+                <tr><td><strong class="c-red">Arriere</strong></td><td class="mono">0,564</td><td class="mono">33%</td><td>Toute masse</td></tr>
+            </tbody>
+        </table>
+        <p style="font-size:0.8rem;color:var(--text3);margin-top:0.5rem">Mise a niveau : longeron superieur fuselage. Reference : bord d'attaque partie rectangulaire aile. Corde : 1,71 m.</p>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <p><strong>DR400/120 F-GLDT</strong> &mdash; Manuel de Vol Approuve &mdash; Edition interactive</p>
+    <p style="margin-top:0.5rem">Constructeur : Avions Pierre Robin &mdash; Certificat de type N&deg;45 du 11/02/1975</p>
+    <p style="margin-top:0.25rem">Moteur : Lycoming O-235-L2A (118 CV) &mdash; Masse a vide : 541 kg &mdash; Centrage a vide : 0,309 m (18%)</p>
+    <p style="margin-top:1rem;color:var(--text3)">Ce document est une aide visuelle. Seul le manuel de vol approuve fait foi.</p>
+</footer>
+
+<script>
+// Scroll to section
+function scrollToSection(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Nav active state
+const navBtns = document.querySelectorAll('.nav-btn');
+const allSections = document.querySelectorAll('.section, .speed-section');
+
+window.addEventListener('scroll', () => {
+    let current = '';
+    allSections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 120) {
+            current = s.id;
+        }
+    });
+    navBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick')?.includes(current)) {
+            btn.classList.add('active');
+        }
+    });
+});
+
+// Tabs
+function showTab(group, tab) {
+    document.querySelectorAll(`[id^="${group}-"]`).forEach(el => el.classList.remove('active'));
+    document.getElementById(`${group}-${tab}`).classList.add('active');
+
+    const tabBar = document.getElementById(`${group}Tabs`);
+    tabBar.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick')?.includes(tab)) btn.classList.add('active');
+    });
+}
+
+// Procedures accordion
+function toggleProcedure(el) {
+    el.classList.toggle('open');
+}
+
+// Lightbox
+function openLightbox(imgEl) {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lightbox-img').src = imgEl.src;
+    lb.classList.add('active');
+}
+
+// CG Calculator
+function calcCG() {
+    const mv = 541;       // masse a vide F-GLDT
+    const cv = 0.309;     // centrage a vide
+    const paxAV = parseFloat(document.getElementById('cg-pax-av').value) || 0;
+    const paxAR = parseFloat(document.getElementById('cg-pax-ar').value) || 0;
+    const fuelL = parseFloat(document.getElementById('cg-fuel').value) || 0;
+    const bag = parseFloat(document.getElementById('cg-bag').value) || 0;
+
+    const fuelKg = fuelL * 0.72;
+    const totalMass = mv + paxAV + paxAR + fuelKg + bag;
+    const totalMoment = (mv * cv) + (paxAV * 0.41) + (paxAR * 1.19) + (fuelKg * 1.12) + (bag * 1.9);
+    const cgPos = totalMoment / totalMass;
+    const cgPercent = (cgPos / 1.71) * 100;
+
+    // Limits from PDF page 2.2
+    let fwdLimit;
+    if (totalMass <= 750) {
+        fwdLimit = 0.205;
+    } else {
+        fwdLimit = 0.205 + (totalMass - 750) / (900 - 750) * (0.428 - 0.205);
+    }
+    const aftLimit = 0.564;
+
+    const massOk = totalMass <= 900;
+    const bagOk = bag <= 40;
+    const cgOk = cgPos >= fwdLimit && cgPos <= aftLimit;
+    const allOk = massOk && bagOk && cgOk;
+
+    document.getElementById('cg-total-mass').textContent = totalMass.toFixed(0);
+    document.getElementById('cg-total-mass').className = `calc-result-value ${totalMass > 900 ? 'c-red' : 'c-accent'}`;
+
+    document.getElementById('cg-position').textContent = cgPos.toFixed(3);
+    document.getElementById('cg-position').className = `calc-result-value ${cgOk ? 'c-accent' : 'c-red'}`;
+
+    document.getElementById('cg-percent').textContent = cgPercent.toFixed(1) + '%';
+
+    const statusEl = document.getElementById('cg-status');
+    if (allOk) {
+        statusEl.textContent = 'OK';
+        statusEl.className = 'calc-result-value c-green';
+        statusEl.style.fontSize = '';
+    } else {
+        let issues = [];
+        if (!massOk) issues.push('MASSE');
+        if (!bagOk) issues.push('BAGAGES');
+        if (!cgOk) issues.push(cgPos < fwdLimit ? 'CG AVANT' : 'CG ARR');
+        statusEl.textContent = issues.join(' + ');
+        statusEl.className = 'calc-result-value c-red';
+        statusEl.style.fontSize = '1rem';
+    }
+
+    // Draw CG envelope
+    drawCGEnvelope(totalMass, cgPos, allOk);
+}
+
+// CG Envelope Drawing
+function drawCGEnvelope(mass, cg, ok) {
+    const canvas = document.getElementById('cgCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = canvas.offsetWidth;
+    const h = canvas.offsetHeight;
+
+    // Clear
+    ctx.fillStyle = '#1a2236';
+    ctx.fillRect(0, 0, w, h);
+
+    // Chart area
+    const pad = { top: 30, right: 30, bottom: 50, left: 60 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+
+    // CG range in meters: 0.1 to 0.65
+    // Mass range: 500 to 950
+    const cgMin = 0.1, cgMax = 0.65;
+    const massMin = 500, massMax = 950;
+
+    function toX(cgVal) { return pad.left + (cgVal - cgMin) / (cgMax - cgMin) * cw; }
+    function toY(massVal) { return pad.top + ch - (massVal - massMin) / (massMax - massMin) * ch; }
+
+    // Grid
+    ctx.strokeStyle = 'rgba(42,58,82,0.5)';
+    ctx.lineWidth = 1;
+    for (let m = 500; m <= 950; m += 50) {
+        ctx.beginPath();
+        ctx.moveTo(pad.left, toY(m));
+        ctx.lineTo(w - pad.right, toY(m));
+        ctx.stroke();
+    }
+    for (let c = 0.1; c <= 0.65; c += 0.05) {
+        ctx.beginPath();
+        ctx.moveTo(toX(c), pad.top);
+        ctx.lineTo(toX(c), h - pad.bottom);
+        ctx.stroke();
+    }
+
+    // Envelope polygon (from PDF page 2.3)
+    // Forward limit: 0.205 at 750kg, 0.428 at 900kg
+    // Aft limit: 0.564 for all masses
+    // Bottom: connect at some reasonable low mass
+    const envelope = [
+        { cg: 0.205, mass: 500 },
+        { cg: 0.205, mass: 750 },
+        { cg: 0.428, mass: 900 },
+        { cg: 0.564, mass: 900 },
+        { cg: 0.564, mass: 500 },
+    ];
+
+    // Fill envelope
+    ctx.fillStyle = 'rgba(34, 197, 94, 0.1)';
+    ctx.strokeStyle = 'rgba(34, 197, 94, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    envelope.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(toX(p.cg), toY(p.mass));
+        else ctx.lineTo(toX(p.cg), toY(p.mass));
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    for (let c = 0.15; c <= 0.6; c += 0.05) {
+        ctx.fillText(c.toFixed(2), toX(c), h - pad.bottom + 20);
+    }
+    ctx.fillText('CG (m)', w / 2, h - 8);
+
+    ctx.textAlign = 'right';
+    for (let m = 500; m <= 950; m += 50) {
+        ctx.fillText(m, pad.left - 8, toY(m) + 4);
+    }
+    ctx.save();
+    ctx.translate(14, h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('Masse (kg)', 0, 0);
+    ctx.restore();
+
+    // % markers along top
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.textAlign = 'center';
+    [12, 15, 20, 25, 30, 33].forEach(pct => {
+        const cgVal = pct / 100 * 1.71;
+        if (cgVal >= cgMin && cgVal <= cgMax) {
+            ctx.fillText(pct + '%', toX(cgVal), pad.top - 8);
+        }
+    });
+
+    // Current point
+    if (mass >= massMin && mass <= massMax && cg >= cgMin && cg <= cgMax) {
+        const px = toX(cg);
+        const py = toY(mass);
+
+        // Glow
+        ctx.beginPath();
+        ctx.arc(px, py, 12, 0, Math.PI * 2);
+        ctx.fillStyle = ok ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+        ctx.fill();
+
+        // Point
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fillStyle = ok ? '#22c55e' : '#ef4444';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${mass.toFixed(0)} kg / ${cg.toFixed(3)} m`, px + 12, py - 5);
+    }
+}
+
+// Fade in on scroll
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Init
+calcCG();
+window.addEventListener('resize', calcCG);
+
+// ============================================================
+// COUNTER ANIMATION (Hero stats count up)
+// ============================================================
+function animateCounters() {
+    document.querySelectorAll('.counter').forEach(counter => {
+        const target = parseInt(counter.dataset.target);
+        const duration = 2000;
+        const start = performance.now();
+        function update(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease out quad
+            const ease = 1 - (1 - progress) * (1 - progress);
+            counter.textContent = Math.floor(ease * target);
+            if (progress < 1) requestAnimationFrame(update);
+            else counter.textContent = target;
+        }
+        requestAnimationFrame(update);
+    });
+}
+
+// ============================================================
+// HERO TICKER ANIMATION (simulated flight data)
+// ============================================================
+function animateTicker() {
+    const altEl = document.getElementById('ticker-alt');
+    const iasEl = document.getElementById('ticker-ias');
+    const hdgEl = document.getElementById('ticker-hdg');
+    const rpmEl = document.getElementById('ticker-rpm');
+    if (!altEl) return;
+
+    let alt = 0, ias = 0, hdg = 0, rpm = 0;
+    const targetAlt = 4500, targetIas = 195, targetHdg = 247, targetRpm = 2650;
+    const duration = 4000;
+    const start = performance.now();
+
+    function update(now) {
+        const elapsed = now - start;
+        const p = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+
+        alt = Math.floor(ease * targetAlt);
+        ias = Math.floor(ease * targetIas);
+        hdg = Math.floor(ease * targetHdg);
+        rpm = Math.floor(ease * targetRpm);
+
+        altEl.textContent = alt.toLocaleString();
+        iasEl.textContent = ias;
+        hdgEl.textContent = String(hdg).padStart(3, '0');
+        rpmEl.textContent = rpm;
+
+        if (p < 1) requestAnimationFrame(update);
+        else {
+            // After reaching target, add subtle fluctuations
+            setInterval(() => {
+                altEl.textContent = (targetAlt + Math.floor(Math.random() * 100 - 50)).toLocaleString();
+                iasEl.textContent = targetIas + Math.floor(Math.random() * 6 - 3);
+                rpmEl.textContent = targetRpm + Math.floor(Math.random() * 20 - 10);
+            }, 1500);
+        }
+    }
+    requestAnimationFrame(update);
+}
+
+// ============================================================
+// GAUGE NEEDLE ANIMATIONS
+// ============================================================
+let gaugeAnimated = {};
+
+function animateGauge(needleId, startAngle, targetProgress) {
+    const needle = document.getElementById(needleId);
+    if (!needle) return;
+
+    // Reset first
+    needle.style.transform = `rotate(${startAngle}deg)`;
+
+    // Animate to target
+    setTimeout(() => {
+        // Map targetProgress (0-1) to angle range (-130 to +130)
+        const targetAngle = -130 + targetProgress * 260;
+        needle.style.transform = `rotate(${targetAngle}deg)`;
+    }, 100);
+}
+
+// Auto-animate gauges when they come into view
+const gaugeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting && !gaugeAnimated[entry.target.id]) {
+            gaugeAnimated[entry.target.id] = true;
+            // Stagger the animations
+            const gauges = entry.target.closest('.gauge-grid');
+            if (gauges) {
+                const cards = gauges.querySelectorAll('.round-gauge-interactive');
+                cards.forEach((card, i) => {
+                    setTimeout(() => {
+                        const needle = card.querySelector('.round-gauge-needle');
+                        if (needle) {
+                            const id = needle.id;
+                            const targets = {
+                                'rpm-needle': 0.5,      // ~2700 RPM
+                                'cht-needle': 0.55,      // ~200°C
+                                'oil-p-needle': 0.45,    // ~5.4 bar
+                                'oil-t-needle': 0.5,     // ~90°C
+                                'fuel-p-needle': 0.35,   // ~0.21 bar
+                                'fuel-q-needle': 0.85    // full tank
+                            };
+                            animateGauge(id, -130, targets[id] || 0.5);
+                        }
+                    }, i * 200);
+                });
+            }
+        }
+    });
+}, { threshold: 0.3 });
+
+// Observe the gauge grid
+setTimeout(() => {
+    const gaugeGrid = document.querySelector('.gauge-grid');
+    if (gaugeGrid) {
+        gaugeGrid.id = 'gauge-grid-observer';
+        gaugeObserver.observe(gaugeGrid);
+    }
+}, 100);
+
+// ============================================================
+// SPEED BAR HOVER TOOLTIPS (enhanced interactivity)
+// ============================================================
+document.querySelectorAll('.speed-segment').forEach(seg => {
+    seg.addEventListener('mouseenter', function() {
+        this.style.filter = 'brightness(1.3)';
+        this.style.transform = 'scaleY(1.15)';
+        this.style.zIndex = '5';
+    });
+    seg.addEventListener('mouseleave', function() {
+        this.style.filter = '';
+        this.style.transform = '';
+        this.style.zIndex = '';
+    });
+});
+
+// ============================================================
+// PERFORMANCE TABLE ROW HIGHLIGHT
+// ============================================================
+document.querySelectorAll('.data-table tbody tr').forEach(row => {
+    row.addEventListener('mouseenter', function() {
+        this.style.background = 'rgba(59,130,246,0.08)';
+        this.querySelectorAll('.mono').forEach(cell => {
+            cell.style.color = '#fff';
+            cell.style.transition = 'color 0.2s';
+        });
+    });
+    row.addEventListener('mouseleave', function() {
+        this.style.background = '';
+        this.querySelectorAll('.mono').forEach(cell => {
+            cell.style.color = '';
+        });
+    });
+});
+
+// ============================================================
+// START ANIMATIONS ON PAGE LOAD
+// ============================================================
+window.addEventListener('load', () => {
+    // Small delay for dramatic effect
+    setTimeout(animateCounters, 500);
+    setTimeout(animateTicker, 1000);
+});
+
+// ============================================================
+// PARALLAX EFFECT ON HERO
+// ============================================================
+window.addEventListener('scroll', () => {
+    const hero = document.querySelector('.hero');
+    const video = document.querySelector('.hero-video');
+    if (hero && video) {
+        const scroll = window.scrollY;
+        const heroH = hero.offsetHeight;
+        if (scroll < heroH) {
+            video.style.transform = `translateY(${scroll * 0.3}px) scale(${1 + scroll * 0.0003})`;
+            const content = document.querySelector('.hero-content');
+            if (content) {
+                content.style.transform = `translateY(${scroll * 0.15}px)`;
+                content.style.opacity = 1 - scroll / heroH;
+            }
+        }
+    }
+});
+
+// ============================================================
+// PROCEDURE CARDS - add smooth transition sound effect
+// ============================================================
+document.querySelectorAll('.procedure-header').forEach(header => {
+    header.addEventListener('click', function() {
+        // Add a brief highlight effect
+        this.style.background = 'rgba(59,130,246,0.1)';
+        setTimeout(() => { this.style.background = ''; }, 300);
+    });
+});
+
+// ============================================================
+// NAV SCROLL SPY (enhanced)
+// ============================================================
+const navBtns = document.querySelectorAll('.nav-btn');
+const allSections = document.querySelectorAll('[id^="chap"], #centrage');
+
+window.addEventListener('scroll', () => {
+    let current = '';
+    allSections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 120) {
+            current = s.id;
+        }
+    });
+    navBtns.forEach(btn => {
+        btn.classList.remove('active');
+        const onclick = btn.getAttribute('onclick');
+        if (onclick && onclick.includes(current)) {
+            btn.classList.add('active');
+        }
+    });
+});
+</script>
+
+</body>
+</html>
