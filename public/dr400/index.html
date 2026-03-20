@@ -1232,12 +1232,12 @@
     <strong style="color:var(--yellow)">Nota :</strong> Cet appareil est equipe d'un moteur de <strong style="color:var(--white)">118 CV</strong> (plaquette page 7.8c). La designation commerciale reste DR400/120.</p>
 
     <div class="gauge-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-        <div class="gauge-card"><canvas id="gauge-rpm" width="180" height="140"></canvas><div class="gauge-label">TACHYMETRE</div></div>
-        <div class="gauge-card"><canvas id="gauge-cht" width="180" height="140"></canvas><div class="gauge-label">TEMP CULASSES</div></div>
-        <div class="gauge-card"><canvas id="gauge-oilp" width="180" height="140"></canvas><div class="gauge-label">PRESSION HUILE</div></div>
-        <div class="gauge-card"><canvas id="gauge-oilt" width="180" height="140"></canvas><div class="gauge-label">TEMP HUILE</div></div>
-        <div class="gauge-card"><canvas id="gauge-fuelp" width="180" height="140"></canvas><div class="gauge-label">PRESSION ESSENCE</div></div>
-        <div class="gauge-card"><canvas id="gauge-fuelq" width="180" height="140"></canvas><div class="gauge-label">RESERVOIR</div></div>
+        <div class="gauge-card"><canvas id="gauge-rpm" width="220" height="160"></canvas><div class="gauge-label">TACHYMETRE</div></div>
+        <div class="gauge-card"><canvas id="gauge-cht" width="220" height="160"></canvas><div class="gauge-label">TEMP CULASSES</div></div>
+        <div class="gauge-card"><canvas id="gauge-oilp" width="220" height="160"></canvas><div class="gauge-label">PRESSION HUILE</div></div>
+        <div class="gauge-card"><canvas id="gauge-oilt" width="220" height="160"></canvas><div class="gauge-label">TEMP HUILE</div></div>
+        <div class="gauge-card"><canvas id="gauge-fuelp" width="220" height="160"></canvas><div class="gauge-label">PRESSION ESSENCE</div></div>
+        <div class="gauge-card"><canvas id="gauge-fuelq" width="220" height="160"></canvas><div class="gauge-label">RESERVOIR</div></div>
     </div>
 
     <div style="margin-top:1rem" class="grid grid-2">
@@ -2709,27 +2709,32 @@ function drawGauge(canvasId, config) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const w = canvas.width, h = canvas.height;
-    const cx = w / 2, cy = h - 10;
-    const r = 70;
-    const startAngle = Math.PI * 1.15;
-    const endAngle = Math.PI * -0.15;
-    const sweep = startAngle - endAngle;
+    const cx = w / 2, cy = h - 14;
+    const r = 80;
+    const arcStart = Math.PI + 0.3;
+    const arcSweep = Math.PI + 0.6;
 
     ctx.clearRect(0, 0, w, h);
 
+    // Gauge face (dark circle background)
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 18, Math.PI, 0, false);
+    ctx.fillStyle = '#0d1117';
+    ctx.fill();
+
     // Background arc
     ctx.beginPath();
-    ctx.arc(cx, cy, r, Math.PI + 0.3, -0.3, false);
-    ctx.strokeStyle = '#1a2236';
+    ctx.arc(cx, cy, r, arcStart, arcStart + arcSweep, false);
+    ctx.strokeStyle = '#222';
     ctx.lineWidth = 14;
-    ctx.lineCap = 'round';
+    ctx.lineCap = 'butt';
     ctx.stroke();
 
     // Color arcs
     if (config.zones) {
         config.zones.forEach(zone => {
-            const a1 = Math.PI + 0.3 + (Math.PI + 0.6) * zone.from;
-            const a2 = Math.PI + 0.3 + (Math.PI + 0.6) * zone.to;
+            const a1 = arcStart + arcSweep * zone.from;
+            const a2 = arcStart + arcSweep * zone.to;
             ctx.beginPath();
             ctx.arc(cx, cy, r, a1, a2, false);
             ctx.strokeStyle = zone.color;
@@ -2739,42 +2744,102 @@ function drawGauge(canvasId, config) {
         });
     }
 
-    // Tick marks
-    ctx.fillStyle = '#64748b';
-    ctx.font = '10px JetBrains Mono, monospace';
+    // Graduation marks (small lines around the arc)
+    const numTicks = config.graduations || 10;
+    for (let i = 0; i <= numTicks; i++) {
+        const t = i / numTicks;
+        const a = arcStart + arcSweep * t;
+        const isMajor = (i % (numTicks / 5) === 0) || i === 0 || i === numTicks;
+        const innerR = r - 7 - (isMajor ? 4 : 0);
+        const outerR = r - 7;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * innerR, cy + Math.sin(a) * innerR);
+        ctx.lineTo(cx + Math.cos(a) * outerR, cy + Math.sin(a) * outerR);
+        ctx.strokeStyle = isMajor ? '#aaa' : '#555';
+        ctx.lineWidth = isMajor ? 2 : 1;
+        ctx.stroke();
+    }
+
+    // Tick labels
+    ctx.font = '9px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     if (config.ticks) {
         config.ticks.forEach(tick => {
-            const a = Math.PI + 0.3 + (Math.PI + 0.6) * tick.pos;
-            const tx = cx + Math.cos(a) * (r + 16);
-            const ty = cy + Math.sin(a) * (r + 16);
+            const a = arcStart + arcSweep * tick.pos;
+            const tx = cx + Math.cos(a) * (r + 14);
+            const ty = cy + Math.sin(a) * (r + 14);
             ctx.fillStyle = tick.color || '#64748b';
             ctx.fillText(tick.label, tx, ty);
         });
     }
 
-    // Needle
+    // Needle - realistic triangular with shadow & counterweight
     const needleAngle = Math.PI + 0.3 + (Math.PI + 0.6) * config.value;
-    const needleLen = r - 8;
-    const nx = cx + Math.cos(needleAngle) * needleLen;
-    const ny = cy + Math.sin(needleAngle) * needleLen;
+    const needleLen = r - 6;
+    const counterLen = 14;
+    const halfWidth = 4;
+    const tipX = cx + Math.cos(needleAngle) * needleLen;
+    const tipY = cy + Math.sin(needleAngle) * needleLen;
+    const backX = cx - Math.cos(needleAngle) * counterLen;
+    const backY = cy - Math.sin(needleAngle) * counterLen;
+    const perpX = Math.cos(needleAngle + Math.PI / 2);
+    const perpY = Math.sin(needleAngle + Math.PI / 2);
 
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(nx, ny);
-    ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.stroke();
+    // Shadow
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
 
-    // Center dot
+    // Needle body (tapered triangle)
     ctx.beginPath();
-    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#1a2236';
-    ctx.strokeStyle = '#2a3a52';
-    ctx.lineWidth = 2;
+    ctx.moveTo(tipX, tipY); // sharp tip
+    ctx.lineTo(cx + perpX * halfWidth, cy + perpY * halfWidth);
+    ctx.lineTo(backX + perpX * (halfWidth + 2), backY + perpY * (halfWidth + 2));
+    ctx.lineTo(backX - perpX * (halfWidth + 2), backY - perpY * (halfWidth + 2));
+    ctx.lineTo(cx - perpX * halfWidth, cy - perpY * halfWidth);
+    ctx.closePath();
+
+    // Gradient fill
+    const grad = ctx.createLinearGradient(backX, backY, tipX, tipY);
+    grad.addColorStop(0, '#666');
+    grad.addColorStop(0.3, '#ef4444');
+    grad.addColorStop(0.7, '#dc2626');
+    grad.addColorStop(1, '#b91c1c');
+    ctx.fillStyle = grad;
     ctx.fill();
+
+    // Thin white line down the center for 3D effect
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(needleAngle) * 8, cy + Math.sin(needleAngle) * 8);
+    ctx.lineTo(tipX - Math.cos(needleAngle) * 4, tipY - Math.sin(needleAngle) * 4);
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 1;
     ctx.stroke();
+
+    ctx.restore();
+
+    // Center cap (metallic look)
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, 9, 0, Math.PI * 2);
+    const capGrad = ctx.createRadialGradient(cx - 2, cy - 2, 1, cx, cy, 9);
+    capGrad.addColorStop(0, '#555');
+    capGrad.addColorStop(0.5, '#333');
+    capGrad.addColorStop(1, '#111');
+    ctx.fillStyle = capGrad;
+    ctx.fill();
+    ctx.strokeStyle = '#555';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Inner dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#888';
+    ctx.fill();
 
     // Value text
     ctx.fillStyle = '#f8fafc';
