@@ -105,9 +105,11 @@ Organisation fidele aux 7 chapitres du manuel de vol :
 - **Video hero** : fond video aerien avec parallax au scroll, overlay gradient
 - **Compteurs animes** : les 4 stats (118cv, 900kg, 308km/h, 4h) comptent de 0 a la cible au chargement
 - **Ticker de vol simule** : barre ALT/IAS/HDG/RPM avec fluctuations realistes
-- **6 jauges rondes SVG** : tachymetre, temp culasses, pression huile, temp huile, pression essence, reservoir. Aiguilles animees au scroll + cliquables pour relancer l'animation
+- **6 jauges Canvas** : tachymetre, temp culasses, pression huile, temp huile, pression essence, reservoir. Aiguilles triangulaires realistes avec ombre, degrade, contrepoids, centre metallique. Graduations physiques (traits majeurs/mineurs). Animation au scroll (2.5s ease-out)
 - **Barre anemometre** : segments hover avec zoom sur arc blanc/vert/jaune/rouge
-- **Calculateur masse & centrage** : 4 inputs (pax AV, pax AR, essence, bagages), calcul temps reel masse totale + position CG + statut OK/hors limites. Canvas enveloppe CG avec point positionne
+- **Calculateur masse & centrage** : 4 inputs chargement (pax AV, pax AR, essence, bagages) + calcul temps reel masse totale, position CG, % corde, statut OK/hors limites. Canvas enveloppe CG avec point positionne
+- **Calculateur performances** : temperature OAT, altitude terrain, type de piste (dur/herbe), vent de face. Calcul automatique altitude densite, ecart ISA, distance decollage/atterrissage (interpolation 3D depuis tableaux POH), autonomie, Vref ajustee a la masse. Options : marge securite +30%, piste humide +15%
+- **Fiches aerodromes** : ajout dynamique d'aerodromes (nom, altitude, type piste). Deux tableaux auto-calcules : DECOLLAGE (DF 15m, +30%, Roulage, +30%) et ATTERRISSAGE (idem). Toutes les valeurs se recalculent en temps reel quand on modifie la masse, la temperature, le vent ou les options. Interpolation altitude x temperature x masse depuis les 18 points du dossier de vol. Corrections vent (10/20/30 kt), herbe (+15%), humide (+15%) appliquees automatiquement
 - **Accordeons procedures** : clic pour ouvrir/fermer avec chevron anime
 - **Lightbox images** : clic sur les images PDF pour zoom plein ecran
 - **Tableaux interactifs** : highlight des lignes au survol
@@ -127,6 +129,7 @@ Organisation fidele aux 7 chapitres du manuel de vol :
 | `debattements.webp` | Debattements gouvernes (ailerons, profondeur, direction, volets) | 110 KB |
 | `plaquettes-1.webp` | Plaquettes obligatoires cockpit | 134 KB |
 | `plaquettes-2.webp` | Plaquettes obligatoires (suite) | 189 KB |
+| `perfo-dossier-vol.webp` | Tableaux performances dossier de vol (decollage + atterrissage) | 77 KB |
 
 ### Fichiers
 
@@ -142,9 +145,10 @@ public/dr400/
   debattements.webp
   plaquettes-1.webp
   plaquettes-2.webp
+  perfo-dossier-vol.webp
 ```
 
-Total : **~1.3 MB**. Page statique pure, zero JS framework, zero API call. Compatible Vercel freemium.
+Total : **~1.4 MB**. Page statique pure, zero JS framework, zero API call. Compatible Vercel freemium.
 
 ## Dev
 
