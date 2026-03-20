@@ -1219,121 +1219,14 @@
     <p style="color:var(--text2);margin-bottom:1rem">Lycoming O-235-L2A &mdash; 4 cylindres opposes a plat, prise directe, refroidissement par air.<br>
     <strong style="color:var(--yellow)">Nota :</strong> Cet appareil est equipe d'un moteur de <strong style="color:var(--white)">118 CV</strong> (plaquette page 7.8c). La designation commerciale reste DR400/120.</p>
 
-    <div class="gauge-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-        <!-- RPM Gauge - Interactive round -->
-        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('rpm-needle', -130, 0.5)" title="Cliquez pour simuler">
-            <div class="round-gauge-container">
-                <svg class="round-gauge-svg" viewBox="0 0 180 180">
-                    <!-- Background arc -->
-                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
-                    <!-- Green arc (2000-2700) -->
-                    <path d="M 25 145 A 72 72 0 0 1 148 60" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="80"/>
-                    <!-- Red arc (2700-2800) -->
-                    <path d="M 148 60 A 72 72 0 0 1 155 145" class="round-gauge-red" stroke-dasharray="340" stroke-dashoffset="290"/>
-                    <!-- Tick marks -->
-                    <text x="18" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">0</text>
-                    <text x="14" y="80" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">1400</text>
-                    <text x="75" y="22" fill="var(--green)" font-size="9" font-family="JetBrains Mono" font-weight="700">2700</text>
-                    <text x="148" y="80" fill="var(--red)" font-size="9" font-family="JetBrains Mono" font-weight="700">2800</text>
-                    <!-- Needle -->
-                    <polygon id="rpm-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
-                    <!-- Center -->
-                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
-                </svg>
-                <div class="round-gauge-value-display" id="rpm-display">2700</div>
-                <div class="round-gauge-label">TACHYMETRE (t/mn)</div>
-            </div>
-        </div>
-
-        <!-- CHT Gauge -->
-        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('cht-needle', -60, 0.7)" title="Cliquez pour simuler">
-            <div class="round-gauge-container">
-                <svg class="round-gauge-svg" viewBox="0 0 180 180">
-                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
-                    <path d="M 25 145 A 72 72 0 0 1 130 35" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="100"/>
-                    <path d="M 130 35 A 72 72 0 0 1 155 145" class="round-gauge-red" stroke-dasharray="340" stroke-dashoffset="260"/>
-                    <text x="20" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">50</text>
-                    <text x="60" y="22" fill="var(--green)" font-size="9" font-family="JetBrains Mono" font-weight="700">200</text>
-                    <text x="140" y="90" fill="var(--red)" font-size="9" font-family="JetBrains Mono" font-weight="700">260</text>
-                    <polygon id="cht-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
-                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
-                </svg>
-                <div class="round-gauge-value-display">260&deg;C</div>
-                <div class="round-gauge-label">TEMP CULASSES</div>
-            </div>
-        </div>
-
-        <!-- Oil Pressure Gauge -->
-        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('oil-p-needle', -40, 0.6)" title="Cliquez pour simuler">
-            <div class="round-gauge-container">
-                <svg class="round-gauge-svg" viewBox="0 0 180 180">
-                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
-                    <path d="M 65 30 A 72 72 0 0 1 140 42" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="230"/>
-                    <text x="20" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">0</text>
-                    <text x="55" y="22" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">4,5</text>
-                    <text x="118" y="22" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">6,3</text>
-                    <text x="150" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">10</text>
-                    <polygon id="oil-p-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
-                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
-                </svg>
-                <div class="round-gauge-value-display c-green">5,4</div>
-                <div class="round-gauge-label">PRESSION HUILE (bar)</div>
-            </div>
-        </div>
-
-        <!-- Oil Temp Gauge -->
-        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('oil-t-needle', -50, 0.65)" title="Cliquez pour simuler">
-            <div class="round-gauge-container">
-                <svg class="round-gauge-svg" viewBox="0 0 180 180">
-                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
-                    <path d="M 25 145 A 72 72 0 0 1 120 32" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="110"/>
-                    <path d="M 120 32 A 72 72 0 0 1 155 145" class="round-gauge-red" stroke-dasharray="340" stroke-dashoffset="250"/>
-                    <text x="20" y="155" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">0</text>
-                    <text x="75" y="22" fill="var(--green)" font-size="9" font-family="JetBrains Mono">90</text>
-                    <text x="140" y="80" fill="var(--red)" font-size="10" font-family="JetBrains Mono" font-weight="700">118</text>
-                    <polygon id="oil-t-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
-                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
-                </svg>
-                <div class="round-gauge-value-display c-orange">118&deg;C</div>
-                <div class="round-gauge-label">TEMP HUILE (max)</div>
-            </div>
-        </div>
-
-        <!-- Fuel Pressure -->
-        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('fuel-p-needle', -70, 0.5)" title="Cliquez pour simuler">
-            <div class="round-gauge-container">
-                <svg class="round-gauge-svg" viewBox="0 0 180 180">
-                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
-                    <path d="M 45 45 A 72 72 0 0 1 90 18" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="260"/>
-                    <text x="20" y="155" fill="var(--red)" font-size="9" font-family="JetBrains Mono" font-weight="700">0,035</text>
-                    <text x="65" y="22" fill="var(--green)" font-size="9" font-family="JetBrains Mono" font-weight="700">0,210</text>
-                    <text x="140" y="100" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">0,560</text>
-                    <polygon id="fuel-p-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
-                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
-                </svg>
-                <div class="round-gauge-value-display c-cyan">0,210</div>
-                <div class="round-gauge-label">PRESSION ESSENCE (bar)</div>
-            </div>
-        </div>
-
-        <!-- Fuel Quantity -->
-        <div class="gauge-card round-gauge-interactive" onclick="animateGauge('fuel-q-needle', -20, 0.8)" title="Cliquez pour simuler">
-            <div class="round-gauge-container">
-                <svg class="round-gauge-svg" viewBox="0 0 180 180">
-                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-bg"/>
-                    <path d="M 25 145 A 72 72 0 1 1 155 145" class="round-gauge-green" stroke-dasharray="340" stroke-dashoffset="50"/>
-                    <text x="15" y="155" fill="var(--red)" font-size="10" font-family="JetBrains Mono" font-weight="700">E</text>
-                    <text x="85" y="20" fill="var(--text3)" font-size="9" font-family="JetBrains Mono">55L</text>
-                    <text x="150" y="155" fill="var(--green)" font-size="10" font-family="JetBrains Mono" font-weight="700">F</text>
-                    <polygon id="fuel-q-needle" points="88,90 92,90 91,25 89,25" class="round-gauge-needle" style="transform:rotate(-130deg)"/>
-                    <circle cx="90" cy="90" r="8" class="round-gauge-center"/>
-                </svg>
-                <div class="round-gauge-value-display">110<span style="font-size:0.8rem">L</span></div>
-                <div class="round-gauge-label">RESERVOIR PRINCIPAL</div>
-            </div>
-        </div>
+    <div class="gauge-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        <div class="gauge-card"><canvas id="gauge-rpm" width="180" height="140"></canvas><div class="gauge-label">TACHYMETRE</div></div>
+        <div class="gauge-card"><canvas id="gauge-cht" width="180" height="140"></canvas><div class="gauge-label">TEMP CULASSES</div></div>
+        <div class="gauge-card"><canvas id="gauge-oilp" width="180" height="140"></canvas><div class="gauge-label">PRESSION HUILE</div></div>
+        <div class="gauge-card"><canvas id="gauge-oilt" width="180" height="140"></canvas><div class="gauge-label">TEMP HUILE</div></div>
+        <div class="gauge-card"><canvas id="gauge-fuelp" width="180" height="140"></canvas><div class="gauge-label">PRESSION ESSENCE</div></div>
+        <div class="gauge-card"><canvas id="gauge-fuelq" width="180" height="140"></canvas><div class="gauge-label">RESERVOIR</div></div>
     </div>
-    <p style="text-align:center;color:var(--text3);font-size:0.75rem;margin-top:0.5rem">&#9432; Cliquez sur les jauges pour simuler une mise en route</p>
 
     <div style="margin-top:1rem" class="grid grid-2">
         <div class="card">
@@ -2797,63 +2690,217 @@ function animateTicker() {
 }
 
 // ============================================================
-// GAUGE NEEDLE ANIMATIONS
+// CANVAS GAUGES (reliable rendering)
 // ============================================================
-let gaugeAnimated = {};
+function drawGauge(canvasId, config) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const cx = w / 2, cy = h - 10;
+    const r = 70;
+    const startAngle = Math.PI * 1.15;
+    const endAngle = Math.PI * -0.15;
+    const sweep = startAngle - endAngle;
 
-function animateGauge(needleId, startAngle, targetProgress) {
-    const needle = document.getElementById(needleId);
-    if (!needle) return;
+    ctx.clearRect(0, 0, w, h);
 
-    // Reset first
-    needle.style.transform = `rotate(${startAngle}deg)`;
+    // Background arc
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, Math.PI + 0.3, -0.3, false);
+    ctx.strokeStyle = '#1a2236';
+    ctx.lineWidth = 14;
+    ctx.lineCap = 'round';
+    ctx.stroke();
 
-    // Animate to target
-    setTimeout(() => {
-        // Map targetProgress (0-1) to angle range (-130 to +130)
-        const targetAngle = -130 + targetProgress * 260;
-        needle.style.transform = `rotate(${targetAngle}deg)`;
-    }, 100);
+    // Color arcs
+    if (config.zones) {
+        config.zones.forEach(zone => {
+            const a1 = Math.PI + 0.3 + (Math.PI + 0.6) * zone.from;
+            const a2 = Math.PI + 0.3 + (Math.PI + 0.6) * zone.to;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, a1, a2, false);
+            ctx.strokeStyle = zone.color;
+            ctx.lineWidth = 14;
+            ctx.lineCap = 'butt';
+            ctx.stroke();
+        });
+    }
+
+    // Tick marks
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.textAlign = 'center';
+    if (config.ticks) {
+        config.ticks.forEach(tick => {
+            const a = Math.PI + 0.3 + (Math.PI + 0.6) * tick.pos;
+            const tx = cx + Math.cos(a) * (r + 16);
+            const ty = cy + Math.sin(a) * (r + 16);
+            ctx.fillStyle = tick.color || '#64748b';
+            ctx.fillText(tick.label, tx, ty);
+        });
+    }
+
+    // Needle
+    const needleAngle = Math.PI + 0.3 + (Math.PI + 0.6) * config.value;
+    const needleLen = r - 8;
+    const nx = cx + Math.cos(needleAngle) * needleLen;
+    const ny = cy + Math.sin(needleAngle) * needleLen;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(nx, ny);
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#1a2236';
+    ctx.strokeStyle = '#2a3a52';
+    ctx.lineWidth = 2;
+    ctx.fill();
+    ctx.stroke();
+
+    // Value text
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 16px JetBrains Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(config.display, cx, cy - 22);
+
+    // Unit
+    if (config.unit) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px Inter, sans-serif';
+        ctx.fillText(config.unit, cx, cy - 8);
+    }
 }
 
-// Auto-animate gauges when they come into view
+function drawAllGauges(progress) {
+    const p = typeof progress === 'number' ? progress : 1;
+
+    drawGauge('gauge-rpm', {
+        value: 0.75 * p,
+        display: Math.round(2700 * p) + '',
+        unit: 't/mn',
+        zones: [
+            { from: 0, to: 0.71, color: '#22c55e' },
+            { from: 0.71, to: 0.82, color: '#eab308' },
+            { from: 0.82, to: 1, color: '#ef4444' }
+        ],
+        ticks: [
+            { pos: 0, label: '0', color: '#64748b' },
+            { pos: 0.36, label: '1400' },
+            { pos: 0.71, label: '2700', color: '#22c55e' },
+            { pos: 1, label: '2800', color: '#ef4444' }
+        ]
+    });
+
+    drawGauge('gauge-cht', {
+        value: 0.65 * p,
+        display: Math.round(200 * p) + '°C',
+        unit: 'max 260°C',
+        zones: [
+            { from: 0, to: 0.75, color: '#22c55e' },
+            { from: 0.75, to: 1, color: '#ef4444' }
+        ],
+        ticks: [
+            { pos: 0, label: '50' },
+            { pos: 0.75, label: '200', color: '#22c55e' },
+            { pos: 1, label: '260', color: '#ef4444' }
+        ]
+    });
+
+    drawGauge('gauge-oilp', {
+        value: 0.54 * p,
+        display: (5.4 * p).toFixed(1),
+        unit: 'bar (4,5-6,3)',
+        zones: [
+            { from: 0, to: 0.17, color: '#ef4444' },
+            { from: 0.45, to: 0.63, color: '#22c55e' },
+            { from: 0.85, to: 1, color: '#ef4444' }
+        ],
+        ticks: [
+            { pos: 0, label: '0' },
+            { pos: 0.17, label: '1,75', color: '#ef4444' },
+            { pos: 0.45, label: '4,5', color: '#22c55e' },
+            { pos: 0.63, label: '6,3', color: '#22c55e' },
+            { pos: 1, label: '10' }
+        ]
+    });
+
+    drawGauge('gauge-oilt', {
+        value: 0.55 * p,
+        display: Math.round(85 * p) + '°C',
+        unit: 'max 118°C',
+        zones: [
+            { from: 0, to: 0.7, color: '#22c55e' },
+            { from: 0.7, to: 0.85, color: '#eab308' },
+            { from: 0.85, to: 1, color: '#ef4444' }
+        ],
+        ticks: [
+            { pos: 0, label: '0' },
+            { pos: 0.7, label: '90', color: '#22c55e' },
+            { pos: 1, label: '118', color: '#ef4444' }
+        ]
+    });
+
+    drawGauge('gauge-fuelp', {
+        value: 0.38 * p,
+        display: (0.21 * p).toFixed(3),
+        unit: 'bar',
+        zones: [
+            { from: 0, to: 0.06, color: '#ef4444' },
+            { from: 0.3, to: 0.5, color: '#22c55e' },
+        ],
+        ticks: [
+            { pos: 0.06, label: '0,035', color: '#ef4444' },
+            { pos: 0.38, label: '0,210', color: '#22c55e' },
+            { pos: 1, label: '0,560' }
+        ]
+    });
+
+    drawGauge('gauge-fuelq', {
+        value: 0.9 * p,
+        display: Math.round(110 * p) + 'L',
+        unit: '/ 110 L',
+        zones: [
+            { from: 0, to: 0.15, color: '#ef4444' },
+            { from: 0.15, to: 0.3, color: '#eab308' },
+            { from: 0.3, to: 1, color: '#22c55e' }
+        ],
+        ticks: [
+            { pos: 0, label: 'E', color: '#ef4444' },
+            { pos: 0.5, label: '55L' },
+            { pos: 1, label: 'F', color: '#22c55e' }
+        ]
+    });
+}
+
+// Animate gauges when visible
 const gaugeObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-        if (entry.isIntersecting && !gaugeAnimated[entry.target.id]) {
-            gaugeAnimated[entry.target.id] = true;
-            // Stagger the animations
-            const gauges = entry.target.closest('.gauge-grid');
-            if (gauges) {
-                const cards = gauges.querySelectorAll('.round-gauge-interactive');
-                cards.forEach((card, i) => {
-                    setTimeout(() => {
-                        const needle = card.querySelector('.round-gauge-needle');
-                        if (needle) {
-                            const id = needle.id;
-                            const targets = {
-                                'rpm-needle': 0.5,      // ~2700 RPM
-                                'cht-needle': 0.55,      // ~200°C
-                                'oil-p-needle': 0.45,    // ~5.4 bar
-                                'oil-t-needle': 0.5,     // ~90°C
-                                'fuel-p-needle': 0.35,   // ~0.21 bar
-                                'fuel-q-needle': 0.85    // full tank
-                            };
-                            animateGauge(id, -130, targets[id] || 0.5);
-                        }
-                    }, i * 200);
-                });
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+            entry.target.dataset.animated = '1';
+            const start = performance.now();
+            const duration = 2000;
+            function tick(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const ease = 1 - Math.pow(1 - p, 3);
+                drawAllGauges(ease);
+                if (p < 1) requestAnimationFrame(tick);
             }
+            requestAnimationFrame(tick);
         }
     });
 }, { threshold: 0.3 });
 
-// Observe the gauge grid
 setTimeout(() => {
-    const gaugeGrid = document.querySelector('.gauge-grid');
-    if (gaugeGrid) {
-        gaugeGrid.id = 'gauge-grid-observer';
-        gaugeObserver.observe(gaugeGrid);
-    }
+    const gg = document.querySelector('.gauge-grid');
+    if (gg) gaugeObserver.observe(gg);
+    drawAllGauges(0);
 }, 100);
 
 // ============================================================
