@@ -2341,23 +2341,104 @@
                 <span style="font-size:0.7rem;color:var(--text3)">Bras : +1,9 m | Max 40 kg</span>
             </div>
         </div>
-        <div class="calc-result" id="cg-results">
-            <div class="calc-result-card">
-                <div class="calc-result-value" id="cg-total-mass">--</div>
-                <div class="calc-result-label">Masse totale (kg)</div>
+
+        <!-- METEO & TERRAIN -->
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+            <div style="font-weight:700;color:var(--white);margin-bottom:0.75rem;display:flex;align-items:center;gap:8px">
+                <span style="font-size:1.2rem">&#127777;</span> Conditions du jour &amp; terrain
             </div>
-            <div class="calc-result-card">
-                <div class="calc-result-value" id="cg-position">--</div>
-                <div class="calc-result-label">Position CG (m)</div>
+            <div class="calc-inputs" style="margin-bottom:0">
+                <div class="calc-group">
+                    <label>Temperature OAT (&deg;C)</label>
+                    <input type="number" id="cg-temp" value="15" min="-30" max="50" oninput="calcCG()">
+                    <span style="font-size:0.7rem;color:var(--text3)">ISA = 15&deg;C au niveau mer</span>
+                </div>
+                <div class="calc-group">
+                    <label>Altitude terrain (ft)</label>
+                    <input type="number" id="cg-elev" value="0" min="0" max="10000" step="100" oninput="calcCG()">
+                    <span style="font-size:0.7rem;color:var(--text3)">Elevation du terrain de depart</span>
+                </div>
+                <div class="calc-group">
+                    <label>Type de piste</label>
+                    <select id="cg-runway" oninput="calcCG()">
+                        <option value="hard">Piste en dur (beton/bitume)</option>
+                        <option value="grass">Piste en herbe</option>
+                    </select>
+                </div>
+                <div class="calc-group">
+                    <label>Vent de face (kt)</label>
+                    <input type="number" id="cg-wind" value="0" min="0" max="30" oninput="calcCG()">
+                    <span style="font-size:0.7rem;color:var(--text3)">Composante de face uniquement</span>
+                </div>
             </div>
-            <div class="calc-result-card">
-                <div class="calc-result-value" id="cg-percent">--</div>
-                <div class="calc-result-label">CG en % corde</div>
+        </div>
+
+        <!-- RESULTATS MASSE & CG -->
+        <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+            <div style="font-weight:700;color:var(--white);margin-bottom:0.75rem">Masse &amp; Centrage</div>
+            <div class="calc-result" id="cg-results">
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="cg-total-mass">--</div>
+                    <div class="calc-result-label">Masse totale (kg)</div>
+                </div>
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="cg-position">--</div>
+                    <div class="calc-result-label">Position CG (m)</div>
+                </div>
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="cg-percent">--</div>
+                    <div class="calc-result-label">CG en % corde</div>
+                </div>
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="cg-status">--</div>
+                    <div class="calc-result-label">Statut</div>
+                </div>
             </div>
-            <div class="calc-result-card">
-                <div class="calc-result-value" id="cg-status">--</div>
-                <div class="calc-result-label">Statut</div>
+        </div>
+
+        <!-- RESULTATS PERFORMANCES ESTIMEES -->
+        <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+            <div style="font-weight:700;color:var(--white);margin-bottom:0.75rem;display:flex;align-items:center;gap:8px">
+                <span style="font-size:1.2rem">&#9992;</span> Performances estimees
             </div>
+            <div class="calc-result">
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="perf-da" style="font-size:1.5rem">--</div>
+                    <div class="calc-result-label">Altitude densite (ft)</div>
+                </div>
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="perf-isa" style="font-size:1.5rem">--</div>
+                    <div class="calc-result-label">Ecart ISA</div>
+                </div>
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="perf-tkoff" style="font-size:1.5rem">--</div>
+                    <div class="calc-result-label">Distance decollage (m)</div>
+                </div>
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="perf-ldg" style="font-size:1.5rem">--</div>
+                    <div class="calc-result-label">Distance atterrissage (m)</div>
+                </div>
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="perf-endurance" style="font-size:1.5rem">--</div>
+                    <div class="calc-result-label">Autonomie estimee</div>
+                </div>
+                <div class="calc-result-card">
+                    <div class="calc-result-value" id="perf-vref" style="font-size:1.5rem">--</div>
+                    <div class="calc-result-label">Vitesse approche (km/h)</div>
+                </div>
+            </div>
+            <div style="margin-top:1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem">
+                    <input type="checkbox" id="cg-margin" checked oninput="calcCG()" style="width:16px;height:16px;accent-color:var(--accent)">
+                    Marge de securite +30%
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem">
+                    <input type="checkbox" id="cg-humid" oninput="calcCG()" style="width:16px;height:16px;accent-color:var(--accent)">
+                    Piste humide (+15%)
+                </label>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text3);margin-top:0.75rem">&#9888; Valeurs interpolees depuis les tableaux du dossier de vol (helice Mac Cauley). Distances = passage des 15 m. Marge 30% = ecart essais constructeur vs operations normales.</p>
+            <img src="/dr400/perfo-dossier-vol.webp" alt="Tableaux performances dossier de vol DR400/120" style="margin-top:1rem;max-width:100%;border-radius:12px;border:1px solid var(--border);cursor:pointer" onclick="openLightbox(this)">
         </div>
 
         <!-- CG ENVELOPE CANVAS -->
@@ -2487,8 +2568,174 @@ function calcCG() {
         statusEl.style.fontSize = '1rem';
     }
 
+    // Performance calculations
+    calcPerf(totalMass, fuelL);
+
     // Draw CG envelope
     drawCGEnvelope(totalMass, cgPos, allOk);
+}
+
+// ============================================================
+// PERFORMANCE CALCULATOR (from dossier de vol DR400/120)
+// ============================================================
+function calcPerf(mass, fuelL) {
+    const temp = parseFloat(document.getElementById('cg-temp').value) || 15;
+    const elev = parseFloat(document.getElementById('cg-elev').value) || 0;
+    const runway = document.getElementById('cg-runway').value;
+    const wind = parseFloat(document.getElementById('cg-wind').value) || 0;
+
+    // ISA temperature at elevation: 15 - 2°C per 1000ft
+    const isaTemp = 15 - (elev / 1000) * 2;
+    const isaDev = temp - isaTemp;
+
+    // Density altitude (approx): elev + 120 * (OAT - ISA)
+    const densityAlt = Math.round(elev + 120 * isaDev);
+
+    // Display ISA deviation
+    const isaStr = isaDev >= 0 ? `ISA +${isaDev.toFixed(0)}` : `ISA ${isaDev.toFixed(0)}`;
+    document.getElementById('perf-da').textContent = densityAlt.toLocaleString();
+    document.getElementById('perf-da').className = `calc-result-value ${densityAlt > 6000 ? 'c-red' : densityAlt > 4000 ? 'c-yellow' : 'c-green'}`;
+    document.getElementById('perf-isa').textContent = isaStr;
+    document.getElementById('perf-isa').className = `calc-result-value ${Math.abs(isaDev) > 20 ? 'c-red' : Math.abs(isaDev) > 10 ? 'c-yellow' : 'c-green'}`;
+
+    // ---- TAKEOFF DISTANCE INTERPOLATION ----
+    // Data from dossier de vol (roulement / passage 15m) - 900 kg, piste beton
+    // Format: [altitude, isaDev, roulement, passage15m]
+    const tkoff900 = [
+        [0, -20, 225, 480], [0, 0, 235, 535], [0, 20, 285, 590],
+        [4000, -20, 305, 645], [4000, 0, 345, 720], [4000, 20, 390, 800],
+        [8000, -20, 425, 890], [8000, 0, 475, 1000], [8000, 20, 535, 1125]
+    ];
+    const tkoff700 = [
+        [0, -20, 130, 285], [0, 0, 145, 315], [0, 20, 165, 345],
+        [4000, -20, 175, 375], [4000, 0, 195, 415], [4000, 20, 220, 460],
+        [8000, -20, 235, 500], [8000, 0, 265, 560], [8000, 20, 300, 675]
+    ];
+    // Grass versions (from dossier de vol)
+    const tkoff900g = [
+        [0, -20, 315, 570], [0, 0, 360, 640], [0, 20, 410, 715],
+        [4000, -20, 460, 800], [4000, 0, 530, 905], [4000, 20, 615, 1025],
+        [8000, -20, 700, 1165], [8000, 0, 820, 1350], [8000, 20, 960, 1550]
+    ];
+    const tkoff700g = [
+        [0, -20, 165, 320], [0, 0, 185, 355], [0, 20, 215, 395],
+        [4000, -20, 230, 430], [4000, 0, 265, 485], [4000, 20, 300, 540],
+        [8000, -20, 330, 595], [8000, 0, 380, 675], [8000, 20, 440, 760]
+    ];
+
+    // Landing data (freinage modere, piste dur/herbe) - 900 kg
+    const ldg900 = [
+        [0, -20, 185, 435], [0, 0, 200, 460], [0, 20, 210, 485],
+        [4000, -20, 205, 475], [4000, 0, 225, 505], [4000, 20, 240, 525],
+        [8000, -20, 235, 525], [8000, 0, 250, 555], [8000, 20, 270, 590]
+    ];
+    const ldg700 = [
+        [0, -20, 145, 365], [0, 0, 155, 385], [0, 20, 165, 400],
+        [4000, -20, 160, 395], [4000, 0, 175, 420], [4000, 20, 185, 440],
+        [8000, -20, 180, 430], [8000, 0, 195, 460], [8000, 20, 210, 485]
+    ];
+
+    function interpTable(table, alt, isa) {
+        // Find surrounding altitude brackets
+        const alts = [...new Set(table.map(r => r[0]))].sort((a,b) => a-b);
+        let altLow = alts[0], altHigh = alts[alts.length-1];
+        for (let i = 0; i < alts.length - 1; i++) {
+            if (alt >= alts[i] && alt <= alts[i+1]) { altLow = alts[i]; altHigh = alts[i+1]; break; }
+        }
+        if (alt <= alts[0]) { altLow = altHigh = alts[0]; }
+        if (alt >= alts[alts.length-1]) { altLow = altHigh = alts[alts.length-1]; }
+
+        function interpAtAlt(a) {
+            const rows = table.filter(r => r[0] === a).sort((a,b) => a[1]-b[1]);
+            if (rows.length === 0) return [0, 0];
+            let lo = rows[0], hi = rows[rows.length-1];
+            for (let i = 0; i < rows.length - 1; i++) {
+                if (isa >= rows[i][1] && isa <= rows[i+1][1]) { lo = rows[i]; hi = rows[i+1]; break; }
+            }
+            if (isa <= rows[0][1]) { lo = hi = rows[0]; }
+            if (isa >= rows[rows.length-1][1]) { lo = hi = rows[rows.length-1]; }
+            const t = (lo[1] === hi[1]) ? 0 : (isa - lo[1]) / (hi[1] - lo[1]);
+            return [lo[2] + t * (hi[2] - lo[2]), lo[3] + t * (hi[3] - lo[3])];
+        }
+
+        const vLow = interpAtAlt(altLow);
+        const vHigh = interpAtAlt(altHigh);
+        const t = (altLow === altHigh) ? 0 : (alt - altLow) / (altHigh - altLow);
+        return [vLow[0] + t * (vHigh[0] - vLow[0]), vLow[1] + t * (vHigh[1] - vLow[1])];
+    }
+
+    // Interpolate by mass (between 700 and 900 kg tables)
+    function interpMass(table900, table700, mass, alt, isa) {
+        const v900 = interpTable(table900, alt, isa);
+        const v700 = interpTable(table700, alt, isa);
+        const t = Math.max(0, Math.min(1, (mass - 700) / (900 - 700)));
+        return [v700[0] + t * (v900[0] - v700[0]), v700[1] + t * (v900[1] - v700[1])];
+    }
+
+    // Select table based on runway type
+    const tkoffHard = (runway === 'hard');
+    const tkResult = interpMass(
+        tkoffHard ? tkoff900 : tkoff900g,
+        tkoffHard ? tkoff700 : tkoff700g,
+        mass, elev, isaDev
+    );
+    const ldgResult = interpMass(ldg900, ldg700, mass, elev, isaDev);
+
+    // Wind correction for takeoff
+    let windFactorTk = 1;
+    if (wind >= 25) windFactorTk = 0.55;
+    else if (wind >= 15) windFactorTk = 0.55 + (0.65 - 0.55) * (25 - wind) / 10;
+    else if (wind >= 5) windFactorTk = 0.65 + (0.85 - 0.65) * (15 - wind) / 10;
+    else windFactorTk = 0.85 + (1 - 0.85) * (5 - wind) / 5;
+    if (wind === 0) windFactorTk = 1;
+    // Simpler: use the dossier values directly
+    if (wind >= 30) windFactorTk = 0.55;
+    else if (wind >= 20) windFactorTk = 0.65;
+    else if (wind >= 10) windFactorTk = 0.85;
+    else windFactorTk = 1;
+
+    // Wind correction for landing
+    let windFactorLdg = 1;
+    if (wind >= 30) windFactorLdg = 0.52;
+    else if (wind >= 20) windFactorLdg = 0.63;
+    else if (wind >= 10) windFactorLdg = 0.78;
+    else windFactorLdg = 1;
+
+    // Grass correction for landing (if not already grass table for takeoff)
+    let grassFactorLdg = (runway === 'grass') ? 1.15 : 1;
+
+    // Marge 30% (checkbox)
+    const marginOn = document.getElementById('cg-margin')?.checked ?? true;
+    const humidOn = document.getElementById('cg-humid')?.checked ?? false;
+    const margin = marginOn ? 1.3 : 1;
+    const humid = humidOn ? 1.15 : 1;
+
+    const tkDist = Math.round(tkResult[1] * windFactorTk * margin * humid);
+    const tkRoul = Math.round(tkResult[0] * windFactorTk * margin * humid);
+    const ldgDist = Math.round(ldgResult[1] * windFactorLdg * grassFactorLdg * margin * humid);
+    const ldgRoul = Math.round(ldgResult[0] * windFactorLdg * grassFactorLdg * margin * humid);
+
+    document.getElementById('perf-tkoff').innerHTML = `${tkDist}<span style="font-size:0.7rem;color:var(--text3)"> (${tkRoul} roul.)</span>`;
+    document.getElementById('perf-tkoff').className = `calc-result-value ${tkDist > 1000 ? 'c-red' : tkDist > 700 ? 'c-yellow' : 'c-green'}`;
+
+    document.getElementById('perf-ldg').innerHTML = `${ldgDist}<span style="font-size:0.7rem;color:var(--text3)"> (${ldgRoul} roul.)</span>`;
+    document.getElementById('perf-ldg').className = `calc-result-value ${ldgDist > 800 ? 'c-red' : ldgDist > 600 ? 'c-yellow' : 'c-green'}`;
+
+    // Endurance
+    const usableFuel = Math.min(fuelL, 100); // 10 derniers L = vol horizontal only
+    const conso = 25; // L/h at 75%
+    const enduranceH = usableFuel / conso;
+    const hours = Math.floor(enduranceH);
+    const mins = Math.round((enduranceH - hours) * 60);
+    document.getElementById('perf-endurance').textContent = `${hours}h${String(mins).padStart(2,'0')}`;
+    document.getElementById('perf-endurance').className = `calc-result-value ${enduranceH < 1 ? 'c-red' : enduranceH < 1.5 ? 'c-yellow' : 'c-green'}`;
+
+    // Vref (1.3 * Vs0 adjusted for mass)
+    const vs0_900 = 83; // km/h at 900 kg full flaps
+    const vs0_mass = vs0_900 * Math.sqrt(mass / 900);
+    const vref = Math.round(vs0_mass * 1.3);
+    document.getElementById('perf-vref').textContent = vref;
+    document.getElementById('perf-vref').className = 'calc-result-value c-accent';
 }
 
 // CG Envelope Drawing
