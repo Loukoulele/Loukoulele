@@ -2441,6 +2441,71 @@
             <img src="/dr400/perfo-dossier-vol.webp" alt="Tableaux performances dossier de vol DR400/120" style="margin-top:1rem;max-width:100%;border-radius:12px;border:1px solid var(--border);cursor:pointer" onclick="openLightbox(this)">
         </div>
 
+        <!-- TABLEAUX AERODROMES -->
+        <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">
+            <div style="font-weight:700;color:var(--white);margin-bottom:0.5rem;display:flex;align-items:center;gap:8px">
+                <span style="font-size:1.2rem">&#127963;</span> Fiches aerodromes
+            </div>
+            <p style="font-size:0.8rem;color:var(--text2);margin-bottom:1rem">Ajoutez vos aerodromes et les performances se calculent automatiquement selon les conditions du jour.</p>
+
+            <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+                <input type="text" id="ad-name" placeholder="Nom (ex: LFPN Toussus)" style="flex:1;min-width:180px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none">
+                <input type="number" id="ad-elev" placeholder="Altitude ft" style="width:120px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none">
+                <select id="ad-rwy" style="padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:0.9rem;outline:none">
+                    <option value="hard">Dur</option>
+                    <option value="grass">Herbe</option>
+                </select>
+                <button onclick="addAerodrome()" style="padding:10px 20px;background:var(--accent);border:none;border-radius:10px;color:white;font-family:inherit;font-weight:600;cursor:pointer;font-size:0.9rem;white-space:nowrap">+ Ajouter</button>
+            </div>
+
+            <!-- Decollage table -->
+            <div style="margin-bottom:1.5rem">
+                <div style="font-weight:600;color:var(--green);margin-bottom:0.5rem;font-size:0.9rem">&#9650; PERFORMANCES DECOLLAGE</div>
+                <div style="overflow-x:auto">
+                    <table class="data-table" id="ad-tkoff-table">
+                        <thead>
+                            <tr>
+                                <th>Aerodrome</th>
+                                <th>Alt (ft)</th>
+                                <th>Piste</th>
+                                <th>DF 15 m</th>
+                                <th style="color:var(--yellow)">+ 30%</th>
+                                <th>Roulage</th>
+                                <th style="color:var(--yellow)">+ 30%</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="ad-tkoff-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Atterrissage table -->
+            <div>
+                <div style="font-weight:600;color:var(--orange);margin-bottom:0.5rem;font-size:0.9rem">&#9660; PERFORMANCES ATTERRISSAGE</div>
+                <div style="overflow-x:auto">
+                    <table class="data-table" id="ad-ldg-table">
+                        <thead>
+                            <tr>
+                                <th>Aerodrome</th>
+                                <th>Alt (ft)</th>
+                                <th>Piste</th>
+                                <th>DF 15 m</th>
+                                <th style="color:var(--yellow)">+ 30%</th>
+                                <th>Roulage</th>
+                                <th style="color:var(--yellow)">+ 30%</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="ad-ldg-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text3);margin-top:0.75rem">Les valeurs se recalculent automatiquement quand vous changez la masse, la temperature ou le vent.</p>
+        </div>
+
         <!-- CG ENVELOPE CANVAS -->
         <canvas id="cgCanvas" class="cg-canvas"></canvas>
     </div>
@@ -2570,6 +2635,9 @@ function calcCG() {
 
     // Performance calculations
     calcPerf(totalMass, fuelL);
+
+    // Recalculate aerodrome tables
+    updateAerodromes(totalMass, fuelL);
 
     // Draw CG envelope
     drawCGEnvelope(totalMass, cgPos, allOk);
@@ -2736,6 +2804,186 @@ function calcPerf(mass, fuelL) {
     const vref = Math.round(vs0_mass * 1.3);
     document.getElementById('perf-vref').textContent = vref;
     document.getElementById('perf-vref').className = 'calc-result-value c-accent';
+}
+
+// ============================================================
+// AERODROME TABLE MANAGEMENT
+// ============================================================
+let aerodromes = [];
+
+function addAerodrome() {
+    const nameEl = document.getElementById('ad-name');
+    const elevEl = document.getElementById('ad-elev');
+    const rwyEl = document.getElementById('ad-rwy');
+    const name = nameEl.value.trim();
+    const elev = parseInt(elevEl.value) || 0;
+    const rwy = rwyEl.value;
+    if (!name) { nameEl.focus(); return; }
+
+    aerodromes.push({ name, elev, rwy });
+    nameEl.value = '';
+    elevEl.value = '';
+
+    // Get current mass from CG calc
+    const mv = 541;
+    const paxAV = parseFloat(document.getElementById('cg-pax-av').value) || 0;
+    const paxAR = parseFloat(document.getElementById('cg-pax-ar').value) || 0;
+    const fuelL = parseFloat(document.getElementById('cg-fuel').value) || 0;
+    const bag = parseFloat(document.getElementById('cg-bag').value) || 0;
+    const mass = mv + paxAV + paxAR + fuelL * 0.72 + bag;
+
+    updateAerodromes(mass, fuelL);
+    nameEl.focus();
+}
+
+function removeAerodrome(idx) {
+    aerodromes.splice(idx, 1);
+    const mv = 541;
+    const paxAV = parseFloat(document.getElementById('cg-pax-av').value) || 0;
+    const paxAR = parseFloat(document.getElementById('cg-pax-ar').value) || 0;
+    const fuelL = parseFloat(document.getElementById('cg-fuel').value) || 0;
+    const bag = parseFloat(document.getElementById('cg-bag').value) || 0;
+    const mass = mv + paxAV + paxAR + fuelL * 0.72 + bag;
+    updateAerodromes(mass, fuelL);
+}
+
+function updateAerodromes(mass) {
+    const temp = parseFloat(document.getElementById('cg-temp').value) || 15;
+    const wind = parseFloat(document.getElementById('cg-wind').value) || 0;
+    const humidOn = document.getElementById('cg-humid')?.checked ?? false;
+    const humid = humidOn ? 1.15 : 1;
+
+    // Wind factors
+    let wfTk = 1, wfLdg = 1;
+    if (wind >= 30) { wfTk = 0.55; wfLdg = 0.52; }
+    else if (wind >= 20) { wfTk = 0.65; wfLdg = 0.63; }
+    else if (wind >= 10) { wfTk = 0.85; wfLdg = 0.78; }
+
+    const tkoffBody = document.getElementById('ad-tkoff-body');
+    const ldgBody = document.getElementById('ad-ldg-body');
+    tkoffBody.innerHTML = '';
+    ldgBody.innerHTML = '';
+
+    if (aerodromes.length === 0) {
+        const emptyRow = '<tr><td colspan="8" style="text-align:center;color:var(--text3);font-style:italic;padding:1.5rem">Aucun aerodrome ajoute</td></tr>';
+        tkoffBody.innerHTML = emptyRow;
+        ldgBody.innerHTML = emptyRow;
+        return;
+    }
+
+    // Reuse the same interpolation tables from calcPerf
+    const tkoff900 = [
+        [0,-20,225,480],[0,0,235,535],[0,20,285,590],
+        [4000,-20,305,645],[4000,0,345,720],[4000,20,390,800],
+        [8000,-20,425,890],[8000,0,475,1000],[8000,20,535,1125]
+    ];
+    const tkoff700 = [
+        [0,-20,130,285],[0,0,145,315],[0,20,165,345],
+        [4000,-20,175,375],[4000,0,195,415],[4000,20,220,460],
+        [8000,-20,235,500],[8000,0,265,560],[8000,20,300,675]
+    ];
+    const tkoff900g = [
+        [0,-20,315,570],[0,0,360,640],[0,20,410,715],
+        [4000,-20,460,800],[4000,0,530,905],[4000,20,615,1025],
+        [8000,-20,700,1165],[8000,0,820,1350],[8000,20,960,1550]
+    ];
+    const tkoff700g = [
+        [0,-20,165,320],[0,0,185,355],[0,20,215,395],
+        [4000,-20,230,430],[4000,0,265,485],[4000,20,300,540],
+        [8000,-20,330,595],[8000,0,380,675],[8000,20,440,760]
+    ];
+    const ldg900 = [
+        [0,-20,185,435],[0,0,200,460],[0,20,210,485],
+        [4000,-20,205,475],[4000,0,225,505],[4000,20,240,525],
+        [8000,-20,235,525],[8000,0,250,555],[8000,20,270,590]
+    ];
+    const ldg700 = [
+        [0,-20,145,365],[0,0,155,385],[0,20,165,400],
+        [4000,-20,160,395],[4000,0,175,420],[4000,20,185,440],
+        [8000,-20,180,430],[8000,0,195,460],[8000,20,210,485]
+    ];
+
+    function interpTable(table, alt, isa) {
+        const alts = [...new Set(table.map(r => r[0]))].sort((a,b) => a-b);
+        let altLow = alts[0], altHigh = alts[alts.length-1];
+        for (let i = 0; i < alts.length - 1; i++) {
+            if (alt >= alts[i] && alt <= alts[i+1]) { altLow = alts[i]; altHigh = alts[i+1]; break; }
+        }
+        if (alt <= alts[0]) altLow = altHigh = alts[0];
+        if (alt >= alts[alts.length-1]) altLow = altHigh = alts[alts.length-1];
+
+        function interpAtAlt(a) {
+            const rows = table.filter(r => r[0] === a).sort((x,y) => x[1]-y[1]);
+            if (!rows.length) return [0,0];
+            let lo = rows[0], hi = rows[rows.length-1];
+            for (let i = 0; i < rows.length-1; i++) {
+                if (isa >= rows[i][1] && isa <= rows[i+1][1]) { lo = rows[i]; hi = rows[i+1]; break; }
+            }
+            if (isa <= rows[0][1]) lo = hi = rows[0];
+            if (isa >= rows[rows.length-1][1]) lo = hi = rows[rows.length-1];
+            const t = lo[1]===hi[1] ? 0 : (isa-lo[1])/(hi[1]-lo[1]);
+            return [lo[2]+t*(hi[2]-lo[2]), lo[3]+t*(hi[3]-lo[3])];
+        }
+        const vL = interpAtAlt(altLow), vH = interpAtAlt(altHigh);
+        const t = altLow===altHigh ? 0 : (alt-altLow)/(altHigh-altLow);
+        return [vL[0]+t*(vH[0]-vL[0]), vL[1]+t*(vH[1]-vL[1])];
+    }
+
+    function interpMass(t900, t700, m, alt, isa) {
+        const v9 = interpTable(t900, alt, isa);
+        const v7 = interpTable(t700, alt, isa);
+        const t = Math.max(0, Math.min(1, (m-700)/200));
+        return [v7[0]+t*(v9[0]-v7[0]), v7[1]+t*(v9[1]-v7[1])];
+    }
+
+    aerodromes.forEach((ad, idx) => {
+        const isaDev = temp - (15 - ad.elev / 1000 * 2);
+        const isHard = ad.rwy === 'hard';
+        const rwyLabel = isHard ? 'Dur' : 'Herbe';
+
+        // Takeoff
+        const tk = interpMass(
+            isHard ? tkoff900 : tkoff900g,
+            isHard ? tkoff700 : tkoff700g,
+            mass, ad.elev, isaDev
+        );
+        const tkRoul = Math.round(tk[0] * wfTk * humid);
+        const tkDF = Math.round(tk[1] * wfTk * humid);
+        const tkRoul30 = Math.round(tkRoul * 1.3);
+        const tkDF30 = Math.round(tkDF * 1.3);
+
+        // Landing
+        const ld = interpMass(ldg900, ldg700, mass, ad.elev, isaDev);
+        const grassFactor = isHard ? 1 : 1.15;
+        const ldRoul = Math.round(ld[0] * wfLdg * grassFactor * humid);
+        const ldDF = Math.round(ld[1] * wfLdg * grassFactor * humid);
+        const ldRoul30 = Math.round(ldRoul * 1.3);
+        const ldDF30 = Math.round(ldDF * 1.3);
+
+        const delBtn = `<button onclick="removeAerodrome(${idx})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem" title="Supprimer">&times;</button>`;
+
+        tkoffBody.innerHTML += `<tr>
+            <td><strong>${ad.name}</strong></td>
+            <td class="mono">${ad.elev}</td>
+            <td>${rwyLabel}</td>
+            <td class="mono">${tkDF}</td>
+            <td class="mono" style="color:var(--yellow);font-weight:700">${tkDF30}</td>
+            <td class="mono">${tkRoul}</td>
+            <td class="mono" style="color:var(--yellow);font-weight:700">${tkRoul30}</td>
+            <td>${delBtn}</td>
+        </tr>`;
+
+        ldgBody.innerHTML += `<tr>
+            <td><strong>${ad.name}</strong></td>
+            <td class="mono">${ad.elev}</td>
+            <td>${rwyLabel}</td>
+            <td class="mono">${ldDF}</td>
+            <td class="mono" style="color:var(--yellow);font-weight:700">${ldDF30}</td>
+            <td class="mono">${ldRoul}</td>
+            <td class="mono" style="color:var(--yellow);font-weight:700">${ldRoul30}</td>
+            <td>${delBtn}</td>
+        </tr>`;
+    });
 }
 
 // CG Envelope Drawing
