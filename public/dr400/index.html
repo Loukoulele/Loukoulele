@@ -379,6 +379,18 @@
             border-radius: 16px;
             padding: 1.5rem;
             text-align: center;
+            transition: all 0.3s;
+        }
+        .gauge-card:hover {
+            background: var(--card-hover);
+            border-color: rgba(59,130,246,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .gauge-card canvas {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
         }
 
         .gauge {
@@ -2880,28 +2892,41 @@ function drawAllGauges(progress) {
 }
 
 // Animate gauges when visible
+let gaugesAnimated = false;
+function startGaugeAnimation() {
+    if (gaugesAnimated) return;
+    gaugesAnimated = true;
+    const start = performance.now();
+    const duration = 2500;
+    function tick(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        drawAllGauges(ease);
+        if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+}
+
 const gaugeObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-        if (entry.isIntersecting && !entry.target.dataset.animated) {
-            entry.target.dataset.animated = '1';
-            const start = performance.now();
-            const duration = 2000;
-            function tick(now) {
-                const p = Math.min((now - start) / duration, 1);
-                const ease = 1 - Math.pow(1 - p, 3);
-                drawAllGauges(ease);
-                if (p < 1) requestAnimationFrame(tick);
-            }
-            requestAnimationFrame(tick);
-        }
+        if (entry.isIntersecting) startGaugeAnimation();
     });
-}, { threshold: 0.3 });
+}, { threshold: 0.05 });
 
+// Init: draw gauges at full values immediately, then animate when scrolled to
 setTimeout(() => {
     const gg = document.querySelector('.gauge-grid');
-    if (gg) gaugeObserver.observe(gg);
-    drawAllGauges(0);
-}, 100);
+    if (gg) {
+        gaugeObserver.observe(gg);
+        // Check if already in view
+        const rect = gg.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+            startGaugeAnimation();
+        } else {
+            drawAllGauges(1); // Show full values even before animation
+        }
+    }
+}, 200);
 
 // ============================================================
 // SPEED BAR HOVER TOOLTIPS (enhanced interactivity)
